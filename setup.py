@@ -9,6 +9,7 @@ setup(
         'pandas',
         'numpy',
         'plotly',
+        'polars',
     ],
     author="Bernardo Aguzzoli Heberle",
     author_email="bernardo.aguzzoli@gmail.com",

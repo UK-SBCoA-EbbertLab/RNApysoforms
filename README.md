@@ -12,15 +12,15 @@
 
 ## Installation
 
-You can install `plotly_ggtranscript` directly from the source:
+You can install `pytranscript` directly from the source:
 
 ```bash
-pip install -e /path/to/plotly_ggtranscript
+pip install -e /path/to/pytranscript
 ```
 
 ## Usage
 
-Here's a basic example of how to use `plotly_ggtranscript`:
+Here's a basic example of how to use `pytranscript`:
 
 ```python
 import pandas as pd
@@ -56,7 +56,7 @@ fig.show()
 
 ## Contributing
 
-Contributions to `plotly_ggtranscript` are welcome! Please feel free to submit a Pull Request.
+Contributions to `pytranscript` are welcome! Please feel free to submit a Pull Request.
 
 ## License
 

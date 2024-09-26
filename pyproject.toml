@@ -19,7 +19,7 @@ dependencies = [
     "pandas",
     "numpy",
     "plotly",
-    "pyranges",
+    "polars",
 ]
 requires-python = ">=3.7"
 
