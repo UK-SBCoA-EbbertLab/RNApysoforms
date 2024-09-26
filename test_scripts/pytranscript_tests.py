@@ -6,11 +6,7 @@ from plotly.subplots import make_subplots
 import sys
 import os
 sys.path.append("C:/Users/local_bag222/Desktop/dash_apps/AD_RNAseq_dash_app")
-from plotly_ggtranscript import geom_range, geom_intron, to_intron, shorten_gaps, set_axis, calculate_cds_exon_difference, rescale_cds
-
-# Example DataFrame: Contains a single column 'Names' with a list of names
-data = {'Names': ['Alice', 'Bob', 'Charlie', 'David']}
-df = pd.DataFrame(data)
+import pytranscript
 
 def get_valid_input(df, column_name):
     """

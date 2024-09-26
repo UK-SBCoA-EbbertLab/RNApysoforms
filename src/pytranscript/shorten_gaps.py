@@ -2,8 +2,10 @@ import pandas as pd  # Import pandas for data manipulation
 import numpy as np  # Import numpy for numerical operations
 import plotly.graph_objects as go  # Import Plotly for creating plots
 from typing import List, Union  # Import type annotations for functions
+from pytranscript.to_intron import to_intron ## Import to intron function
 
-def shorten_gaps(exons: pd.DataFrame, introns: pd.DataFrame, 
+
+def shorten_gaps(annotation: pd.DataFrame, 
                  group_var: Union[str, List[str]] = None, 
                  target_gap_width: int = 100) -> pd.DataFrame:
     """
@@ -11,8 +13,8 @@ def shorten_gaps(exons: pd.DataFrame, introns: pd.DataFrame,
 
     Parameters:
     -----------
-    exons : pd.DataFrame
-        DataFrame containing exon information.
+    annotation : pd.DataFrame
+        DataFrame containing exon, intron, and possibly CDS information
     introns : pd.DataFrame
         DataFrame containing intron information.
     group_var : str or List[str], optional
@@ -25,6 +27,16 @@ def shorten_gaps(exons: pd.DataFrame, introns: pd.DataFrame,
     pd.DataFrame
         DataFrame with shortened intron gaps and rescaled coordinates.
     """
+
+    ## Separate introns, exons, and possibly CDS
+    exons = annotations.loc[annotations["type"] == "exon"].copy()
+    introns = to_intron(exons=exons, group_var=group_var)
+
+    if "CDS" in annotations["type"].unique().tolist():
+        cds = annotations.loc[annotations["type"] == "CDS"].copy()
+    else:
+        cds = None
+
     # Ensure required columns are present in both the exons and introns DataFrames
     for df in [exons, introns]:
         assert all(col in df.columns for col in ['start', 'end', 'strand', 'seqnames']), \
@@ -60,6 +72,17 @@ def shorten_gaps(exons: pd.DataFrame, introns: pd.DataFrame,
 
     # Rescale the coordinates of exons and introns after shortening the gaps
     rescaled_tx = _get_rescaled_txs(exons, introns_shortened, tx_start_gaps_shortened, group_var)
+
+    ## Process CDS if there at all
+    if cds != None:
+        cds_diff = _calculate_cds_exon_difference(cds, exons)
+        rescaled_cds = _rescale_cds(cds_diff, rescaled_tx.loc[rescaled_tx["type"] == "exon"].copy())
+        # Combine the CDS into final dataframe
+        rescaled_tx = pd.concat([rescaled_tx, rescaled_cds], ignore_index=True)
+        # Sort the DataFrame by group_var (e.g., transcript) and start position
+        rescaled_tx = rescaled_tx.sort_values(by=[group_var, 'start', 'end'] if group_var else ['start', 'end'])
+
+
     
     return rescaled_tx  # Return the DataFrame with rescaled transcript coordinates
 
@@ -321,3 +344,141 @@ def _get_rescaled_txs(exons: pd.DataFrame, introns_shortened: pd.DataFrame,
     rescaled_tx = rescaled_tx[column_order]
 
     return rescaled_tx  # Return the DataFrame with rescaled transcript coordinates
+
+
+
+
+def _calculate_cds_exon_difference(gene_exons, gene_cds_regions):
+    """
+    Calculates the absolute differences between the start and end positions of exons and CDS regions.
+    This function is used to prepare data for re-scaling CDS regions based on exon positions.
+
+    Parameters:
+    ----------
+    gene_cds_regions : pd.DataFrame
+        DataFrame containing CDS (Coding DNA Sequence) regions with at least 'start' and 'end' columns,
+        along with any common columns used for joining (e.g., 'transcript_id', 'gene_id').
+    gene_exons : pd.DataFrame
+        DataFrame containing exon regions with at least 'start' and 'end' columns,
+        along with any common columns used for joining.
+
+    Returns:
+    -------
+    cds_exon_diff : pd.DataFrame
+        DataFrame resulting from a left join of the CDS and exon data, including the calculated
+        absolute differences 'diff_start' and 'diff_end' between exon and CDS start and end positions.
+    """
+
+    # Step 1: Rename 'start' and 'end' columns in CDS regions to 'cds_start' and 'cds_end'
+    cds_regions = gene_cds_regions.rename(columns={'start': 'cds_start', 'end': 'cds_end'})
+
+    # Remove the 'type' column if it exists
+    if 'type' in cds_regions.columns:
+        cds_regions = cds_regions.drop(columns=['type'])
+
+    # Step 2: Rename 'start' and 'end' columns in exon regions to 'exon_start' and 'exon_end'
+    exons = gene_exons.rename(columns={'start': 'exon_start', 'end': 'exon_end'})
+
+    # Remove the 'type' column if it exists
+    if 'type' in exons.columns:
+        exons = exons.drop(columns=['type'])
+
+    # Step 3: Identify common columns to perform the left join
+    common_columns = list(set(cds_regions.columns) & set(exons.columns))
+    if not common_columns:
+        raise ValueError("No common columns to perform join on. Ensure both DataFrames have common keys.")
+
+    # Step 4: Perform the left join on the common columns
+    cds_exon_diff = pd.merge(cds_regions, exons, how='left', on=common_columns)
+
+    print(cds_exon_diff)
+
+    # Step 5: Calculate absolute differences between exon and CDS start positions
+    cds_exon_diff['diff_start'] = (cds_exon_diff['exon_start'] - cds_exon_diff['cds_start']).abs()
+
+    # Step 6: Calculate absolute differences between exon and CDS end positions
+    cds_exon_diff['diff_end'] = (cds_exon_diff['exon_end'] - cds_exon_diff['cds_end']).abs()
+
+    return cds_exon_diff
+
+def _rescale_cds(cds_exon_diff, gene_rescaled_exons):
+    """
+    Rescales CDS regions based on exon positions and the calculated differences between CDS and exon positions.
+    This function aligns the CDS regions to the rescaled exon positions and adjusts their start and end points
+    accordingly.
+
+    Parameters
+    ----------
+    cds_exon_diff : pd.DataFrame
+        DataFrame containing the differences between the start and end positions of exons and CDS regions.
+        Expected columns:
+        - 'diff_start': Absolute difference between exon start and CDS start positions.
+        - 'diff_end': Absolute difference between exon end and CDS end positions.
+        - Any columns necessary for joining (e.g., 'transcript_id', 'gene_id').
+    gene_rescaled_exons : pd.DataFrame
+        DataFrame containing the rescaled exon positions.
+        Expected columns:
+        - 'start': Rescaled start position of the exon.
+        - 'end': Rescaled end position of the exon.
+        - Any columns necessary for joining.
+
+    Returns
+    -------
+    gene_rescaled_cds : pd.DataFrame
+        DataFrame containing the rescaled CDS positions, with adjusted 'start' and 'end' positions,
+        and 'transcript_id' ordered according to 'factor_order'.
+    """
+
+    # Step 1: Prepare the CDS DataFrame
+    # - Assign a new column 'type' with the value "CDS"
+    # - Drop unnecessary columns: 'c_start', 'c_end', 'e_start', 'e_end' if they exist
+
+    cds_prepared = (
+        cds_exon_diff
+        .assign(type="CDS")
+        .drop(columns=['cds_start', 'cds_end', 'exon_start', 'exon_end'], errors='ignore')
+    )
+
+    # Step 2: Prepare the Exon DataFrame
+    # - Rename 'start' to 'exon_start' and 'end' to 'exon_end' to avoid column name conflicts
+    # - Drop the 'type' column if it exists
+
+    exons_prepared = (
+        gene_rescaled_exons
+        .rename(columns={'start': 'exon_start', 'end': 'exon_end'})
+        .drop(columns=['type'], errors='ignore')
+    )
+
+    # Step 3: Identify common columns for joining
+    # - Find columns that are present in both DataFrames to use as keys for the join
+
+    common_columns = [col for col in cds_prepared.columns if col in exons_prepared.columns]
+    if not common_columns:
+        raise ValueError("No common columns to perform join on. Ensure both DataFrames have common keys.")
+
+    # Step 4: Perform the left join on the common columns
+    # - This aligns the CDS data with the corresponding rescaled exon positions
+
+    gene_rescaled_cds = pd.merge(
+        cds_prepared,
+        exons_prepared,
+        how='left',
+        on=common_columns
+    )
+
+    # Step 5: Calculate the adjusted 'start' and 'end' positions for the CDS regions
+    # - 'start' is adjusted by adding 'diff_start' to 'exon_start'
+    # - 'end' is adjusted by subtracting 'diff_end' from 'exon_end'
+
+    gene_rescaled_cds['start'] = gene_rescaled_cds['exon_start'] + gene_rescaled_cds['diff_start']
+    gene_rescaled_cds['end'] = gene_rescaled_cds['exon_end'] - gene_rescaled_cds['diff_end']
+
+    # Step 6: Drop unnecessary columns used for calculations
+    # - Remove 'exon_start', 'exon_end', 'diff_start', 'diff_end' as they are no longer needed
+
+    gene_rescaled_cds = gene_rescaled_cds.drop(
+        columns=['exon_start', 'exon_end', 'diff_start', 'diff_end'],
+        errors='ignore'
+    )
+
+    return gene_rescaled_cds
