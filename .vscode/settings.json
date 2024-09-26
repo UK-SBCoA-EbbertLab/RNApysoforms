@@ -6,6 +6,9 @@
         "strings": false
     },
 
+    // Open virtual environment
+    "python.terminal.activateEnvironment": true,
+
      // Controls whether suggestions should be accepted on commit characters. For example, in JavaScript, the semi-colon (`;`) can be a commit character that accepts a suggestion and types that character.
     "editor.acceptSuggestionOnCommitCharacter": true,
 
