@@ -20,6 +20,7 @@ dependencies = [
     "numpy",
     "plotly",
     "polars",
+    "pyarrow",
 ]
 requires-python = ">=3.7"
 
