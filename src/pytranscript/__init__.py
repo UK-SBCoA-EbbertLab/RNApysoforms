@@ -6,4 +6,5 @@ from .set_axis import set_axis
 from .calculate_cds_exon_difference import calculate_cds_exon_difference
 from .rescale_cds import rescale_cds
 
-__all__ = ['geom_range', 'geom_intron', 'shorten_gaps', 'to_intron', 'set_axis', 'calculate_cds_exon_difference', 'rescale_cds']
+__all__ = ['geom_range', 'geom_intron', 'shorten_gaps', 
+           'to_intron', 'set_axis', 'calculate_cds_exon_difference', 'rescale_cds']
