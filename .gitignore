@@ -18,7 +18,7 @@ __pycache__/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-pytranscript.code-workspace
+pytranscrip.code-workspace
 
 # PyCharm
 .idea/
