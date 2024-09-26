@@ -1,6 +1,6 @@
 # plotly_ggtranscript
 
-`plotly_ggtranscript` is a Python package that provides Plotly-based implementations of functionality similar to the R package `ggtranscript`. It's designed to help visualize genomic transcript structures using Plotly.
+`pytranscript` is a Python package that provides Plotly-based implementations of functionality similar to the R package `ggtranscript`. It's designed to help visualize genomic transcript structures using Plotly.
 
 ## Features
 
@@ -8,6 +8,7 @@
 - `geom_intron`: Draw introns with strand arrows
 - `shorten_gaps`: Improve transcript structure visualization by shortening gaps
 - `to_intron`: Convert exon coordinates to intron coordinates
+
 
 ## Installation
 
