@@ -24,7 +24,7 @@ Here's a basic example of how to use `plotly_ggtranscript`:
 
 ```python
 import pandas as pd
-from plotly_ggtranscript import geom_range, geom_intron, to_intron
+from pytranscript import geom_range, geom_intron, to_intron
 
 # Prepare your data
 exons = pd.DataFrame({
