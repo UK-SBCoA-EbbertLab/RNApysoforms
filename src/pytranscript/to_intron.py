@@ -1,95 +1,79 @@
-import pandas as pd
+import polars as pl
 from typing import Union, List
 
-def to_intron(exons: pd.DataFrame, group_var: Union[str, List[str]] = None) -> pd.DataFrame:
+def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = None) -> pl.DataFrame:
     """
     Convert exon coordinates to intron coordinates.
 
     Parameters:
     -----------
-    exons : pd.DataFrame
+    exons : pl.DataFrame
         DataFrame containing exon coordinates. Must have 'start' and 'end' columns.
     group_var : str or List[str], optional
         Column name(s) for grouping transcripts. Default is None.
 
     Returns:
     --------
-    pd.DataFrame
+    pl.DataFrame
         DataFrame containing the intron coordinates.
     """
-    # Input checks
-    required_cols = ['start', 'end']
+    
+    ## Define required columns
+    required_cols = ["start", "end"]
+
+    # Check if all required columns are present in the exons DataFrame
     assert all(col in exons.columns for col in required_cols), \
         f"exons DataFrame must have columns: {', '.join(required_cols)}"
-    
-    if group_var:
+
+    if group_var is not None:
         if isinstance(group_var, str):
             group_var = [group_var]
-        assert all(col in exons.columns for col in group_var), \
-            f"group_var columns must exist in exons DataFrame"
+        if not all(col in exons.columns for col in group_var):
+            raise ValueError("group_var columns must exist in exons DataFrame")
+    else:
+        group_var = []
 
     # Sort exons by start and end coordinates
-    sort_cols = group_var + ['start', 'end'] if group_var else ['start', 'end']
-    exons_sorted = exons.sort_values(sort_cols)
+    sort_cols = group_var + ['start', 'end']
+    exons_sorted = exons.sort(sort_cols)
 
-    # Group by transcript if group_var is provided
+    # Calculate intron start and end
+    exons_with_introns = exons_sorted.with_columns([
+        pl.col('end').shift(1).over(group_var).alias('intron_start'),
+        pl.col('start').alias('intron_end'),
+        pl.lit('intron').alias('type')
+    ])
+
+    # Exclude columns that have been renamed or already included
+    exclude_cols = ['start', 'end', 'intron_start', 'intron_end', 'type']
+    columns_to_add = [col for col in exons.columns if col not in exclude_cols]
+
+    # For other columns, get the first value per group
     if group_var:
-        grouped = exons_sorted.groupby(group_var)
+        other_cols_expr = [pl.col(col).first().over(group_var).alias(col) for col in columns_to_add]
     else:
-        # If no group_var, treat all exons as one group
-        grouped = [(None, exons_sorted)]
+        other_cols_expr = [pl.col(col).first().alias(col) for col in columns_to_add]
 
-    introns_list = []
 
-    for _, group in grouped:
-        # Calculate intron start and end
-        intron_start = group['end'].shift()
-        intron_end = group['start']
+    print(other_cols_expr)
 
-        # Create introns DataFrame
-        introns = pd.DataFrame({
-            'start': intron_start,
-            'end': intron_end,
-            'type': 'intron'
-        })
-
-        # Add group variables if present
-        if group_var:
-            for var in group_var:
-                introns[var] = group[var].iloc[0]
-
-        # Add other columns from exons, if present
-        for col in exons.columns:
-            if col not in introns.columns and col not in ['start', 'end']:
-                introns[col] = group[col].iloc[0]
-
-        introns_list.append(introns)
-
-    # Combine all introns
-    all_introns = pd.concat(introns_list, ignore_index=True)
+    # Select necessary columns with unique aliases to avoid duplication
+    introns = exons_with_introns.select([
+        pl.col('intron_start').alias('start'),
+        pl.col('intron_end').alias('end'),
+        pl.col('type'),
+        *[pl.col(col).alias(f'{col}') for col in group_var],  # Alias to avoid duplication
+        *[expr.alias(f'{expr.meta["root"]}') for i, expr in enumerate(other_cols_expr)]  # Ensure unique aliases for other expressions
+    ])
 
     # Remove NAs and introns with width of 1
-    all_introns = all_introns.dropna(subset=['start', 'end'])
-    all_introns = all_introns[abs(all_introns['end'] - all_introns['start']) != 1]
+    introns = introns.drop_nulls(subset=['start', 'end'])
+    introns = introns.filter((pl.col('end') - pl.col('start')).abs() != 1)
 
-    return all_introns
+    # Cast from float to integer
+    introns = introns.with_columns([
+        pl.col('start').cast(pl.Int64),
+        pl.col('end').cast(pl.Int64)
+    ])
 
-# Example usage
-#if __name__ == "__main__":
-    # Create sample exon data
-#    exons = pd.DataFrame({
-#        'start': [100, 300, 600, 150, 400, 700],
-#        'end': [200, 400, 700, 250, 500, 800],
-#        'strand': ['+', '+', '+', '-', '-', '-'],
-#        'seqnames': ['chr1'] * 6,
-#        'transcript_name': ['tx1', 'tx1', 'tx1', 'tx2', 'tx2', 'tx2'],
-#        'type': ['exon'] * 6
-#    })
-
-    # Convert exons to introns
- #   introns = to_intron(exons, group_var='transcript_name')
-
- #   print("Exons:")
- #   print(exons)
- #   print("\nIntrons:")
- #   print(introns)
+    return introns

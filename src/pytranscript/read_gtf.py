@@ -69,6 +69,11 @@ def read_gtf(path: str) -> pl.DataFrame:
         "gene_id", "gene_name", "transcript_id", "transcript_name", 
         "transcript_biotype", "seqnames", "strand", "type", "start", "end"
     ])
+
+    ## Make coordinates integers
+    result_lazy = result_lazy.with_columns([
+    pl.col("start").cast(pl.Int64),
+    pl.col("end").cast(pl.Int64)])
     
     # Trigger the lazy computation by collecting the data into an eager DataFrame
     return result_lazy.collect()
