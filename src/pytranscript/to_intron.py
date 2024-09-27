@@ -37,16 +37,18 @@ def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = None) -> p
     sort_cols = group_var + ['start', 'end']
     exons_sorted = exons.sort(sort_cols)
 
-    # Calculate intron start and end
+    # Calculate intron start, end, and intron number
     exons_with_introns = exons_sorted.with_columns([
         pl.col('end').shift(1).over(group_var).alias('intron_start'),
         pl.col('start').alias('intron_end'),
-        pl.lit('intron').alias('type')
+        pl.lit('intron').alias('type'),
+        pl.col("exon_number").alias("exon_number")
     ])
 
     # Exclude columns that have been renamed or already included
-    exclude_cols = ['start', 'end', 'intron_start', 'intron_end', 'type']
+    exclude_cols = ['start', 'end', 'intron_start', 'intron_end', 'type', 'exon_number']
     columns_to_add = [col for col in exons.columns if col not in exclude_cols]
+    
 
     # For other columns, get the first value per group
     if group_var:
@@ -59,6 +61,7 @@ def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = None) -> p
     introns = exons_with_introns.select([
         pl.col('intron_start').alias('start'),
         pl.col('intron_end').alias('end'),
+        pl.col("exon_number"),
         pl.col('type'),
         *[expr.alias(f'{expr.meta.root_names()[0]}') for i, expr in enumerate(other_cols_expr)]  # Ensure unique aliases for other expressions
     ])

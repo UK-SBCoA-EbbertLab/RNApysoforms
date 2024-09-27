@@ -102,27 +102,74 @@ def _get_type(df: pl.DataFrame, df_type: str) -> pl.DataFrame:
     return df
 
 
+import polars as pl
+
 def _get_gaps(exons: pl.DataFrame) -> pl.DataFrame:
-    # Ensure exons are from a single chromosome and strand
-    exons_single_chrom_strand = exons.filter(
-        (exons["seqnames"].n_unique() == 1) & (exons["strand"].n_unique() == 1)
-    )
+    """
+    Identify gaps between exons in a single chromosome and strand.
+
+    Parameters:
+    -----------
+    exons : pl.DataFrame
+        DataFrame containing exon information with 'seqnames', 'start', 'end', and 'strand'.
+
+    Returns:
+    --------
+    pl.DataFrame
+        DataFrame with 'start' and 'end' positions of gaps between exons.
+    """
+    # Ensure all exons are from a single chromosome and strand
+    seqnames_unique = exons["seqnames"].n_unique()
+    strand_unique = exons["strand"].n_unique()
+    if seqnames_unique != 1 or strand_unique != 1:
+        raise ValueError("Exons must be from a single chromosome and strand")
 
     # Sort exons by start position
-    exons_sorted = exons_single_chrom_strand.sort("start")
+    exons_sorted = exons.sort('start')
 
-    # Create lagged 'end' column to find gaps
-    exons_with_lag = exons_sorted.with_columns([
-        pl.col("end").shift(1).alias("prev_end")
+    # Compute cumulative maximum of 'end' shifted by 1
+    exons_with_cummax = exons_sorted.with_columns([
+        pl.col('end').cum_max().shift(1).fill_null(0).alias('cummax_end')
     ])
 
-    # Compute gaps between consecutive exons
-    gaps = exons_with_lag.filter(pl.col("start") > (pl.col("prev_end") + 1)).select([
-        (pl.col("prev_end") + 1).alias("start"),
-        (pl.col("start") - 1).alias("end")
+    # Determine if a new group starts (no overlap with previous exons)
+    exons_with_cummax = exons_with_cummax.with_columns([
+        (pl.col('start') > pl.col('cummax_end')).alias('is_new_group')
+    ])
+
+    # Compute group_id as cumulative sum of 'is_new_group'
+    exons_with_cummax = exons_with_cummax.with_columns([
+        pl.col('is_new_group').cast(pl.Int64).cum_sum().alias('group_id')
+    ])
+
+    # Merge exons within each group
+    merged_exons = exons_with_cummax.group_by('group_id').agg([
+        pl.col('start').min().alias('start'),
+        pl.col('end').max().alias('end')
+    ])
+
+    # Sort merged exons by 'start'
+    merged_exons = merged_exons.sort('start')
+
+    # Compute 'prev_end' as shifted 'end'
+    merged_exons = merged_exons.with_columns([
+        pl.col('end').shift(1).alias('prev_end')
+    ])
+
+    # Compute gap start and end positions
+    merged_exons = merged_exons.with_columns([
+        (pl.col('prev_end') + 1).alias('gap_start'),
+        (pl.col('start') - 1).alias('gap_end')
+    ])
+
+    # Filter valid gaps where 'gap_start' <= 'gap_end'
+    gaps = merged_exons.filter(pl.col('gap_start') <= pl.col('gap_end')).select([
+        pl.col('gap_start').alias('start'),
+        pl.col('gap_end').alias('end')
     ])
 
     return gaps
+
 
 def _get_tx_start_gaps(exons: pl.DataFrame, group_var: Union[str, List[str]]) -> pl.DataFrame:
     """
@@ -180,7 +227,7 @@ def _get_gap_map(df: pl.DataFrame, gaps: pl.DataFrame) -> dict:
     # Add index as a new column
     gaps = gaps.with_row_count("gap_index")
     df = df.with_row_count("df_index")
-
+    
     # Exact matches: gaps where start and end positions match with df (exons/introns)
     equal_hits = gaps.join(df, how="inner", 
                            left_on=["start", "end"], 
@@ -202,11 +249,9 @@ def _get_gap_map(df: pl.DataFrame, gaps: pl.DataFrame) -> dict:
     
     
     # Gaps that are fully within exons/introns
-    within_hits = gaps.join(df, how="cross") \
-                      .filter((pl.col("gaps.start") >= pl.col("df.start")) & 
-                              (pl.col("gaps.end") <= pl.col("df.end"))).select([pl.col("gap_index"), 
-                               pl.col("df_index")])
-
+    within_hits = gaps.join(df, how="cross").filter((pl.col("gaps.start") >= pl.col("df.start")) & \
+        (pl.col("gaps.end") <= pl.col("df.end"))).select([pl.col("gap_index"), pl.col("df_index")])
+    
     # Remove within_hits that also appear in equal_hits
     pure_within_hits = within_hits.join(equal_hits, how="anti", on=["df_index", "gap_index"])
 
