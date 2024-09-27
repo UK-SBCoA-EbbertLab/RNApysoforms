@@ -81,7 +81,7 @@ def shorten_gaps(annotation: pd.DataFrame,
 
     ## Process CDS if there at all
     if isinstance(cds, pl.DataFrame):
-        cds_diff = _get_cds_exon_difference(cds, exons)
+        cds_diff = _get_cds_exon_difference(exons, cds)
         rescaled_cds = _get_rescale_cds(cds_diff, rescaled_tx.filter(pl.col("type") == "exon"))
         rescaled_cds = rescaled_cds[rescaled_tx.columns]
         # Combine the CDS into final dataframe
@@ -305,10 +305,11 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
             )
 
             df = df.drop(['sum_shortened_gap_diff', 'shorten_type', 'width'])
+            df = df.rename({'shortened_width': 'width'})
 
-            df = df.drop('df_index')
+        df = df.drop('df_index')
 
-    return df.rename({'shortened_width': 'width'})
+    return df
 
 def _get_rescaled_txs(
     exons: pl.DataFrame,
@@ -449,6 +450,7 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
         absolute differences 'diff_start' and 'diff_end' between exon and CDS start and end positions.
     """
 
+
     # Step 1: Rename 'start' and 'end' columns in CDS regions to 'cds_start' and 'cds_end'
     cds_regions = gene_cds_regions.rename({'start': 'cds_start', 'end': 'cds_end'})
 
@@ -467,10 +469,10 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
     common_columns = list(set(cds_regions.columns) & set(exons.columns))
     if not common_columns:
         raise ValueError("No common columns to perform join on. Ensure both DataFrames have common keys.")
-
+        
     # Step 4: Perform the left join on the common columns
     cds_exon_diff = cds_regions.join(exons, on=common_columns, how='left')
-
+    
     # Step 5: Calculate absolute differences between exon and CDS start positions
     cds_exon_diff = cds_exon_diff.with_columns(
         (pl.col('exon_start') - pl.col('cds_start')).abs().alias('diff_start')

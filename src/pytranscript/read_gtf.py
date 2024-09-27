@@ -48,7 +48,9 @@ def read_gtf(path: str) -> pl.DataFrame:
         pl.col("attributes").str.extract(r'gene_name "([^"]+)"', 1).alias("gene_name"),  # Extract gene_name
         pl.col("attributes").str.extract(r'transcript_id "([^"]+)"', 1).alias("transcript_id"),  # Extract transcript_id
         pl.col("attributes").str.extract(r'transcript_name "([^"]+)"', 1).alias("transcript_name"),  # Extract transcript_name
-        pl.col("attributes").str.extract(r'transcript_biotype "([^"]+)"', 1).alias("transcript_biotype")  # Extract transcript_biotype
+        pl.col("attributes").str.extract(r'transcript_biotype "([^"]+)"', 1).alias("transcript_biotype"),  # Extract transcript_biotype
+        pl.col("attributes").str.extract(r'exon_number "([^"]+)"', 1).alias("exon_number")  # Extract exon number
+
     ])
     
     # Fill missing gene_name values with gene_id, and missing transcript_name with transcript_id
@@ -67,13 +69,14 @@ def read_gtf(path: str) -> pl.DataFrame:
     # Select the final columns to include in the output DataFrame
     result_lazy = lazy_final.select([
         "gene_id", "gene_name", "transcript_id", "transcript_name", 
-        "transcript_biotype", "seqnames", "strand", "type", "start", "end"
+        "transcript_biotype", "seqnames", "strand", "type", "start", "end", "exon_number"
     ])
 
     ## Make coordinates integers
     result_lazy = result_lazy.with_columns([
     pl.col("start").cast(pl.Int64),
-    pl.col("end").cast(pl.Int64)])
+    pl.col("end").cast(pl.Int64),
+    pl.col("exon_number").cast(pl.Int64)])
     
     # Trigger the lazy computation by collecting the data into an eager DataFrame
     return result_lazy.collect()

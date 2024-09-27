@@ -22,7 +22,7 @@ biotype_colors = {
 annotations = annotations.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
 
 ## Filter gene of interest
-annotations = annotations.filter(pl.col("gene_name") == "SOD1")
+annotations = annotations.filter(pl.col("gene_name") == "RUNX1")
 
 ## Shorten gaps
 rescaled_annotations = pt.shorten_gaps(annotation=annotations, group_var="transcript_id")
@@ -31,7 +31,7 @@ rescaled_annotations = pt.shorten_gaps(annotation=annotations, group_var="transc
 ## Convert back to pandas
 rescaled_annotations = rescaled_annotations.to_pandas()
 
-print(rescaled_annotations)
+rescaled_annotations.to_csv("~/Desktop/test.tsv", sep="\t")
 
 ## Separate
 rescaled_cds = rescaled_annotations.loc[rescaled_annotations["type"] == "CDS"].copy()
@@ -48,21 +48,21 @@ rescaled_introns.sort_values(by=["transcript_id"], inplace=True)
 print("1")
 # Add exons using geom_range, passing the fillcolor directly
 exon_traces = pt.geom_range(
-    data=rescaled_exons,
+    data=pl.from_pandas(rescaled_exons),
     x_start='start',
     x_end='end',
     y='transcript_id', 
-    fill=rescaled_exons["fillcolor"],
+    fill=pl.from_pandas(rescaled_exons["fillcolor"]),
     height=0.3
 )
 print("2")
 ## Add CDS traces
 cds_traces = pt.geom_range(
-    data=rescaled_cds,
+    data=pl.from_pandas(rescaled_cds),
     x_start='start',
     x_end='end',
     y='transcript_id',
-    fill=rescaled_cds["fillcolor"],
+    fill=pl.from_pandas(rescaled_cds["fillcolor"]),
     height= 0.5
 )
 
@@ -70,7 +70,7 @@ print("3")
 # Create introns and add them using geom_intron
 #sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
 intron_traces = pt.geom_intron(
-    data=rescaled_introns,
+    data= pl.from_pandas(rescaled_introns),
     x_start='start',
     x_end='end',
     y='transcript_id',
@@ -95,7 +95,8 @@ for trace in intron_traces:
 
 print("5")
 # Call the new function to set the genomic axis range
-fig = set_axis(fig, rescaled_exons, rescaled_introns)
+fig = pt.set_axis(fig, rescaled_exons, rescaled_introns)
+gene_name = "SOD1"
 
 print("6")
 # Update layout and show the plot
@@ -108,8 +109,8 @@ fig.update_layout(
     width=800,
     showlegend=False,
     yaxis=dict(
-        tickvals=list(range(rescaled_exons["transcript_name"].nunique())),               # Positions of the ticks
-        ticktext=rescaled_exons["transcript_name"].unique().tolist(),  # Custom labels for the ticks
+        tickvals=list(range(rescaled_exons["transcript_id"].nunique())),               # Positions of the ticks
+        ticktext=rescaled_exons["transcript_id"].unique().tolist(),  # Custom labels for the ticks
         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
         xaxis=dict(showticklabels=False)
 )
