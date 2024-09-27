@@ -137,3 +137,35 @@ def sort_genomic_coordinates(df: pl.DataFrame, group_var: Union[str, List[str]] 
             group_var = [group_var]
         sort_cols = group_var + ['start', 'end']
     return df.sort(by=sort_cols)
+
+
+
+# Sample DataFrame
+df = pl.DataFrame({
+    'seqnames': ['chr1', 'chr1', 'chr2'],
+    'start': [100, 150, 200],
+    'end': [500, 550, 600],
+    'strand': ['+', '-', '+'],
+    'gene': ['gene1', 'gene2', 'gene3']
+})
+
+# Test check_coord_object
+check_coord_object(df, check_seqnames=True, check_strand=True)
+
+# Test check_group_var
+check_group_var(df, 'gene')
+
+# Test check_required_columns
+check_required_columns(df, ['start', 'end', 'gene'])
+
+# Test get_unique_values
+unique_genes = get_unique_values(df, 'gene')
+print(unique_genes)  # Output: ['gene1', 'gene2', 'gene3']
+
+# Test calculate_width
+widths = calculate_width(df)
+print(widths)  # Output: pl.Series with calculated widths
+
+# Test sort_genomic_coordinates
+sorted_df = sort_genomic_coordinates(df, group_var='seqnames')
+print(sorted_df)

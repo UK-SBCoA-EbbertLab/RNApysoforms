@@ -1,12 +1,10 @@
-import pandas as pd  # Import pandas for data manipulation
-import numpy as np  # Import numpy for numerical operations
 import plotly.graph_objects as go  # Import Plotly for creating plots
 from typing import List, Union  # Import type annotations for functions
 from pytranscript.to_intron import to_intron ## Import to intron function
 import polars as pl
 
 
-def shorten_gaps(annotation: pd.DataFrame, 
+def shorten_gaps(annotation: pl.DataFrame, 
                  group_var: Union[str, List[str]] = None, 
                  target_gap_width: int = 100) -> pd.DataFrame:
     """

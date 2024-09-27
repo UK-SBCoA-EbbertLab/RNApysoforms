@@ -22,7 +22,7 @@ biotype_colors = {
 annotations = annotations.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
 
 ## Filter gene of interest
-annotations = annotations.filter(pl.col("gene_name") == "RUNX1")
+annotations = annotations.filter(pl.col("gene_name") == "SOD1")
 
 ## Shorten gaps
 rescaled_annotations = pt.shorten_gaps(annotation=annotations, group_var="transcript_id")
@@ -76,22 +76,18 @@ intron_traces = pt.geom_intron(
     y='transcript_id',
     strand='strand',
     arrow_min_intron_length=400,
-    arrow_size=1
+    arrow_size=0.5
 )
 
 print("4")
-# Add exons, CDS, and introns as before
-for trace in exon_traces:
-    fig.add_shape(trace)
 
-for trace in cds_traces:
-    fig.add_shape(trace)
+# Batch add exon, CDS, and intron shapes
+fig.update_layout(
+    shapes=exon_traces + cds_traces + [trace for trace in intron_traces if isinstance(trace, dict)]
+)
 
-for trace in intron_traces:
-    if isinstance(trace, dict):
-        fig.add_shape(trace)
-    else:
-        fig.add_trace(trace)
+# For traces (like Scatter traces), add them all in a single step
+fig.add_traces([trace for trace in intron_traces if not isinstance(trace, dict)])
 
 print("5")
 # Call the new function to set the genomic axis range
