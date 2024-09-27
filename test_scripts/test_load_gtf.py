@@ -1,7 +1,6 @@
 ## Import libraries
 import pytranscript as pt
 import polars as pl
-import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -16,53 +15,53 @@ biotype_colors = {
     'protein_coding_CDS_not_defined': 'green'
 }
 
-
-
 ## Add biotype colors
 annotations = annotations.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
 
 ## Filter gene of interest
-annotations = annotations.filter(pl.col("gene_name") == "SOD1")
+annotations = annotations.filter(pl.col("gene_name") == "RUNX1")
+
+#MIR99AHG
 
 ## Shorten gaps
 rescaled_annotations = pt.shorten_gaps(annotation=annotations, group_var="transcript_id")
 
 
-## Convert back to pandas
-rescaled_annotations = rescaled_annotations.to_pandas()
-
-rescaled_annotations.to_csv("~/Desktop/test.tsv", sep="\t")
+## Vizualize data
+rescaled_annotations.write_excel("~/Desktop/test.xlsx")
 
 ## Separate
-rescaled_cds = rescaled_annotations.loc[rescaled_annotations["type"] == "CDS"].copy()
-rescaled_exons = rescaled_annotations.loc[rescaled_annotations["type"] == "exon"].copy()
-rescaled_introns = rescaled_annotations.loc[rescaled_annotations["type"] == "intron"].copy()
+rescaled_cds = rescaled_annotations.filter(pl.col("type") == "CDS").clone()
+rescaled_exons = rescaled_annotations.filter(pl.col("type") == "exon").clone()
+rescaled_introns = rescaled_annotations.filter(pl.col("type") == "intron").clone()
 
 
 # Create the plot
 fig = go.Figure()
 
-rescaled_cds.sort_values(by=["transcript_id"], inplace=True)
-rescaled_exons.sort_values(by=["transcript_id"], inplace=True)
-rescaled_introns.sort_values(by=["transcript_id"], inplace=True)
+#rescaled_cds.sort_values(by=["transcript_id"], inplace=True)
+#rescaled_exons.sort_values(by=["transcript_id"], inplace=True)
+#rescaled_introns.sort_values(by=["transcript_id"], inplace=True)
+
 print("1")
 # Add exons using geom_range, passing the fillcolor directly
 exon_traces = pt.geom_range(
-    data=pl.from_pandas(rescaled_exons),
+    data=rescaled_exons,
     x_start='start',
     x_end='end',
     y='transcript_id', 
-    fill=pl.from_pandas(rescaled_exons["fillcolor"]),
+    fill=rescaled_exons["fillcolor"],
     height=0.3
 )
 print("2")
+
 ## Add CDS traces
 cds_traces = pt.geom_range(
-    data=pl.from_pandas(rescaled_cds),
+    data=rescaled_cds,
     x_start='start',
     x_end='end',
     y='transcript_id',
-    fill=pl.from_pandas(rescaled_cds["fillcolor"]),
+    fill=rescaled_cds["fillcolor"],
     height= 0.5
 )
 
@@ -70,7 +69,7 @@ print("3")
 # Create introns and add them using geom_intron
 #sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
 intron_traces = pt.geom_intron(
-    data= pl.from_pandas(rescaled_introns),
+    data= rescaled_introns,
     x_start='start',
     x_end='end',
     y='transcript_id',
@@ -92,7 +91,7 @@ fig.add_traces([trace for trace in intron_traces if not isinstance(trace, dict)]
 print("5")
 # Call the new function to set the genomic axis range
 fig = pt.set_axis(fig, rescaled_exons, rescaled_introns)
-gene_name = "SOD1"
+gene_name = "APP"
 
 print("6")
 # Update layout and show the plot
@@ -105,8 +104,8 @@ fig.update_layout(
     width=800,
     showlegend=False,
     yaxis=dict(
-        tickvals=list(range(rescaled_exons["transcript_id"].nunique())),               # Positions of the ticks
-        ticktext=rescaled_exons["transcript_id"].unique().tolist(),  # Custom labels for the ticks
+        tickvals=list(range(rescaled_exons.n_unique(subset="transcript_id"))),               # Positions of the ticks
+        ticktext=rescaled_exons.select("transcript_id").unique().to_series().to_list(),  # Custom labels for the ticks
         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
         xaxis=dict(showticklabels=False)
 )

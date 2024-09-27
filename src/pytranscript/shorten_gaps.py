@@ -6,15 +6,15 @@ import polars as pl
 
 def shorten_gaps(annotation: pl.DataFrame, 
                  group_var: Union[str, List[str]] = None, 
-                 target_gap_width: int = 100) -> pd.DataFrame:
+                 target_gap_width: int = 100) -> pl.DataFrame:
     """
     Shorten the gaps between exons and introns for more compact transcript visualization.
 
     Parameters:
     -----------
-    annotation : pd.DataFrame
+    annotation : pl.DataFrame
         DataFrame containing exon, intron, and possibly CDS information
-    introns : pd.DataFrame
+    introns : pl.DataFrame
         DataFrame containing intron information.
     group_var : str or List[str], optional
         Column(s) used to group transcripts. Default is None.
@@ -23,7 +23,7 @@ def shorten_gaps(annotation: pl.DataFrame,
 
     Returns:
     --------
-    pd.DataFrame
+    pl.DataFrame
         DataFrame with shortened intron gaps and rescaled coordinates.
     """
 
