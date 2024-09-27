@@ -55,15 +55,12 @@ def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = None) -> p
         other_cols_expr = [pl.col(col).first().alias(col) for col in columns_to_add]
 
 
-    print(other_cols_expr)
-
     # Select necessary columns with unique aliases to avoid duplication
     introns = exons_with_introns.select([
         pl.col('intron_start').alias('start'),
         pl.col('intron_end').alias('end'),
         pl.col('type'),
-        *[pl.col(col).alias(f'{col}') for col in group_var],  # Alias to avoid duplication
-        *[expr.alias(f'{expr.meta["root"]}') for i, expr in enumerate(other_cols_expr)]  # Ensure unique aliases for other expressions
+        *[expr.alias(f'{expr.meta.root_names()[0]}') for i, expr in enumerate(other_cols_expr)]  # Ensure unique aliases for other expressions
     ])
 
     # Remove NAs and introns with width of 1

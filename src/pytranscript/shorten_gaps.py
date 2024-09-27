@@ -33,9 +33,6 @@ def shorten_gaps(annotation: pd.DataFrame,
     exons = annotation.filter(pl.col("type") == "exon")
     introns = to_intron(exons=exons, group_var=group_var)
 
-    print(introns.head())
-    print(introns.shape)
-
     if "CDS" in annotation["type"].unique().to_list():
         cds = annotation.filter(pl.col("type") == "CDS")
     else:
@@ -85,12 +82,12 @@ def shorten_gaps(annotation: pd.DataFrame,
     ## Process CDS if there at all
     if isinstance(cds, pl.DataFrame):
         cds_diff = _get_cds_exon_difference(cds, exons)
-        rescaled_cds = _get_rescale_cds(cds_diff, rescaled_tx.loc[rescaled_tx["type"] == "exon"].copy())
+        rescaled_cds = _get_rescale_cds(cds_diff, rescaled_tx.filter(pl.col("type") == "exon"))
+        rescaled_cds = rescaled_cds[rescaled_tx.columns]
         # Combine the CDS into final dataframe
-        rescaled_tx = pd.concat([rescaled_tx, rescaled_cds], ignore_index=True)
+        rescaled_tx = pl.concat([rescaled_tx, rescaled_cds])
         # Sort the DataFrame by group_var (e.g., transcript) and start position
         rescaled_tx = rescaled_tx.sort(by=[group_var, 'start', 'end'] if group_var else ['start', 'end'])
-
 
     
     return rescaled_tx  # Return the DataFrame with rescaled transcript coordinates
@@ -341,13 +338,12 @@ def _get_rescaled_txs(
     # Clone exons DataFrame to avoid modifying the original
     exons = exons.clone()
 
-    ## Reorder intron columns
-    introns_shortened = introns_shortened.select(['gene_id', 'gene_name', 'transcript_id',
-     'transcript_name', 'transcript_biotype', 'seqnames', 'strand', 'type', 'start', 'end', "width"])
+    ## Column to keep
+    column_to_keep = exons.columns + ["width"]
 
-    print(exons.columns)
-    print(introns_shortened.columns)
-    
+    ## Reorder intron columns
+    introns_shortened = introns_shortened.select(column_to_keep)
+
     # Calculate the width of each exon
     exons = exons.with_columns(
         (pl.col('end') - pl.col('start') + 1).alias('width')
@@ -522,7 +518,7 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
     existing_columns = [col for col in columns_to_drop if col in cds_exon_diff.columns]
     cds_prepared = (
         cds_exon_diff
-        .with_column(pl.lit("CDS").alias("type"))
+        .with_columns(pl.lit("CDS").alias("type"))
         .drop(existing_columns)
     )
 
