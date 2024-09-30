@@ -16,8 +16,6 @@ classifiers = [
 ]
 keywords = ["plotly", "ggtranscript", "bioinformatics"]
 dependencies = [
-    "pandas",
-    "numpy",
     "plotly",
     "polars",
     "pyarrow",
