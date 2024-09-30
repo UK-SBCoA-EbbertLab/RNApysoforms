@@ -19,7 +19,7 @@ biotype_colors = {
 annotations = annotations.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
 
 ## Define gene
-gene_name = "RUNX1"
+gene_name = "APP"
 
 ## Filter gene of interest
 annotations = annotations.filter(pl.col("gene_name") == gene_name)

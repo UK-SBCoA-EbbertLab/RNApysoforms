@@ -1,7 +1,8 @@
 import polars as pl
 from typing import Union, List
+from pytranscript.utils import check_df  # Utility function for DataFrame validation
 
-def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = None) -> pl.DataFrame:
+def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = "transcript_id") -> pl.DataFrame:
     """
     Convert exon coordinates to intron coordinates.
 
@@ -9,71 +10,79 @@ def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = None) -> p
     -----------
     exons : pl.DataFrame
         DataFrame containing exon coordinates. Must have 'start' and 'end' columns.
-    group_var : str or List[str], optional
-        Column name(s) for grouping transcripts. Default is None.
+    group_var : Union[str, List[str]], optional
+        Column name(s) for grouping transcripts. Default is "transcript_id".
 
     Returns:
     --------
     pl.DataFrame
         DataFrame containing the intron coordinates.
     """
-    
-    ## Define required columns
-    required_cols = ["start", "end"]
 
-    # Check if all required columns are present in the exons DataFrame
+    # Check required columns in the input DataFrame
+    if group_var is None:
+        check_df(exons, ["start", "end"])
+    else:
+        check_df(exons, ["start", "end", group_var])
+
+    # Define the required columns for exons
+    required_cols = ["start", "end"]
+    
+    # Ensure required columns are present in the exons DataFrame
     assert all(col in exons.columns for col in required_cols), \
         f"exons DataFrame must have columns: {', '.join(required_cols)}"
 
+    # If group_var is specified, ensure it's a list, and validate its columns
     if group_var is not None:
         if isinstance(group_var, str):
-            group_var = [group_var]
+            group_var = [group_var]  # Convert string to list for consistent processing
         if not all(col in exons.columns for col in group_var):
             raise ValueError("group_var columns must exist in exons DataFrame")
     else:
-        group_var = []
+        group_var = []  # Set group_var as an empty list if not provided
 
-    # Sort exons by start and end coordinates
+    # Sort exons by group_var, start, and end coordinates
     sort_cols = group_var + ['start', 'end']
     exons_sorted = exons.sort(sort_cols)
 
-    # Calculate intron start, end, and intron number
+    # Calculate intron start and end positions, shift 'end' to get 'intron_start'
     exons_with_introns = exons_sorted.with_columns([
-        pl.col('end').shift(1).over(group_var).alias('intron_start'),
-        pl.col('start').alias('intron_end'),
-        pl.lit('intron').alias('type'),
-        pl.col("exon_number").alias("exon_number")
+        pl.col('end').shift(1).over(group_var).alias('intron_start'),  # Intron start = previous exon end
+        pl.col('start').alias('intron_end'),  # Intron end = next exon start
+        pl.lit('intron').alias('type'),  # Set type as 'intron'
+        pl.col("exon_number").alias("exon_number")  # Retain exon_number column
     ])
 
-    # Exclude columns that have been renamed or already included
+    # Exclude certain columns that are either renamed or already processed
     exclude_cols = ['start', 'end', 'intron_start', 'intron_end', 'type', 'exon_number']
     columns_to_add = [col for col in exons.columns if col not in exclude_cols]
-    
 
-    # For other columns, get the first value per group
+    # Handle additional columns by taking the first value in each group if group_var exists
     if group_var:
         other_cols_expr = [pl.col(col).first().over(group_var).alias(col) for col in columns_to_add]
     else:
         other_cols_expr = [pl.col(col).first().alias(col) for col in columns_to_add]
 
-
-    # Select necessary columns with unique aliases to avoid duplication
+    # Select intron columns (start, end, exon_number, type) and any other required columns
     introns = exons_with_introns.select([
-        pl.col('intron_start').alias('start'),
-        pl.col('intron_end').alias('end'),
-        pl.col("exon_number"),
-        pl.col('type'),
-        *[expr.alias(f'{expr.meta.root_names()[0]}') for i, expr in enumerate(other_cols_expr)]  # Ensure unique aliases for other expressions
+        pl.col('intron_start').alias('start'),  # Intron start position
+        pl.col('intron_end').alias('end'),  # Intron end position
+        pl.col("exon_number"),  # Exon number (if applicable)
+        pl.col('type'),  # Type of feature (intron)
+        *other_cols_expr  # Include additional columns as necessary
     ])
 
-    # Remove NAs and introns with width of 1
+    # Remove rows where either 'start' or 'end' is null (invalid introns)
     introns = introns.drop_nulls(subset=['start', 'end'])
-    introns = introns.filter((pl.col('end') - pl.col('start')).abs() != 1)
 
-    # Cast from float to integer
+    # Filter out introns where the length is 1 or less (invalid introns)
+    introns = introns.filter((pl.col('end') - pl.col('start')).abs() > 1)
+
+    # Cast 'start' and 'end' columns to integers for genomic coordinates
     introns = introns.with_columns([
         pl.col('start').cast(pl.Int64),
         pl.col('end').cast(pl.Int64)
     ])
 
-    return introns
+    return introns  # Return the DataFrame containing valid intron coordinates
+

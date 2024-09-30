@@ -1,131 +1,152 @@
 import plotly.graph_objects as go  # Imports Plotly for creating interactive plots
 import polars as pl  # Imports Polars for data manipulation and analysis
-from plotly.subplots import make_subplots
-from pytranscript.utils import check_df ## Import utils
-
+from plotly.subplots import make_subplots  # Imports function for creating subplots in Plotly
+from pytranscript.utils import check_df  # Imports utility function for data validation
 
 def make_traces(
-    data, ## Polars dataframe
-    x_start="start",
-    x_end="end",
-    y="transcript_id",
-    strand="strand",
-    type="type",
-    cds="CDS", 
-    exon="exon",
-    intron="intron",
-    line_color="black",
-    fill_column=None,
-    fill_color="grey",
-    intron_line_width=0.5,
-    exon_line_width=0.25,
-    opacity=1,
-    arrow_color="black",
-    exon_height=0.3,
-    cds_height=0.5,
-    arrow_height=0.5,
-    arrow_line_width=0.5
-):
-    if fill_column == None:
+    data: pl.DataFrame,  # Input Polars dataframe containing transcript data
+    x_start: str = "start",  # Column name for the start position (x-axis)
+    x_end: str = "end",  # Column name for the end position (x-axis)
+    y: str = "transcript_id",  # Column name for the transcript identifier (y-axis)
+    strand: str = "strand",  # Column name for strand information (e.g., "+" or "-")
+    type: str = "type",  # Column name indicating the type of feature (e.g., exon, intron)
+    cds: str = "CDS",  # Value representing coding sequences (CDS)
+    exon: str = "exon",  # Value representing exons
+    intron: str = "intron",  # Value representing introns
+    line_color: str = "black",  # Line color for the shapes (e.g., exon, CDS)
+    fill_column: str = None,  # Optional column name for fill colors
+    fill_color: str = "grey",  # Default fill color if no fill_column is specified
+    intron_line_width: float = 0.5,  # Line width for intron shapes
+    exon_line_width: float = 0.25,  # Line width for exon shapes
+    opacity: float = 1,  # Opacity for all shapes
+    arrow_color: str = "black",  # Arrow color for directional introns
+    exon_height: float = 0.3,  # Height of exon shapes on the y-axis
+    cds_height: float = 0.5,  # Height of CDS shapes on the y-axis
+    arrow_height: float = 0.5,  # Height of directional arrows on the introns
+    arrow_line_width: float = 0.5  # Line width for the arrow shapes
+) -> list:
+    """
+    Function to create plotly traces for visualizing transcript features like exons, CDS, and introns.
+    
+    Parameters:
+        data (pl.DataFrame): A Polars DataFrame containing the transcript data.
+        x_start (str): The column name representing the start position of features.
+        x_end (str): The column name representing the end position of features.
+        y (str): The column name for transcript IDs to be mapped on the y-axis.
+        strand (str): The column name indicating the strand of the transcript ("+" or "-").
+        type (str): The column name indicating the feature type (e.g., exon, CDS, intron).
+        cds (str): String indicating the type of feature that represents a coding sequence.
+        exon (str): String indicating the type of feature that represents an exon.
+        intron (str): String indicating the type of feature that represents an intron.
+        line_color (str): Color of the outline for shapes.
+        fill_column (str): Optional column name specifying the fill color for each feature.
+        fill_color (str): Default fill color if `fill_column` is not provided.
+        intron_line_width (float): Width of the line representing introns.
+        exon_line_width (float): Width of the outline for exons and CDS.
+        opacity (float): Opacity for all shapes.
+        arrow_color (str): Color of the arrow on the intron (indicating direction).
+        exon_height (float): Height of exon shapes.
+        cds_height (float): Height of CDS shapes.
+        arrow_height (float): Height of the directional arrow for introns.
+        arrow_line_width (float): Width of the arrow lines.
+        
+    Returns:
+        list: A list of Plotly trace dictionaries that can be used to render shapes in a Plotly figure.
+    """
+
+    # Validate required columns in the data
+    if fill_column is None:
         check_df(data, [x_start, x_end, y, type, strand])
     else:
         check_df(data, [x_start, x_end, y, type, strand, fill_column])
 
-    ## Define trace lists
-    cds_traces = []
-    intron_traces = []
-    exon_traces = []
+    # Define trace lists for different types of features
+    cds_traces = []  # Stores traces for CDS (coding sequences)
+    intron_traces = []  # Stores traces for introns
+    exon_traces = []  # Stores traces for exons
 
-    # Get the unique values from the 'y' column (e.g., transcript names) to assign them distinct y-positions
+    # Get unique transcript IDs to map them to specific y-axis positions
     unique_y = data[y].unique(maintain_order=True).to_list()
     
-    # Create a dictionary to map each unique transcript name to a numerical y-position
+    # Create a dictionary that maps each unique transcript ID to a y-position
     y_dict = {val: i for i, val in enumerate(unique_y)}
 
-
-    # Calculate global maximum
+    # Calculate the global maximum and minimum x-values (positions)
     global_max = max(
         data.select(pl.col(x_start).max()).item(),
         data.select(pl.col(x_end).max()).item()
     )
 
-    # Calculate global minimum
     global_min = min(
         data.select(pl.col(x_start).min()).item(),
         data.select(pl.col(x_end).min()).item()
     )
 
-    # Calculate size
+    # Calculate the total size of the x-axis range
     size = int(abs(global_max - global_min))
 
-    # If 'fill' is a single string, convert it into a list of the same color for all data points
-    if fill_column == None:
-        fill=[fill_color] * len(data)
+    # Handle the case where no specific fill column is provided
+    if fill_column is None:
+        fill = [fill_color] * len(data)  # Use the default fill color for all features
     else:
-        fill = data[fill_column]
+        fill = data[fill_column]  # Use the fill color from the specified column
 
-    # Iterate over each row in the DataFrame to create a Plotly rectangle for each exon
+    # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
     for idx, row in enumerate(data.iter_rows(named=True)):
         y_pos = y_dict[row[y]]  # Get the corresponding y-position for the current transcript
 
+        # If the feature type is an exon, create a rectangle trace
         if row[type] == exon:
-            # Define the rectangle trace (an exon) with position and appearance attributes
             trace = dict(
-                type="rect",  # Specifies that this trace is a rectangle
-                x0=row[x_start],  # Start position of the exon (x-axis, left boundary)
-                x1=row[x_end],  # End position of the exon (x-axis, right boundary)
-                y0=y_pos - exon_height / 2,  # Bottom boundary of the rectangle (y-axis)
-                y1=y_pos + exon_height / 2,  # Top boundary of the rectangle (y-axis)
-                fillcolor=fill[idx],  # The color used to fill the rectangle (exon)
-                line=dict(color=line_color, width=exon_line_width),  # Border color and width of the rectangle
-                opacity=opacity,  # Transparency of the rectangle
+                type="rect",  # Rectangle trace for the exon
+                x0=row[x_start],  # Start position on the x-axis
+                x1=row[x_end],  # End position on the x-axis
+                y0=y_pos - exon_height / 2,  # Bottom boundary of the rectangle on the y-axis
+                y1=y_pos + exon_height / 2,  # Top boundary of the rectangle on the y-axis
+                fillcolor=fill[idx],  # Fill color for the exon
+                line=dict(color=line_color, width=exon_line_width),  # Border color and width
+                opacity=opacity,  # Transparency level
             )
-            exon_traces.append(trace)
+            exon_traces.append(trace)  # Append the trace to the exon list
 
+        # If the feature type is a CDS, create a rectangle trace
         elif row[type] == cds:
-            
-            # Define the rectangle trace (an exon) with position and appearance attributes
             trace = dict(
-                type="rect",  # Specifies that this trace is a rectangle
-                x0=row[x_start],  # Start position of the exon (x-axis, left boundary)
-                x1=row[x_end],  # End position of the exon (x-axis, right boundary)
-                y0=y_pos - cds_height / 2,  # Bottom boundary of the rectangle (y-axis)
-                y1=y_pos + cds_height / 2,  # Top boundary of the rectangle (y-axis)
-                fillcolor=fill[idx],  # The color used to fill the rectangle (exon)
-                line=dict(color=line_color, width=exon_line_width),  # Border color and width of the rectangle
-                opacity=opacity,  # Transparency of the rectangle
-            )
-            cds_traces.append(trace)
-
-        elif row[type] == intron:
-            # Create a line trace for the intron
-            trace = dict(
-                type="line",
+                type="rect",  # Rectangle trace for the CDS
                 x0=row[x_start],
                 x1=row[x_end],
-                y0=y_pos,
-                y1=y_pos,
-                line=dict(color=line_color, width=intron_line_width),
+                y0=y_pos - cds_height / 2,  # Bottom boundary of the rectangle on the y-axis
+                y1=y_pos + cds_height / 2,  # Top boundary of the rectangle on the y-axis
+                fillcolor=fill[idx],  # Fill color for the CDS
+                line=dict(color=line_color, width=exon_line_width),  # Border color and width
                 opacity=opacity,
             )
-            intron_traces.append(trace)
+            cds_traces.append(trace)  # Append the trace to the CDS list
 
+        # If the feature type is an intron, create a line trace
+        elif row[type] == intron:
+            trace = dict(
+                type="line",  # Line trace for the intron
+                x0=row[x_start],
+                x1=row[x_end],
+                y0=y_pos,  # Introns are represented as horizontal lines
+                y1=y_pos,
+                line=dict(color=line_color, width=intron_line_width),  # Line color and width
+                opacity=opacity,
+            )
+            intron_traces.append(trace)  # Append the trace to the intron list
 
-            # Ensure arrows are not too close to the intron ends
-            if (
-                abs(row[x_start] - row[x_end]) > size/25
-            ):
-                 
-                arrow_x = (row[x_start] + row[x_end])/2
-                if row[strand] == "+":
-                    # Create the two line shapes for the arrow (like `>` shape)
+            # Add directional arrows for introns if they are long enough
+            if abs(row[x_start] - row[x_end]) > size / 25:
+                arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
+                if row[strand] == "+":  # Positive strand (direction rightward)
                     arrow_trace = [
                         dict(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x - size/250,
-                            y1=y_pos + arrow_height/2,
+                            x1=arrow_x - size / 250,  # Arrowhead to the left
+                            y1=y_pos + arrow_height / 2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
                         ),
@@ -133,22 +154,20 @@ def make_traces(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x - size/250,
-                            y1=y_pos - arrow_height/2,
+                            x1=arrow_x - size / 250,  # Arrowhead to the left
+                            y1=y_pos - arrow_height / 2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
                         )
                     ]
-
-                elif row[strand] == "-":
-                    # Create the two line shapes for the arrow (like `>` shape)
+                elif row[strand] == "-":  # Negative strand (direction leftward)
                     arrow_trace = [
                         dict(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x + size/150,
-                            y1=y_pos + arrow_height/2,
+                            x1=arrow_x + size / 150,  # Arrowhead to the right
+                            y1=y_pos + arrow_height / 2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
                         ),
@@ -156,18 +175,18 @@ def make_traces(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x + size/150,
-                            y1=y_pos - arrow_height/2,
+                            x1=arrow_x + size / 150,  # Arrowhead to the right
+                            y1=y_pos - arrow_height / 2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
                         )
                     ]
 
-
+                # Append the arrow trace to the intron traces
                 intron_traces.extend(arrow_trace)
-        
-        traces = exon_traces + cds_traces + intron_traces
-            
-    return traces
 
+    # Combine all traces (exons, CDS, introns, and arrows)
+    traces = exon_traces + cds_traces + intron_traces
+
+    return traces  # Return the list of traces
 
