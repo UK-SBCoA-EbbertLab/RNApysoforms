@@ -14,7 +14,7 @@ setup(
     ],
     author="Bernardo Aguzzoli Heberle",
     author_email="bernardo.aguzzoli@gmail.com",
-    description="A Plotly-based Python implementation of ggtranscript-like functionality",
+    description="A Plotly-based Python implementation of ggtranscript-like functionality for vizualizing RNA isoform structure and expression.",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     url="https://github.com/UK-SBCoA-EbbertLab/pytranscript",

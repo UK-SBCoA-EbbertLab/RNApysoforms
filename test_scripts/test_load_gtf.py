@@ -18,17 +18,23 @@ biotype_colors = {
 ## Add biotype colors
 annotations = annotations.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
 
+## Define gene
+gene_name = "RUNX1"
+
 ## Filter gene of interest
-annotations = annotations.filter(pl.col("gene_name") == "RUNX1")
+annotations = annotations.filter(pl.col("gene_name") == gene_name)
+
+annotations.write_excel("~/Desktop/test_before.xlsx")
 
 #MIR99AHG
 
 ## Shorten gaps
 rescaled_annotations = pt.shorten_gaps(annotation=annotations, group_var="transcript_id")
 
+rescaled_annotations = rescaled_annotations.sort("transcript_id")
 
 ## Vizualize data
-rescaled_annotations.write_excel("~/Desktop/test.xlsx")
+rescaled_annotations.write_excel("~/Desktop/test_after.xlsx")
 
 ## Separate
 rescaled_cds = rescaled_annotations.filter(pl.col("type") == "CDS").clone()
@@ -53,6 +59,9 @@ exon_traces = pt.geom_range(
     fill=rescaled_exons["fillcolor"],
     height=0.3
 )
+
+print(len(exon_traces))
+
 print("2")
 
 ## Add CDS traces
@@ -66,6 +75,9 @@ cds_traces = pt.geom_range(
 )
 
 print("3")
+
+print(len(cds_traces))
+
 # Create introns and add them using geom_intron
 #sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
 intron_traces = pt.geom_intron(
@@ -77,6 +89,8 @@ intron_traces = pt.geom_intron(
     arrow_min_intron_length=400,
     arrow_size=0.5
 )
+
+print(len(intron_traces))
 
 print("4")
 
@@ -91,7 +105,6 @@ fig.add_traces([trace for trace in intron_traces if not isinstance(trace, dict)]
 print("5")
 # Call the new function to set the genomic axis range
 fig = pt.set_axis(fig, rescaled_exons, rescaled_introns)
-gene_name = "APP"
 
 print("6")
 # Update layout and show the plot
@@ -100,12 +113,12 @@ fig.update_layout(
            'font': dict(family='DejaVu Sans', size=14)},
     xaxis_title="",
     yaxis_title="",
-    height=400,
+    height=1000,
     width=800,
     showlegend=False,
     yaxis=dict(
         tickvals=list(range(rescaled_exons.n_unique(subset="transcript_id"))),               # Positions of the ticks
-        ticktext=rescaled_exons.select("transcript_id").unique().to_series().to_list(),  # Custom labels for the ticks
+        ticktext=rescaled_exons.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
         xaxis=dict(showticklabels=False)
 )
