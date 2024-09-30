@@ -5,7 +5,7 @@ import polars as pl  # Import Polars for DataFrame manipulation
 from pytranscript.utils import check_df  # Import utility function for data validation
 
 def shorten_gaps(annotation: pl.DataFrame, 
-                 group_var: Union[str, List[str]] = "transcript_id", 
+                 group_var: str = "transcript_id", 
                  target_gap_width: int = 100) -> pl.DataFrame:
     """
     Shorten the gaps between exons and introns for more compact transcript visualization.
@@ -14,7 +14,7 @@ def shorten_gaps(annotation: pl.DataFrame,
     -----------
     annotation : pl.DataFrame
         DataFrame containing exon, intron, and possibly CDS information.
-    group_var : Union[str, List[str]], optional
+    group_var : str, optional
         Column(s) used to group transcripts. Default is 'transcript_id'.
     target_gap_width : int, optional
         Maximum allowed width for gaps between exons. Default is 100.
@@ -176,7 +176,7 @@ def _get_gaps(exons: pl.DataFrame) -> pl.DataFrame:
 
     return gaps
 
-def _get_tx_start_gaps(exons: pl.DataFrame, group_var: Union[str, List[str]]) -> pl.DataFrame:
+def _get_tx_start_gaps(exons: pl.DataFrame, group_var: str) -> pl.DataFrame:
     """
     Identify gaps at the start of each transcript based on the first exon.
 
@@ -184,8 +184,8 @@ def _get_tx_start_gaps(exons: pl.DataFrame, group_var: Union[str, List[str]]) ->
     -----------
     exons : pl.DataFrame
         DataFrame containing exon information.
-    group_var : Union[str, List[str]]
-        Column name(s) used to group transcripts.
+    group_var : str
+        Column(s) used to group transcripts. Default is 'transcript_id'.
 
     Returns:
     --------
@@ -273,7 +273,7 @@ def _get_gap_map(df: pl.DataFrame, gaps: pl.DataFrame) -> dict:
     }
 
 def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict, 
-                        group_var: Union[str, List[str]], target_gap_width: int) -> pl.DataFrame:
+                        group_var: str, target_gap_width: int) -> pl.DataFrame:
     """
     Shorten the gaps between exons or introns based on a target gap width.
 
@@ -285,8 +285,8 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
         DataFrame containing gaps between exons.
     gap_map : dict
         A dictionary mapping gaps to their corresponding exons or introns.
-    group_var : Union[str, List[str]]
-        Column name(s) used to group transcripts.
+    group_var : str
+        Column(s) used to group transcripts. Default is 'transcript_id'.
     target_gap_width : int
         The maximum allowed width for the gaps.
 
@@ -385,7 +385,7 @@ def _get_rescaled_txs(
     exons: pl.DataFrame,
     introns_shortened: pl.DataFrame,
     tx_start_gaps_shortened: pl.DataFrame,
-    group_var: Union[str, List[str]]
+    group_var: str
 ) -> pl.DataFrame:
     """
     Rescale transcript coordinates based on shortened gaps for exons and introns.
@@ -398,8 +398,8 @@ def _get_rescaled_txs(
         DataFrame containing intron information with shortened gaps.
     tx_start_gaps_shortened : pl.DataFrame
         DataFrame containing rescaled transcript start gaps.
-    group_var : Union[str, List[str]]
-        Column(s) used to group transcripts.
+    group_var : str
+        Column(s) used to group transcripts. Default is 'transcript_id'.
 
     Returns:
     --------

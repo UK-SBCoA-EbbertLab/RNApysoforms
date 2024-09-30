@@ -22,7 +22,7 @@ def check_df(df: pl.DataFrame, required_cols: List[str]):
     if not isinstance(df, pl.DataFrame):
         raise ValueError(
             "Input must be a Polars DataFrame. "
-            "If you're using a Pandas DataFrame, please convert it to Polars."
+            "If you're using a Pandas DataFrame, convert it to Polars."
         )
 
     # Identify any missing columns by comparing against the DataFrame's columns

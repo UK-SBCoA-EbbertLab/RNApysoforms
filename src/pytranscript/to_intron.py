@@ -1,8 +1,7 @@
 import polars as pl
-from typing import Union, List
 from pytranscript.utils import check_df  # Utility function for DataFrame validation
 
-def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = "transcript_id") -> pl.DataFrame:
+def to_intron(exons: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
     """
     Convert exon coordinates to intron coordinates.
 
@@ -10,8 +9,8 @@ def to_intron(exons: pl.DataFrame, group_var: Union[str, List[str]] = "transcrip
     -----------
     exons : pl.DataFrame
         DataFrame containing exon coordinates. Must have 'start' and 'end' columns.
-    group_var : Union[str, List[str]], optional
-        Column name(s) for grouping transcripts. Default is "transcript_id".
+    group_var : str, optional
+        Column(s) used to group transcripts. Default is 'transcript_id'.
 
     Returns:
     --------
