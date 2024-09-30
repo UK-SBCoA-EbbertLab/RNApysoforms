@@ -2,10 +2,11 @@ import plotly.graph_objects as go  # Import Plotly for creating plots
 from typing import List, Union  # Import type annotations for functions
 from pytranscript.to_intron import to_intron ## Import to intron function
 import polars as pl
+from pytranscript.utils import check_df ## Import utils
 
 
 def shorten_gaps(annotation: pl.DataFrame, 
-                 group_var: Union[str, List[str]] = None, 
+                 group_var: Union[str, List[str]] = "transcript_id", 
                  target_gap_width: int = 100) -> pl.DataFrame:
     """
     Shorten the gaps between exons and introns for more compact transcript visualization.
@@ -16,8 +17,8 @@ def shorten_gaps(annotation: pl.DataFrame,
         DataFrame containing exon, intron, and possibly CDS information
     introns : pl.DataFrame
         DataFrame containing intron information.
-    group_var : str or List[str], optional
-        Column(s) used to group transcripts. Default is None.
+    group_var : str or List[str], required
+        Column(s) used to group transcripts. Default is tramscript_id.
     target_gap_width : int, optional
         Maximum allowed width for gaps between exons. Default is 100.
 
@@ -27,7 +28,9 @@ def shorten_gaps(annotation: pl.DataFrame,
         DataFrame with shortened intron gaps and rescaled coordinates.
     """
 
-  # Separate introns, exons, and possibly CDS
+    check_df(annotation, ["start", "end", "type", "strand", "seqnames", group_var])
+
+    # Separate introns, exons, and possibly CDS
     exons = annotation.filter(pl.col("type") == "exon")
     introns = to_intron(exons=exons, group_var=group_var)
 
@@ -35,12 +38,6 @@ def shorten_gaps(annotation: pl.DataFrame,
         cds = annotation.filter(pl.col("type") == "CDS")
     else:
         cds = None
-
-    # Ensure required columns are present in both the exons and introns DataFrames
-    for df in [exons, introns]:
-        required_columns = ['start', 'end', 'strand', 'seqnames']
-        assert all(col in df.columns for col in required_columns), \
-            "Both exons and introns DataFrames must have 'start', 'end', 'strand', and 'seqnames' columns"
 
     # Ensure each DataFrame has a 'type' column indicating 'exon' or 'intron'
     exons = _get_type(exons , "exons")  # Set 'type' to 'exon' for exons DataFrame

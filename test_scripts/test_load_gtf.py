@@ -24,14 +24,12 @@ gene_name = "RUNX1"
 ## Filter gene of interest
 annotations = annotations.filter(pl.col("gene_name") == gene_name)
 
-annotations.write_excel("~/Desktop/test_before.xlsx")
-
 #MIR99AHG
 
 ## Shorten gaps
 rescaled_annotations = pt.shorten_gaps(annotation=annotations, group_var="transcript_id")
 
-
+## Create traces
 traces = pt.make_traces(
     data=rescaled_annotations,
     x_start='start',
@@ -53,8 +51,7 @@ fig.update_layout(
 )
 
 # Call the new function to set the genomic axis range
-fig = pt.set_axis(fig, rescaled_annotations.filter(pl.col("type") == "exon"), 
-                  rescaled_annotations.filter(pl.col("type") == "intron"))
+fig = pt.set_axis(fig, data=rescaled_annotations)
 
 
 # Update layout and show the plot

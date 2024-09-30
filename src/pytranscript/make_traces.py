@@ -1,18 +1,19 @@
 import plotly.graph_objects as go  # Imports Plotly for creating interactive plots
 import polars as pl  # Imports Polars for data manipulation and analysis
 from plotly.subplots import make_subplots
+from pytranscript.utils import check_df ## Import utils
 
 
 def make_traces(
     data, ## Polars dataframe
     x_start="start",
     x_end="end",
-    y="transcript_name",
+    y="transcript_id",
+    strand="strand",
     type="type",
     cds="CDS", 
     exon="exon",
     intron="intron",
-    strand="strand",
     line_color="black",
     fill_column=None,
     fill_color="grey",
@@ -25,14 +26,10 @@ def make_traces(
     arrow_height=0.5,
     arrow_line_width=0.5
 ):
-    
-    ## Order data starting with intron, then CDS, then exon so traces are made in correct order
-    data = data.with_columns(
-        pl.when(pl.col(type) == exon).then(0)
-        .when(pl.col(type) == cds).then(1)
-        .when(pl.col(type) == intron).then(2)
-        .otherwise(3).alias("type_order")
-    ).sort("type_order").drop("type_order")
+    if fill_column == None:
+        check_df(data, [x_start, x_end, y, type, strand])
+    else:
+        check_df(data, [x_start, x_end, y, type, strand, fill_column])
 
     ## Define trace lists
     cds_traces = []
@@ -45,7 +42,7 @@ def make_traces(
     # Create a dictionary to map each unique transcript name to a numerical y-position
     y_dict = {val: i for i, val in enumerate(unique_y)}
 
-    
+
     # Calculate global maximum
     global_max = max(
         data.select(pl.col(x_start).max()).item(),
@@ -150,7 +147,7 @@ def make_traces(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x + size/250,
+                            x1=arrow_x + size/150,
                             y1=y_pos + arrow_height/2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
@@ -159,7 +156,7 @@ def make_traces(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x + size/250,
+                            x1=arrow_x + size/150,
                             y1=y_pos - arrow_height/2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
