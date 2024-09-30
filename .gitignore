@@ -83,3 +83,6 @@ venv.bak/
 # Data and Figures
 raw_data/
 figures/
+
+## Don't export html files
+*.html
