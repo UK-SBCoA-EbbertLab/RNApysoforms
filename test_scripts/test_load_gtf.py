@@ -19,7 +19,7 @@ biotype_colors = {
 annotations = annotations.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
 
 ## Define gene
-gene_name = "APP"
+gene_name = "SOD1"
 
 ## Filter gene of interest
 annotations = annotations.filter(pl.col("gene_name") == gene_name)
@@ -60,7 +60,7 @@ fig.update_layout(
            'font': dict(family='DejaVu Sans', size=14)},
     xaxis_title="",
     yaxis_title="",
-    height=400,
+    height=300,
     width=800,
     showlegend=False,
     yaxis=dict(
