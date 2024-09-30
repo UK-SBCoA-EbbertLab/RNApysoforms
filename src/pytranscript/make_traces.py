@@ -20,10 +20,10 @@ def make_traces(
     exon_line_width=0.25,
     opacity=1,
     arrow_color="black",
-    arrow_size=0.3,
-    arrow_frequency=8,
     exon_height=0.3,
     cds_height=0.5,
+    arrow_height=0.5,
+    arrow_line_width=0.5
 ):
     
     ## Order data starting with intron, then CDS, then exon so traces are made in correct order
@@ -60,9 +60,6 @@ def make_traces(
 
     # Calculate size
     size = int(abs(global_max - global_min))
-
-    ## Calculate arrow frequency
-    arrow_min_intron_length = size * 1/arrow_frequency
 
     # If 'fill' is a single string, convert it into a list of the same color for all data points
     if fill_column == None:
@@ -116,33 +113,61 @@ def make_traces(
             )
             intron_traces.append(trace)
 
-            # Check if intron length exceeds minimum length for drawing arrows
-            intron_length = row[x_end] - row[x_start]
-            if intron_length > arrow_min_intron_length:
-                num_arrows = int(intron_length / arrow_min_intron_length)
-                for i in range(num_arrows):
-                    arrow_x = row[x_start] + i * (intron_length / num_arrows)
-                    # Ensure arrows are not too close to the intron ends
-                    if (
-                        abs(arrow_x - row[x_end]) > arrow_min_intron_length/2
-                        and abs(arrow_x - row[x_start]) > arrow_min_intron_length/2
-                    ):
-                        # Create a scatter trace for the arrow
-                        arrow_trace = go.Scatter(
-                            x=[arrow_x],
-                            y=[y_pos],
-                            mode="markers",
-                            marker=dict(
-                                symbol="arrow-right"
-                                if row[strand] == "+"
-                                else "arrow-left",
-                                size=(arrow_size * 10),
-                                color=arrow_color,
-                            ),
-                            showlegend=False,
-                            hoverinfo="none",
+
+            # Ensure arrows are not too close to the intron ends
+            if (
+                abs(row[x_start] - row[x_end]) > size/25
+            ):
+                 
+                arrow_x = (row[x_start] + row[x_end])/2
+                if row[strand] == "+":
+                    # Create the two line shapes for the arrow (like `>` shape)
+                    arrow_trace = [
+                        dict(
+                            type="line",
+                            x0=arrow_x,
+                            y0=y_pos,
+                            x1=arrow_x - size/250,
+                            y1=y_pos + arrow_height/2,
+                            line=dict(color=arrow_color, width=arrow_line_width),
+                            opacity=opacity,
+                        ),
+                        dict(
+                            type="line",
+                            x0=arrow_x,
+                            y0=y_pos,
+                            x1=arrow_x - size/250,
+                            y1=y_pos - arrow_height/2,
+                            line=dict(color=arrow_color, width=arrow_line_width),
+                            opacity=opacity,
                         )
-                        intron_traces.append(arrow_trace)
+                    ]
+
+                elif row[strand] == "-":
+                    # Create the two line shapes for the arrow (like `>` shape)
+                    arrow_trace = [
+                        dict(
+                            type="line",
+                            x0=arrow_x,
+                            y0=y_pos,
+                            x1=arrow_x + size/250,
+                            y1=y_pos + arrow_height/2,
+                            line=dict(color=arrow_color, width=arrow_line_width),
+                            opacity=opacity,
+                        ),
+                        dict(
+                            type="line",
+                            x0=arrow_x,
+                            y0=y_pos,
+                            x1=arrow_x + size/250,
+                            y1=y_pos - arrow_height/2,
+                            line=dict(color=arrow_color, width=arrow_line_width),
+                            opacity=opacity,
+                        )
+                    ]
+
+
+                intron_traces.extend(arrow_trace)
         
         traces = exon_traces + cds_traces + intron_traces
             

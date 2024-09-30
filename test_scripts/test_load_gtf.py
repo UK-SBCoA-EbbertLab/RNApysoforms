@@ -41,9 +41,7 @@ traces = pt.make_traces(
     fill_color="grey",
     exon_height=0.3,
     cds_height=0.5,
-    arrow_size=0.5,
-    strand="strand",
-    arrow_frequency=18
+    strand="strand"
 )
 
 # Create the plot
@@ -54,10 +52,6 @@ fig.update_layout(
     shapes=[trace for trace in traces if isinstance(trace, dict)]
 )
 
-# For traces (like Scatter traces), add them all in a single step
-fig.add_traces([trace for trace in traces if not isinstance(trace, dict)])
-
-
 # Call the new function to set the genomic axis range
 fig = pt.set_axis(fig, rescaled_annotations.filter(pl.col("type") == "exon"), 
                   rescaled_annotations.filter(pl.col("type") == "intron"))
@@ -65,11 +59,11 @@ fig = pt.set_axis(fig, rescaled_annotations.filter(pl.col("type") == "exon"),
 
 # Update layout and show the plot
 fig.update_layout(
-    title={'text': f"{gene_name} Transcript Structure", 'x': 0.5, 'y': 0.8, 'xanchor': 'center', 'yanchor': 'top',
+    title={'text': f"{gene_name} Transcript Structure", 'x': 0.5, 'y': 0.9, 'xanchor': 'center', 'yanchor': 'top',
            'font': dict(family='DejaVu Sans', size=14)},
     xaxis_title="",
     yaxis_title="",
-    height=1000,
+    height=400,
     width=800,
     showlegend=False,
     yaxis=dict(
