@@ -7,4 +7,4 @@ from .read_gtf import read_gtf
 from .make_traces import make_traces
 
 __all__ = ['geom_range', 'geom_intron', 'shorten_gaps', 
-           'to_intron', 'set_axis', "read_gtf"]
+           'to_intron', 'set_axis', "read_gtf", "make_traces"]

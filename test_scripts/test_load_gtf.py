@@ -31,89 +31,38 @@ annotations.write_excel("~/Desktop/test_before.xlsx")
 ## Shorten gaps
 rescaled_annotations = pt.shorten_gaps(annotation=annotations, group_var="transcript_id")
 
-rescaled_annotations = rescaled_annotations.sort("transcript_id")
 
-## Vizualize data
-rescaled_annotations.write_excel("~/Desktop/test_after.xlsx")
-
-## Separate
-rescaled_cds = rescaled_annotations.filter(pl.col("type") == "CDS").clone()
-rescaled_exons = rescaled_annotations.filter(pl.col("type") == "exon").clone()
-rescaled_introns = rescaled_annotations.filter(pl.col("type") == "intron").clone()
-
+traces = pt.make_traces(
+    data=rescaled_annotations,
+    x_start='start',
+    x_end='end',
+    y='transcript_id', 
+    fill_column="fillcolor",
+    fill_color="grey",
+    exon_height=0.3,
+    cds_height=0.5,
+    arrow_size=0.5,
+    strand="strand",
+    arrow_frequency=18
+)
 
 # Create the plot
 fig = go.Figure()
 
-#rescaled_cds.sort_values(by=["transcript_id"], inplace=True)
-#rescaled_exons.sort_values(by=["transcript_id"], inplace=True)
-#rescaled_introns.sort_values(by=["transcript_id"], inplace=True)
-
-print("1")
-# Add exons using geom_range, passing the fillcolor directly
-exon_traces = pt.geom_range(
-    data=rescaled_exons,
-    x_start='start',
-    x_end='end',
-    y='transcript_id', 
-    fill=rescaled_exons["fillcolor"],
-    height=0.3
-)
-
-print(len(exon_traces))
-
-print("2")
-
-## Add CDS traces
-cds_traces = pt.geom_range(
-    data=rescaled_cds,
-    x_start='start',
-    x_end='end',
-    y='transcript_id',
-    fill=rescaled_cds["fillcolor"],
-    height= 0.5
-)
-
-print("3")
-
-print(len(cds_traces))
-
-# Create introns and add them using geom_intron
-#sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
-intron_traces = pt.geom_intron(
-    data= rescaled_introns,
-    x_start='start',
-    x_end='end',
-    y='transcript_id',
-    strand='strand',
-    arrow_min_intron_length=400,
-    arrow_size=0.5
-)
-
-print(len(intron_traces))
-
-print("4")
-
-# Batch add exon, CDS, and intron shapes
-# fig.update_layout(
-#     shapes=exon_traces + cds_traces + [trace for trace in intron_traces if isinstance(trace, dict)]
-# )
-
+#Batch add exon, CDS, and intron shapes
 fig.update_layout(
-    shapes=cds_traces
+    shapes=[trace for trace in traces if isinstance(trace, dict)]
 )
-
-#+ cds_traces
-#[trace for trace in intron_traces if isinstance(trace, dict)
 
 # For traces (like Scatter traces), add them all in a single step
-#fig.add_traces([trace for trace in intron_traces if not isinstance(trace, dict)])
+fig.add_traces([trace for trace in traces if not isinstance(trace, dict)])
 
-print("5")
+
 # Call the new function to set the genomic axis range
-fig = pt.set_axis(fig, rescaled_exons, rescaled_introns)
+fig = pt.set_axis(fig, rescaled_annotations.filter(pl.col("type") == "exon"), 
+                  rescaled_annotations.filter(pl.col("type") == "intron"))
 
-print("6")
+
 # Update layout and show the plot
 fig.update_layout(
     title={'text': f"{gene_name} Transcript Structure", 'x': 0.5, 'y': 0.8, 'xanchor': 'center', 'yanchor': 'top',
@@ -124,13 +73,12 @@ fig.update_layout(
     width=800,
     showlegend=False,
     yaxis=dict(
-        tickvals=list(range(rescaled_exons.n_unique(subset="transcript_id"))),               # Positions of the ticks
-        ticktext=rescaled_exons.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
+        tickvals=list(range(rescaled_annotations.n_unique(subset="transcript_id"))),               # Positions of the ticks
+        ticktext=rescaled_annotations.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
         xaxis=dict(showticklabels=False)
 )
 
-print("7")
 # Show or save the plot
 fig.show()
 fig.write_html(("transcript_structure.html"))
