@@ -95,12 +95,19 @@ print(len(intron_traces))
 print("4")
 
 # Batch add exon, CDS, and intron shapes
+# fig.update_layout(
+#     shapes=exon_traces + cds_traces + [trace for trace in intron_traces if isinstance(trace, dict)]
+# )
+
 fig.update_layout(
-    shapes=exon_traces + cds_traces + [trace for trace in intron_traces if isinstance(trace, dict)]
+    shapes=cds_traces
 )
 
+#+ cds_traces
+#[trace for trace in intron_traces if isinstance(trace, dict)
+
 # For traces (like Scatter traces), add them all in a single step
-fig.add_traces([trace for trace in intron_traces if not isinstance(trace, dict)])
+#fig.add_traces([trace for trace in intron_traces if not isinstance(trace, dict)])
 
 print("5")
 # Call the new function to set the genomic axis range
