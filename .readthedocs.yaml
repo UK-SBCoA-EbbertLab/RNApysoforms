@@ -5,8 +5,7 @@ version: 2
 build:
   os: "ubuntu-22.04"  # Set the OS to a supported Ubuntu version
   tools:
-    python: "3.9"
-  image: latest  # Use the latest build image provided by RTD
+    python: "3.9"  # Python version to use
 
 sphinx:
   configuration: source/conf.py  # Path to your Sphinx config file
