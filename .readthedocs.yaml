@@ -11,8 +11,3 @@ python:
   install:
     - requirements: source/requirements.txt
 
-# Additional settings for RTD
-#build:
-#  image: latest  # Use the latest build image provided by RTD
-
-
