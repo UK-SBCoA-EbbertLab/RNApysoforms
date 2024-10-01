@@ -11,9 +11,13 @@ Add your content using ``reStructuredText`` syntax. See the
 documentation for details.
 
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. autosummary::
+   :toctree: _autosummary
+   :recursive:
 
-   modules
-   
+   pytranscript.make_traces
+   pytranscript.read_gtf
+   pytranscript.set_axis
+   pytranscript.shorten_gaps
+   pytranscript.to_intron
+   pytranscript.utils.py
