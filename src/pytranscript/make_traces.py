@@ -23,6 +23,7 @@ def make_traces(
     exon_height: float = 0.3,  # Height of exon shapes on the y-axis
     cds_height: float = 0.5,  # Height of CDS shapes on the y-axis
     arrow_height: float = 0.5,  # Height of directional arrows on the introns
+    arrow_length: float = 1, ## Length of the arrow shapes (x-axis coordinate)
     arrow_line_width: float = 0.5  # Line width for the arrow shapes
 ) -> list:
     """
@@ -48,7 +49,9 @@ def make_traces(
         exon_height (float): Height of exon shapes.
         cds_height (float): Height of CDS shapes.
         arrow_height (float): Height of the directional arrow for introns.
+        arrow_length (float): Length of the arrow shapes.
         arrow_line_width (float): Width of the arrow lines.
+        
         
     Returns:
         list: A list of Plotly trace dictionaries that can be used to render shapes in a Plotly figure.
@@ -145,7 +148,7 @@ def make_traces(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x - size / 250,  # Arrowhead to the left
+                            x1=arrow_x - (size / (150 / arrow_length)),  # Arrowhead to the left
                             y1=y_pos + arrow_height / 2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
@@ -154,7 +157,7 @@ def make_traces(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x - size / 250,  # Arrowhead to the left
+                            x1=arrow_x - (size / (150 / arrow_length)),  # Arrowhead to the left
                             y1=y_pos - arrow_height / 2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
@@ -166,7 +169,7 @@ def make_traces(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x + size / 150,  # Arrowhead to the right
+                            x1=arrow_x + (size / (150 / arrow_length)),  # Arrowhead to the right
                             y1=y_pos + arrow_height / 2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
@@ -175,7 +178,7 @@ def make_traces(
                             type="line",
                             x0=arrow_x,
                             y0=y_pos,
-                            x1=arrow_x + size / 150,  # Arrowhead to the right
+                            x1=arrow_x + (size / (150 / arrow_length)),  # Arrowhead to the right
                             y1=y_pos - arrow_height / 2,
                             line=dict(color=arrow_color, width=arrow_line_width),
                             opacity=opacity,
