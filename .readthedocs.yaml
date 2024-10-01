@@ -12,8 +12,7 @@ python:
     - requirements: source/requirements.txt
 
 # Additional settings for RTD
-build:
-  image: latest  # Use the latest build image provided by RTD
+#build:
+#  image: latest  # Use the latest build image provided by RTD
 
 
-  ## Testing
