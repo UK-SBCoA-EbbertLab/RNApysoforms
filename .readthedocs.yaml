@@ -1,0 +1,16 @@
+# .readthedocs.yaml
+
+version: 2
+
+# Use Sphinx configuration from the docs/ or source/ directory
+sphinx:
+  configuration: source/conf.py  # or source/conf.py
+
+python:
+  version: 3.9
+  install:
+    - requirements: source/requirements.txt
+
+# Additional settings for RTD
+build:
+  image: latest  # Use the latest build image provided by RTD
