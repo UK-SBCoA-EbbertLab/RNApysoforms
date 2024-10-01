@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytranscript"
-version = "0.1"
+version = "0.1.0-dev"
 description = "A Plotly-based Python implementation of ggtranscript-like functionality for vizualizing RNA isoform structure and expression."
 readme = "README.md"
 authors = [{name = "Your Name", email = "bernardo.aguzzoli@gmail.com"}]

@@ -2,12 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name="pytranscript",
-    version="0.1",
+    version="0.1.0-dev",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=[
-        'pandas',
-        'numpy',
         'plotly',
         'polars',
         'pyarrow',
