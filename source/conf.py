@@ -24,7 +24,6 @@ release = '0.1.0-dev'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx-rtd-theme',           # Read the Docs theme
     'sphinx.ext.autodoc',          # Automatically document your code
     'sphinx.ext.napoleon',         # Support for NumPy and Google style docstrings
     'sphinx.ext.viewcode',         # Add links to highlighted source code
@@ -46,7 +45,7 @@ autosummary_generate = True
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 # Set the theme to Read the Docs
-html_theme = 'sphinx-rtd-theme'
+html_theme = 'sphinx_rtd_theme'
 
 # Path to custom static files, such as CSS or JavaScript
 html_static_path = ['_static']
