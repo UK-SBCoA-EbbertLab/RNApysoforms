@@ -7,8 +7,6 @@ Welcome to the documentation for the pytranscript package. Below are the key fun
 Functions Overview
 ====================
 
-Below is a list of the main functions:
-
 .. autosummary::
    :toctree: _autosummary
    :recursive:
