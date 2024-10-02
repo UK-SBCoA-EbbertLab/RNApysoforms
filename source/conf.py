@@ -31,6 +31,7 @@ exclude_patterns = []
 
 # Automatically generate autosummary pages
 autosummary_generate = True
+add_module_names = False  # Display only function names without the module prefix
 
 
 # -- Options for HTML output -------------------------------------------------
