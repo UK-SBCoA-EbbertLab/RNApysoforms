@@ -1,10 +1,18 @@
 pytranscript documentation
-==========================
+===========================
 
-Welcome to the documentation for the pytranscript package. Below is a list of the key functions included in this library.
+Welcome to the documentation for the pytranscript package. Below are the key functions included in this library.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Table of Contents
+
+   functions
 
 Functions Overview
-==================
+====================
+
+Below is a list of the main functions:
 
 .. autosummary::
    :toctree: _autosummary
