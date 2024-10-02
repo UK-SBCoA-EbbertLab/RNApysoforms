@@ -9,7 +9,7 @@ import os
 import sys
 
 # Ensure that Sphinx can find the 'src' directory where your code is located
-sys.path.insert(0, os.path.abspath('../src'))
+sys.path.insert(0, os.path.abspath('../src/pytranscript/'))
 
 
 # -- Project information -----------------------------------------------------
