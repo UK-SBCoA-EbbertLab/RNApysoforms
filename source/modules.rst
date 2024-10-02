@@ -1,23 +1,19 @@
-.. automodule:: pytranscript.make_traces
+.. automodule:: make_traces
    :members:
    :undoc-members:
 
-.. automodule:: pytranscript.read_gtf
+.. automodule:: read_gtf
    :members:
    :undoc-members:
 
-.. automodule:: pytranscript.set_axis
+.. automodule:: set_axis
    :members:
    :undoc-members:
 
-.. automodule:: pytranscript.shorten_gaps
+.. automodule:: shorten_gaps
    :members:
    :undoc-members:
 
-.. automodule:: pytranscript.to_intron
-   :members:
-   :undoc-members:
-
-.. automodule:: pytranscript.utils.py
+.. automodule:: to_intron
    :members:
    :undoc-members:

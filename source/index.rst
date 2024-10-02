@@ -15,9 +15,8 @@ documentation for details.
    :toctree: _autosummary
    :recursive:
 
-   pytranscript.make_traces
-   pytranscript.read_gtf
-   pytranscript.set_axis
-   pytranscript.shorten_gaps
-   pytranscript.to_intron
-   pytranscript.utils.py
+make_traces
+read_gtf
+set_axis
+shorten_gaps
+to_intron
