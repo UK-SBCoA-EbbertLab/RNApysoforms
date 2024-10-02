@@ -9,3 +9,4 @@ from .load_counts_matrix import load_counts_matrix ## Function to load counts ma
 # Define the public API of this module by specifying which functions to expose when imported
 __all__ = ['shorten_gaps', 'to_intron', 'set_axis', "read_gtf", "make_traces"
            "load_counts_matrix"]
+
