@@ -1,22 +1,25 @@
-.. pytranscript documentation master file, created by
-   sphinx-quickstart on Tue Oct  1 16:08:00 2024.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 pytranscript documentation
 ==========================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+Welcome to the documentation for the pytranscript package. Below are the key functions included in this library.
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Table of Contents
+
+   modules
+
+Function Overview
+=================
+
+Here is a summary of the main functions:
 
 .. autosummary::
    :toctree: _autosummary
    :recursive:
 
-make_traces
-read_gtf
-set_axis
-shorten_gaps
-to_intron
+   Make Traces <make_traces>
+   Read GTF File <read_gtf>
+   Set Axis <set_axis>
+   Shorten Gaps <shorten_gaps>
+   Convert to Intron <to_intron>

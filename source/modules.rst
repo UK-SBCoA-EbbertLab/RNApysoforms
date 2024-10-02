@@ -1,19 +1,39 @@
-.. automodule:: make_traces
-   :members:
-   :undoc-members:
+Traces Module
+=============
 
-.. automodule:: read_gtf
-   :members:
-   :undoc-members:
+This module contains functions for creating visual representations of transcript features like exons, CDS, and introns.
 
-.. automodule:: set_axis
+.. automodule:: pytranscript.make_traces
    :members:
-   :undoc-members:
 
-.. automodule:: shorten_gaps
-   :members:
-   :undoc-members:
+GTF Reading Module
+==================
 
-.. automodule:: to_intron
+This module reads and processes GTF files, extracting necessary transcript information.
+
+.. automodule:: pytranscript.read_gtf
    :members:
-   :undoc-members:
+
+Axis Setting Module
+===================
+
+This module provides functions to adjust the axis of genomic visualizations.
+
+.. automodule:: pytranscript.set_axis
+   :members:
+
+Gap Shortening Module
+=====================
+
+This module offers functionality to shorten intron gaps between exons.
+
+.. automodule:: pytranscript.shorten_gaps
+   :members:
+
+Intron Conversion Module
+========================
+
+This module converts exon coordinates to intron coordinates for better visualization.
+
+.. automodule:: pytranscript.to_intron
+   :members:
