@@ -3,11 +3,6 @@ pytranscript documentation
 
 Welcome to the documentation for the pytranscript package. Below are the key functions included in this library.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Table of Contents
-
-   functions
 
 Functions Overview
 ====================
