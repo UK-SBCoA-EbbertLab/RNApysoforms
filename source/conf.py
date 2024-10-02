@@ -4,12 +4,12 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 ## IMPORT STATEMENTS
-import sphinx_rtd_theme
+import sphinx_rtd_theme  # Read the Docs theme
 import os
 import sys
+
+# Ensure that Sphinx can find the 'src' directory where your code is located
 sys.path.insert(0, os.path.abspath('../src'))
-
-
 
 
 # -- Project information -----------------------------------------------------
@@ -23,16 +23,30 @@ release = '0.1.0-dev'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx-rtd-theme', 'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'sphinx.ext.autosummary']
+extensions = [
+    'sphinx-rtd-theme',           # Read the Docs theme
+    'sphinx.ext.autodoc',          # Automatically document your code
+    'sphinx.ext.napoleon',         # Support for NumPy and Google style docstrings
+    'sphinx.ext.viewcode',         # Add links to highlighted source code
+    'sphinx.ext.autosummary',      # Generate summary pages for modules/classes
+    'sphinx.ext.autodoc.typehints' # Automatically include type hints in docs (if using type annotations)
+]
 
+# Path to templates used in the documentation
 templates_path = ['_templates']
+
+# Patterns to exclude when looking for source files
 exclude_patterns = []
+
+# Automatically generate autosummary pages
 autosummary_generate = True
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
+# Set the theme to Read the Docs
 html_theme = 'sphinx-rtd-theme'
+
+# Path to custom static files, such as CSS or JavaScript
 html_static_path = ['_static']
-
-
