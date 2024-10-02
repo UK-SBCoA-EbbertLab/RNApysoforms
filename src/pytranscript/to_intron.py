@@ -42,16 +42,17 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
     ...     "transcript_id": ["tx1", "tx1", "tx1", "tx1"],
     ...     "exon_number": [1, 2, 3, 4]
     ... })
-    >>> intron_df = to_intron(df, group_var="transcript_id")
-    >>> print(intron_df)
+    >>> df_with_introns = to_intron(df, group_var="transcript_id")
+    >>> print(df_with_introns.head())
     
     This will return a DataFrame with calculated intron positions between the provided exon coordinates.
 
     Notes
     -----
     - The function filters out invalid introns where `start` or `end` is null, and introns with length ≤ 1 are discarded.
-    - The input DataFrame must contain the `exon_number` column to ensure correct ordering and placement of introns.
+    - The input DataFrame must contain the `seqnames`, `start`, `end`, `type`, `exon_number`, and group_var
     - The resulting DataFrame retains all necessary columns from the input exons and supports optional columns.
+    - The input DataFrame can contain just exons or other "type" values as well such as CDS.
     """
 
     # Check required columns in the input DataFrame
@@ -59,7 +60,7 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
 
     ## Separate CDS and exon
     exons = annotation.filter(pl.col("type") == "exon")
-    cds = annotation.filter(pl.col("type") == "CDS")
+    other = annotation.filter(pl.col("type") != "exon")
 
     # Sort exons by group_var, start, and end coordinates
     sort_cols = [group_var, 'start', 'end']
@@ -108,7 +109,7 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
     introns = introns[exons.columns]
 
     ## Update annotations to include introns and exons
-    annotation = pl.concat([exons, cds, introns])
+    annotation = pl.concat([exons, other, introns])
 
     ## Sort to make output more neat
     annotation = annotation.sort(["seqnames", group_var, "start", "end", "type"], descending=False)
