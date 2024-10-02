@@ -1,7 +1,7 @@
 pytranscript documentation
 ==========================
 
-Welcome to the documentation for the pytranscript package. Below are the key functions included in this library.
+Welcome to the documentation for the pytranscript package. Below are the key modules and functions included in this library.
 
 .. toctree::
    :maxdepth: 2
@@ -9,17 +9,17 @@ Welcome to the documentation for the pytranscript package. Below are the key fun
 
    modules
 
-Function Overview
-=================
+Modules Overview
+================
 
-Here is a summary of the main functions:
+Below is a list of the main modules:
 
 .. autosummary::
    :toctree: _autosummary
    :recursive:
 
-   Make Traces <make_traces>
-   Read GTF File <read_gtf>
-   Set Axis <set_axis>
-   Shorten Gaps <shorten_gaps>
-   Convert to Intron <to_intron>
+   Traces Module <pytranscript.make_traces>
+   GTF Reading Module <pytranscript.read_gtf>
+   Axis Setting Module <pytranscript.set_axis>
+   Gap Shortening Module <pytranscript.shorten_gaps>
+   Intron Conversion Module <pytranscript.to_intron>
