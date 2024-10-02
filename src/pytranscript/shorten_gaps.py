@@ -20,7 +20,8 @@ def shorten_gaps(
     Parameters
     ----------
     annotation : pl.DataFrame
-        A Polars DataFrame containing exon, intron, and CDS data, with columns like 'start', 'end', 'type', and 'strand'.
+        A Polars DataFrame containing exon data and optionally CDS and/or intron data, 
+        with columns like 'start', 'end', 'seqnames', 'type',  and 'strand'.
     group_var : str, optional
         Column used to group transcripts, by default "transcript_id".
     target_gap_width : int, optional
@@ -46,18 +47,21 @@ def shorten_gaps(
     ...     "transcript_id": ["tx1", "tx1", "tx1"],
     ...     "start": [100, 200, 500],
     ...     "end": [150, 250, 600],
-    ...     "type": ["exon", "intron", "exon"],
+    ...     "type": ["exon", "exon", "exon"],
     ...     "strand": ["+", "+", "+"],
     ...     "seqnames": ["chr1", "chr1", "chr1"]
     ... })
     >>> shortened_df = shorten_gaps(df, group_var="transcript_id", target_gap_width=50)
-    >>> print(shortened_df)
+    >>> print(shortened_df.head())
 
     This will return a DataFrame where the intron gaps have been shortened to a maximum width of 50.
 
     Notes
     -----
     - The function ensures that exon and CDS regions remain unchanged, while intron gaps are shortened to a defined width.
+    - The function takes an input dataframe with or without intron entries. If there are no intron entries the function generates them,
+       else the function uses the intron entries already provided.
+    - The input dataframe must contain columns 'start', 'end', 'type', 'strand', 'seqnames', and the group_var.
     - The function can handle gaps at the start of transcripts and rescale the entire transcript structure for better visualization.
     - Rescaling is applied to the entire transcript structure after the gaps have been shortened.
     """
@@ -65,18 +69,23 @@ def shorten_gaps(
     # Validate the input DataFrame to ensure required columns are present
     check_df(annotation, ["start", "end", "type", "strand", "seqnames", group_var])
 
-    # Convert exons to introns
-    annotation = to_intron(annotation=annotation, group_var=group_var)
 
-    # Separate exons and introns from the annotation data
-    exons = annotation.filter(pl.col("type") == "exon")
-    introns = annotation.filter(pl.col("type") == "intron")
+    # Check if there are intron entries in the annotation data
+    if "intron" in annotation["type"].unique().to_list():
+        introns = annotation.filter(pl.col("type") == "intron") # Separate intron data
+    else:
+        annotation = to_intron(annotation=annotation, group_var=group_var) # Add intron annotations
+        introns = annotation.filter(pl.col("type") == "intron") # Separate intron data
+    
 
     # Check if there are CDS entries in the annotation data
     if "CDS" in annotation["type"].unique().to_list():
-        cds = annotation.filter(pl.col("type") == "CDS")  # Filter CDS data
+        cds = annotation.filter(pl.col("type") == "CDS")  # Separate CDS data
     else:
         cds = None  # No CDS entries in the data
+
+    # Separate exons from the rest of the annotation data
+    exons = annotation.filter(pl.col("type") == "exon")
 
     # Ensure the 'type' column in exons and introns is set correctly
     exons = _get_type(exons, "exons")  # Mark the type as 'exon'
