@@ -1,7 +1,7 @@
 import polars as pl
 from pytranscript.utils import check_df  # Utility function for DataFrame validation
 
-def to_intron(exons: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
+def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
 
     """
     Converts exon coordinates into corresponding intron coordinates.
@@ -19,28 +19,17 @@ def to_intron(exons: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataF
 
     # Check required columns in the input DataFrame
     if group_var is None:
-        check_df(exons, ["start", "end"])
+        check_df(annotation, ["seqnames", "start", "end", "type"])
     else:
-        check_df(exons, ["start", "end", group_var])
+        check_df(annotation, ["seqnames", "start", "end", "type", group_var])
 
-    # Define the required columns for exons
-    required_cols = ["start", "end"]
-    
-    # Ensure required columns are present in the exons DataFrame
-    assert all(col in exons.columns for col in required_cols), \
-        f"exons DataFrame must have columns: {', '.join(required_cols)}"
+    ## Separate CDS and exon
+    exons = annotation.filter(pl.col("type") == "exon")
+    cds = annotation.filter(pl.col("type") == "CDS")
 
-    # If group_var is specified, ensure it's a list, and validate its columns
-    if group_var is not None:
-        if isinstance(group_var, str):
-            group_var = [group_var]  # Convert string to list for consistent processing
-        if not all(col in exons.columns for col in group_var):
-            raise ValueError("group_var columns must exist in exons DataFrame")
-    else:
-        group_var = []  # Set group_var as an empty list if not provided
 
     # Sort exons by group_var, start, and end coordinates
-    sort_cols = group_var + ['start', 'end']
+    sort_cols =  [group_var, 'start', 'end']
     exons_sorted = exons.sort(sort_cols)
 
     # Calculate intron start and end positions, shift 'end' to get 'intron_start'
@@ -65,7 +54,7 @@ def to_intron(exons: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataF
     introns = exons_with_introns.select([
         pl.col('intron_start').alias('start'),  # Intron start position
         pl.col('intron_end').alias('end'),  # Intron end position
-        pl.col("exon_number"),  # Exon number (if applicable)
+        (pl.col("exon_number") + 0.5),  # Exon number (if applicable)
         pl.col('type'),  # Type of feature (intron)
         *other_cols_expr  # Include additional columns as necessary
     ])
@@ -82,5 +71,14 @@ def to_intron(exons: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataF
         pl.col('end').cast(pl.Int64)
     ])
 
-    return introns  # Return the DataFrame containing valid intron coordinates
+    ## Set intron column order to match exons and cds
+    introns = introns[exons.columns]
+
+    ## Update annotations to include introns and exons
+    annotation = pl.concat([exons, cds, introns])
+
+    ## Sort
+    annotation = annotation.sort(["seqnames", group_var, "start", "end", "type"], descending=False)
+
+    return annotation  # Return the DataFrame annotation containing valid intron coordinates
 

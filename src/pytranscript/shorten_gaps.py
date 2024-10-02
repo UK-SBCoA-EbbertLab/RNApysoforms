@@ -26,11 +26,12 @@ def shorten_gaps(annotation: pl.DataFrame,
     # Validate the input DataFrame to ensure required columns are present
     check_df(annotation, ["start", "end", "type", "strand", "seqnames", group_var])
 
-    # Separate exons from the annotation data
-    exons = annotation.filter(pl.col("type") == "exon")
-    
     # Convert exons to introns
-    introns = to_intron(exons=exons, group_var=group_var)
+    annotation = to_intron(annotation=annotation, group_var=group_var)
+
+    # Separate exons and introns from the annotation data
+    exons = annotation.filter(pl.col("type") == "exon")
+    introns = annotation.filter(pl.col("type") == "intron")
 
     # Check if there are CDS entries in the annotation data
     if "CDS" in annotation["type"].unique().to_list():

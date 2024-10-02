@@ -5,8 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 ## Read gtf
-annotations = pt.read_gtf("./test_data/Homo_sapiens.GRCh38.112.chr21-22.gtf")
-
+annotation = pt.read_gtf("./test_data/Homo_sapiens.GRCh38.112.chr21-22.gtf")
 
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
@@ -16,22 +15,22 @@ biotype_colors = {
 }
 
 ## Add biotype colors
-annotations = annotations.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
+annotation = annotation.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
 
 ## Define gene
 gene_name = "APP"
 
 ## Filter gene of interest
-annotations = annotations.filter(pl.col("gene_name") == gene_name)
+annotation = annotation.filter(pl.col("gene_name") == gene_name)
 
 #MIR99AHG
 
 ## Shorten gaps
-rescaled_annotations = pt.shorten_gaps(annotation=annotations, group_var="transcript_id")
+rescaled_annotation = pt.shorten_gaps(annotation=annotation, group_var="transcript_id")
 
 ## Create traces
 traces = pt.make_traces(
-    data=rescaled_annotations,
+    data=rescaled_annotation,
     x_start='start',
     x_end='end',
     y='transcript_id', 
@@ -51,7 +50,7 @@ fig.update_layout(
 )
 
 # Call the new function to set the genomic axis range
-fig = pt.set_axis(fig, data=rescaled_annotations)
+fig = pt.set_axis(fig, data=rescaled_annotation)
 
 
 # Update layout and show the plot
@@ -64,8 +63,8 @@ fig.update_layout(
     width=800,
     showlegend=False,
     yaxis=dict(
-        tickvals=list(range(rescaled_annotations.n_unique(subset="transcript_id"))),               # Positions of the ticks
-        ticktext=rescaled_annotations.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
+        tickvals=list(range(rescaled_annotation.n_unique(subset="transcript_id"))),               # Positions of the ticks
+        ticktext=rescaled_annotation.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
         xaxis=dict(showticklabels=False)
 )

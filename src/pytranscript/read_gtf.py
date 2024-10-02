@@ -77,7 +77,7 @@ def read_gtf(path: str) -> pl.DataFrame:
     result_lazy = result_lazy.with_columns([
         pl.col("start").cast(pl.Int64),  # Convert start coordinates to integer
         pl.col("end").cast(pl.Int64),  # Convert end coordinates to integer
-        pl.col("exon_number").cast(pl.Int64)  # Convert exon_number to integer
+        pl.col("exon_number").cast(pl.Float64)  # Convert exon_number to integer
     ])
     
     # Trigger the lazy computation by collecting the data into an eager DataFrame
