@@ -2,20 +2,19 @@ import polars as pl
 from pytranscript.utils import check_df  # Utility function for DataFrame validation
 
 def to_intron(exons: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
+
     """
-    Convert exon coordinates to intron coordinates.
+    Converts exon coordinates into corresponding intron coordinates.
+
+    This function identifies the introns between exons in a genomic annotation dataset by shifting exon coordinates. 
+    It returns a DataFrame with the calculated intron positions, maintaining any relevant groupings like transcript IDs.
 
     Parameters:
-    -----------
-    exons : pl.DataFrame
-        DataFrame containing exon coordinates. Must have 'start' and 'end' columns.
-    group_var : str, optional
-        Column(s) used to group transcripts. Default is 'transcript_id'.
+        exons (pl.DataFrame): A DataFrame containing exon coordinates with 'start' and 'end' columns.
+        group_var (str, optional): Column used to group transcripts, default is 'transcript_id'.
 
     Returns:
-    --------
-    pl.DataFrame
-        DataFrame containing the intron coordinates.
+        pl.DataFrame: A DataFrame containing intron coordinates derived from the exon data.
     """
 
     # Check required columns in the input DataFrame

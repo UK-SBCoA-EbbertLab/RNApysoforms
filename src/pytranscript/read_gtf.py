@@ -2,20 +2,21 @@ import polars as pl  # Polars is used for efficient data manipulation and analys
 import os  # Used to validate file paths
 
 def read_gtf(path: str) -> pl.DataFrame:
+   
     """
-    Reads a GTF file lazily, filters for entries of type 'exon' or 'CDS',
-    extracts necessary attributes, and returns a structured eager DataFrame.
-    
+    Reads a GTF (Gene Transfer Format) file, extracts relevant transcript information, and returns it as a Polars DataFrame.
+
+    The function parses GTF entries, focusing on exon and CDS features, and extracts specific gene and transcript attributes.
+    It ensures the GTF file is valid and structured, providing an efficient and structured way to work with transcript data.
+
     Parameters:
-        path (str): The file path to the GTF file.
+        path (str): Path to the GTF file.
 
     Returns:
-        pl.DataFrame: A Polars DataFrame containing selected columns: 
-                      'gene_id', 'gene_name', 'transcript_id', 'transcript_name',
-                      'transcript_biotype', 'seqnames', 'strand', 'type', 'start', 'end', and 'exon_number'.
-    
+        pl.DataFrame: A Polars DataFrame containing gene and transcript details, such as gene_id, transcript_id, exon_number, and more.
+
     Raises:
-        ValueError: If the provided file path is invalid or if the file is not a GTF file.
+        ValueError: If the file path is invalid or the file is not a GTF.
     """
     
     # Validate the file path existence

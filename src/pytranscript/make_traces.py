@@ -26,35 +26,39 @@ def make_traces(
     arrow_length: float = 1, ## Length of the arrow shapes (x-axis coordinate)
     arrow_line_width: float = 0.5  # Line width for the arrow shapes
 ) -> list:
+   
     """
-    Function to create plotly traces for visualizing transcript features like exons, CDS, and introns.
-    
+    Generates Plotly traces for visualizing transcript features such as exons, coding sequences (CDS), and introns.
+
+    This function creates graphical shapes (rectangles for exons/CDS, lines for introns) to represent transcript structures 
+    in a genomic visualization. It supports customizing the appearance of these features, including color, line width, 
+    height, and the addition of directional arrows for introns.
+
     Parameters:
-        data (pl.DataFrame): A Polars DataFrame containing the transcript data.
-        x_start (str): The column name representing the start position of features.
-        x_end (str): The column name representing the end position of features.
-        y (str): The column name for transcript IDs to be mapped on the y-axis.
-        strand (str): The column name indicating the strand of the transcript ("+" or "-").
-        type (str): The column name indicating the feature type (e.g., exon, CDS, intron).
-        cds (str): String indicating the type of feature that represents a coding sequence.
-        exon (str): String indicating the type of feature that represents an exon.
-        intron (str): String indicating the type of feature that represents an intron.
-        line_color (str): Color of the outline for shapes.
-        fill_column (str): Optional column name specifying the fill color for each feature.
-        fill_color (str): Default fill color if `fill_column` is not provided.
-        intron_line_width (float): Width of the line representing introns.
-        exon_line_width (float): Width of the outline for exons and CDS.
-        opacity (float): Opacity for all shapes.
-        arrow_color (str): Color of the arrow on the intron (indicating direction).
-        exon_height (float): Height of exon shapes.
-        cds_height (float): Height of CDS shapes.
-        arrow_height (float): Height of the directional arrow for introns.
-        arrow_length (float): Length of the arrow shapes.
-        arrow_line_width (float): Width of the arrow lines.
-        
-        
+        data (pl.DataFrame): Polars DataFrame with transcript feature data.
+        x_start (str, optional): Column name for feature start positions (default is 'start').
+        x_end (str, optional): Column name for feature end positions (default is 'end').
+        y (str, optional): Column name for transcript IDs to map to the y-axis (default is 'transcript_id').
+        strand (str, optional): Column name for strand information (default is 'strand').
+        type (str, optional): Column name indicating feature type (e.g., exon, intron, CDS) (default is 'type').
+        cds (str, optional): Feature type representing coding sequences (default is 'CDS').
+        exon (str, optional): Feature type representing exons (default is 'exon').
+        intron (str, optional): Feature type representing introns (default is 'intron').
+        line_color (str, optional): Line color for feature outlines (default is 'black').
+        fill_column (str, optional): Column name for individual feature fill colors (optional).
+        fill_color (str, optional): Default fill color for features if no fill_column is provided (default is 'grey').
+        intron_line_width (float, optional): Line width for introns (default is 0.5).
+        exon_line_width (float, optional): Line width for exons (default is 0.25).
+        opacity (float, optional): Opacity of the shapes (default is 1.0).
+        arrow_color (str, optional): Color of intron arrows (default is 'black').
+        exon_height (float, optional): Vertical height of exon shapes (default is 0.3).
+        cds_height (float, optional): Vertical height of CDS shapes (default is 0.5).
+        arrow_height (float, optional): Vertical size of intron arrows (default is 0.5).
+        arrow_length (float, optional): Length of intron arrows (default is 1.0).
+        arrow_line_width (float, optional): Line width of intron arrows (default is 0.5).
+
     Returns:
-        list: A list of Plotly trace dictionaries that can be used to render shapes in a Plotly figure.
+        list: A list of Plotly trace objects for rendering genomic features in a plot.
     """
 
     # Validate required columns in the data

@@ -9,31 +9,26 @@ def set_axis(
     padding: int = 100,  # Optional padding to add space around the x-axis range, default is 100
     group_var: str = "transcript_id"  # Column name used to group data on the y-axis (default is 'transcript_id')
 ) -> go.Figure:
-    """
-    Adjust the x-axis range of the plot to align with genomic coordinates, and set the y-axis range
-    based on the number of distinct groups (e.g., transcripts) in the data.
     
+    """
+    Updates the x-axis and y-axis ranges of a Plotly figure to align with genomic coordinates and groupings.
+
+    This function adjusts the x-axis based on the minimum and maximum genomic positions, applying optional padding.
+    The y-axis is set based on the number of unique groups (e.g., transcripts) in the data, allowing for clear visualization.
+
     Parameters:
-    -----------
-    fig : go.Figure
-        The Plotly figure object where the data is being displayed.
-    data : pl.DataFrame
-        The DataFrame containing genomic data with 'start' and 'end' columns.
-    padding : int, optional
-        Extra space to add to the x-axis on both sides for better visualization. Default is 100.
-    group_var : str, optional
-        The column name used to group the data on the y-axis. Default is 'transcript_id'.
-    
+        fig (go.Figure): The Plotly figure to update.
+        data (pl.DataFrame): DataFrame with genomic data containing 'start' and 'end' columns.
+        padding (int, optional): Padding added to the x-axis for visualization (default is 100).
+        group_var (str, optional): Column name used to group the y-axis (default is 'transcript_id').
+
     Returns:
-    --------
-    go.Figure
-        The updated figure object with corrected axes based on the genomic coordinates and grouping variable.
-    
+        go.Figure: The updated Plotly figure.
+
     Raises:
-    -------
-    ValueError
-        If the 'start' and 'end' columns are not found in the data.
+        ValueError: If 'start' or 'end' columns are missing.
     """
+
     
     # Ensure the DataFrame contains the required columns ('start' and 'end')
     check_df(data, ["start", "end"])

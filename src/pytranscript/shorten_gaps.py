@@ -7,22 +7,20 @@ from pytranscript.utils import check_df  # Import utility function for data vali
 def shorten_gaps(annotation: pl.DataFrame, 
                  group_var: str = "transcript_id", 
                  target_gap_width: int = 100) -> pl.DataFrame:
+    
     """
-    Shorten the gaps between exons and introns for more compact transcript visualization.
+    Shortens intron gaps between exons for a more compact transcript visualization.
+
+    This function processes genomic annotations, reduces the width of intron gaps while preserving exon and CDS regions, 
+    and rescales transcript coordinates for clearer visualization of transcript structures.
 
     Parameters:
-    -----------
-    annotation : pl.DataFrame
-        DataFrame containing exon, intron, and possibly CDS information.
-    group_var : str, optional
-        Column(s) used to group transcripts. Default is 'transcript_id'.
-    target_gap_width : int, optional
-        Maximum allowed width for gaps between exons. Default is 100.
+        annotation (pl.DataFrame): A DataFrame containing exon, intron, and CDS data.
+        group_var (str, optional): Column used to group transcripts, default is 'transcript_id'.
+        target_gap_width (int, optional): Maximum allowed width for intron gaps, default is 100.
 
     Returns:
-    --------
-    pl.DataFrame
-        DataFrame with shortened intron gaps and rescaled coordinates.
+        pl.DataFrame: A DataFrame with shortened intron gaps and rescaled coordinates.
     """
     
     # Validate the input DataFrame to ensure required columns are present
