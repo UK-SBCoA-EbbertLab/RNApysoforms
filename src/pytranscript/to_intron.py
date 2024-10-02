@@ -1,35 +1,68 @@
 import polars as pl
-from pytranscript.utils import check_df  # Utility function for DataFrame validation
+from pytranscript.utils import check_df
 
 def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
-
+   
     """
-    Converts exon coordinates into corresponding intron coordinates.
+    Converts exon coordinates into corresponding intron coordinates within a genomic annotation dataset.
 
-    This function identifies the introns between exons in a genomic annotation dataset by shifting exon coordinates. 
-    It returns a DataFrame with the calculated intron positions, maintaining any relevant groupings like transcript IDs.
+    This function identifies introns by calculating the genomic intervals between consecutive exons for each transcript.
+    It returns a DataFrame with the calculated intron coordinates and retains relevant grouping based on the specified 
+    `group_var`, typically 'transcript_id'.
 
-    Parameters:
-        exons (pl.DataFrame): A DataFrame containing exon coordinates with 'start' and 'end' columns.
-        group_var (str, optional): Column used to group transcripts, default is 'transcript_id'.
+    Parameters
+    ----------
+    annotation : pl.DataFrame
+        A DataFrame containing genomic annotations, including exon coordinates with group_var, 'start', 'end', and 'exon_number' columns.
+    group_var : str, optional
+        The column used to group data, typically 'transcript_id'. Default is 'transcript_id'.
 
-    Returns:
-        pl.DataFrame: A DataFrame containing intron coordinates derived from the exon data.
+    Returns
+    -------
+    pl.DataFrame
+        A DataFrame containing intron coordinates derived from the exons data, as well as other genomic features like CDS.
+
+    Raises
+    ------
+    ValueError
+        If the input DataFrame does not contain the required columns (`seqnames`, `start`, `end`, `type`, `exon_number`, 
+        and `group_var`).
+
+    Examples
+    --------
+    Convert exons into introns:
+
+    >>> import polars as pl
+    >>> from pytranscript.utils import check_df
+    >>> df = pl.DataFrame({
+    ...     "seqnames": ["chr1", "chr1", "chr1", "chr1"],
+    ...     "start": [100, 200, 400, 600],
+    ...     "end": [150, 250, 450, 650],
+    ...     "type": ["exon", "exon", "exon", "exon"],
+    ...     "transcript_id": ["tx1", "tx1", "tx1", "tx1"],
+    ...     "exon_number": [1, 2, 3, 4]
+    ... })
+    >>> intron_df = to_intron(df, group_var="transcript_id")
+    >>> print(intron_df)
+    
+    This will return a DataFrame with calculated intron positions between the provided exon coordinates.
+
+    Notes
+    -----
+    - The function filters out invalid introns where `start` or `end` is null, and introns with length ≤ 1 are discarded.
+    - The input DataFrame must contain the `exon_number` column to ensure correct ordering and placement of introns.
+    - The resulting DataFrame retains all necessary columns from the input exons and supports optional columns.
     """
 
     # Check required columns in the input DataFrame
-    if group_var is None:
-        check_df(annotation, ["seqnames", "start", "end", "type"])
-    else:
-        check_df(annotation, ["seqnames", "start", "end", "type", group_var])
+    check_df(annotation, ["seqnames", "start", "end", "type", "exon_number", group_var])
 
     ## Separate CDS and exon
     exons = annotation.filter(pl.col("type") == "exon")
     cds = annotation.filter(pl.col("type") == "CDS")
 
-
     # Sort exons by group_var, start, and end coordinates
-    sort_cols =  [group_var, 'start', 'end']
+    sort_cols = [group_var, 'start', 'end']
     exons_sorted = exons.sort(sort_cols)
 
     # Calculate intron start and end positions, shift 'end' to get 'intron_start'
@@ -77,8 +110,7 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
     ## Update annotations to include introns and exons
     annotation = pl.concat([exons, cds, introns])
 
-    ## Sort
+    ## Sort to make output more neat
     annotation = annotation.sort(["seqnames", group_var, "start", "end", "type"], descending=False)
 
     return annotation  # Return the DataFrame annotation containing valid intron coordinates
-

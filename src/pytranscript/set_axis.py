@@ -1,32 +1,65 @@
-import polars as pl  # For data manipulation
-import plotly.graph_objects as go  # For creating and updating Plotly figures
-from typing import Union, List  # For type hinting
-from pytranscript.utils import check_df  # Utility function for data validation
+import polars as pl
+import plotly.graph_objects as go
+from typing import Union, List
+from pytranscript.utils import check_df
 
 def set_axis(
-    fig: go.Figure,  # Plotly figure object to be updated
-    data: pl.DataFrame,  # Polars DataFrame containing the genomic data with 'start' and 'end' columns
-    padding: int = 100,  # Optional padding to add space around the x-axis range, default is 100
-    group_var: str = "transcript_id"  # Column name used to group data on the y-axis (default is 'transcript_id')
+    fig: go.Figure,
+    data: pl.DataFrame,
+    padding: int = 100,
+    group_var: str = "transcript_id"
 ) -> go.Figure:
     
     """
-    Updates the x-axis and y-axis ranges of a Plotly figure to align with genomic coordinates and groupings.
+    Adjusts the x-axis and y-axis ranges of a Plotly figure to fit genomic coordinates and groupings.
 
-    This function adjusts the x-axis based on the minimum and maximum genomic positions, applying optional padding.
-    The y-axis is set based on the number of unique groups (e.g., transcripts) in the data, allowing for clear visualization.
+    This function updates the x-axis range based on the genomic coordinates from the `start` and `end` columns 
+    of the input DataFrame, applying optional padding for better visualization. It also configures the y-axis 
+    based on the number of unique transcript groups (or other specified groups) to ensure clear, readable plots.
 
-    Parameters:
-        fig (go.Figure): The Plotly figure to update.
-        data (pl.DataFrame): DataFrame with genomic data containing 'start' and 'end' columns.
-        padding (int, optional): Padding added to the x-axis for visualization (default is 100).
-        group_var (str, optional): Column name used to group the y-axis (default is 'transcript_id').
+    Parameters
+    ----------
+    fig : go.Figure
+        The Plotly figure to be updated.
+    data : pl.DataFrame
+        A Polars DataFrame containing genomic data, which must include 'start' and 'end' columns.
+    padding : int, optional
+        Amount of padding to add around the x-axis range for visualization purposes (default is 100).
+    group_var : str, optional
+        The column name used to group data for the y-axis (default is 'transcript_id').
 
-    Returns:
-        go.Figure: The updated Plotly figure.
+    Returns
+    -------
+    go.Figure
+        The updated Plotly figure with adjusted x-axis and y-axis ranges.
 
-    Raises:
-        ValueError: If 'start' or 'end' columns are missing.
+    Raises
+    ------
+    ValueError
+        If the 'start' or 'end' columns are missing from the input DataFrame.
+
+    Examples
+    --------
+    Adjust the axes of a Plotly figure based on genomic data:
+
+    >>> import polars as pl
+    >>> import plotly.graph_objects as go
+    >>> from pytranscript.plot import set_axis
+    >>> df = pl.DataFrame({
+    ...     "transcript_id": ["tx1", "tx1", "tx2", "tx2"],
+    ...     "start": [100, 200, 300, 400],
+    ...     "end": [150, 250, 350, 450]
+    ... })
+    >>> fig = go.Figure()
+    >>> updated_fig = set_axis(fig, df)
+    >>> updated_fig.show()
+    
+    This will adjust the x-axis to fit the genomic ranges and set the y-axis according to the unique transcript IDs.
+    
+    Notes
+    -----
+    - The x-axis range is defined by the minimum `start` and maximum `end` values, with optional padding applied.
+    - The y-axis range is calculated based on the number of unique groups defined by `group_var`, such as transcripts.
     """
 
     

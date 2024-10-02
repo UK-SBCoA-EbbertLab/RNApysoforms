@@ -1,22 +1,44 @@
-import polars as pl  # Polars is used for efficient data manipulation and analysis
-import os  # Used to validate file paths
+import polars as pl
+import os
 
 def read_gtf(path: str) -> pl.DataFrame:
    
     """
-    Reads a GTF (Gene Transfer Format) file, extracts relevant transcript information, and returns it as a Polars DataFrame.
+    Reads a GTF (Gene Transfer Format) file, extracts transcript and gene features, and returns the data as a Polars DataFrame.
 
-    The function parses GTF entries, focusing on exon and CDS features, and extracts specific gene and transcript attributes.
-    It ensures the GTF file is valid and structured, providing an efficient and structured way to work with transcript data.
+    This function parses the contents of a GTF file, specifically focusing on 'exon' and 'CDS' feature types. It extracts
+    key attributes like `gene_id`, `transcript_id`, and `exon_number` from the file's attributes column. The function also 
+    validates the file path and ensures proper handling of missing values by substituting default values where necessary.
 
-    Parameters:
-        path (str): Path to the GTF file.
+    Parameters
+    ----------
+    path : str
+        The file path to the GTF file.
 
-    Returns:
-        pl.DataFrame: A Polars DataFrame containing gene and transcript details, such as gene_id, transcript_id, exon_number, and more.
+    Returns
+    -------
+    pl.DataFrame
+        A Polars DataFrame containing relevant gene and transcript data, including columns such as `gene_id`, `transcript_id`, 
+        `exon_number`, `seqnames`, `start`, and `end` coordinates.
 
-    Raises:
-        ValueError: If the file path is invalid or the file is not a GTF.
+    Raises
+    ------
+    ValueError
+        If the file path does not exist, is not a file, or does not have a .gtf extension.
+
+    Examples
+    --------
+    >>> from pytranscript.io import read_gtf
+    >>> df = read_gtf("/path/to/file.gtf")
+    >>> print(df.head())
+    
+    This will load the GTF file, extract transcript data, and return it as a Polars DataFrame.
+
+    Notes
+    -----
+    - The function filters out non-exon and non-CDS rows and only retains relevant attributes for transcript features.
+    - It lazily loads the file, making the operation efficient for large files by only processing the necessary rows.
+    - The missing `gene_name` and `transcript_name` are substituted by `gene_id` and `transcript_id`, respectively, if absent.
     """
     
     # Validate the file path existence

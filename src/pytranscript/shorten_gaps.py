@@ -1,26 +1,65 @@
-import plotly.graph_objects as go  # Import Plotly for creating plots
-from typing import List, Union  # Import type annotations for functions
-from pytranscript.to_intron import to_intron  # Import function to convert exons to introns
-import polars as pl  # Import Polars for DataFrame manipulation
-from pytranscript.utils import check_df  # Import utility function for data validation
+import plotly.graph_objects as go
+from typing import List, Union
+from pytranscript.to_intron import to_intron
+import polars as pl
+from pytranscript.utils import check_df
 
-def shorten_gaps(annotation: pl.DataFrame, 
-                 group_var: str = "transcript_id", 
-                 target_gap_width: int = 100) -> pl.DataFrame:
+def shorten_gaps(
+    annotation: pl.DataFrame, 
+    group_var: str = "transcript_id", 
+    target_gap_width: int = 100
+) -> pl.DataFrame:
     
     """
-    Shortens intron gaps between exons for a more compact transcript visualization.
+    Shortens intron gaps between exons to create a more compact transcript visualization.
 
-    This function processes genomic annotations, reduces the width of intron gaps while preserving exon and CDS regions, 
-    and rescales transcript coordinates for clearer visualization of transcript structures.
+    This function processes genomic annotations, rescaling the width of intron gaps to a target size, while preserving 
+    exon and CDS regions. The goal is to make transcript visualizations clearer by reducing the visual space occupied 
+    by long intron regions, while keeping the relative transcript structure intact.
 
-    Parameters:
-        annotation (pl.DataFrame): A DataFrame containing exon, intron, and CDS data.
-        group_var (str, optional): Column used to group transcripts, default is 'transcript_id'.
-        target_gap_width (int, optional): Maximum allowed width for intron gaps, default is 100.
+    Parameters
+    ----------
+    annotation : pl.DataFrame
+        A Polars DataFrame containing exon, intron, and CDS data, with columns like 'start', 'end', 'type', and 'strand'.
+    group_var : str, optional
+        Column used to group transcripts, by default "transcript_id".
+    target_gap_width : int, optional
+        Maximum allowed width for intron gaps in the rescaled visualization, by default 100.
 
-    Returns:
-        pl.DataFrame: A DataFrame with shortened intron gaps and rescaled coordinates.
+    Returns
+    -------
+    pl.DataFrame
+        A Polars DataFrame with shortened intron gaps and rescaled coordinates for exons, introns, and CDS regions.
+
+    Raises
+    ------
+    ValueError
+        If the required columns ('start', 'end', 'type', 'strand', 'seqnames', and the group_var) are missing in the input DataFrame.
+
+    Examples
+    --------
+    Shorten intron gaps in a genomic annotation DataFrame:
+
+    >>> import polars as pl
+    >>> from pytranscript.plot import shorten_gaps
+    >>> df = pl.DataFrame({
+    ...     "transcript_id": ["tx1", "tx1", "tx1"],
+    ...     "start": [100, 200, 500],
+    ...     "end": [150, 250, 600],
+    ...     "type": ["exon", "intron", "exon"],
+    ...     "strand": ["+", "+", "+"],
+    ...     "seqnames": ["chr1", "chr1", "chr1"]
+    ... })
+    >>> shortened_df = shorten_gaps(df, group_var="transcript_id", target_gap_width=50)
+    >>> print(shortened_df)
+
+    This will return a DataFrame where the intron gaps have been shortened to a maximum width of 50.
+
+    Notes
+    -----
+    - The function ensures that exon and CDS regions remain unchanged, while intron gaps are shortened to a defined width.
+    - The function can handle gaps at the start of transcripts and rescale the entire transcript structure for better visualization.
+    - Rescaling is applied to the entire transcript structure after the gaps have been shortened.
     """
     
     # Validate the input DataFrame to ensure required columns are present

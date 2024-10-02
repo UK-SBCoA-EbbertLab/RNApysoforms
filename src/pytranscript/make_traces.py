@@ -1,64 +1,114 @@
-import plotly.graph_objects as go  # Imports Plotly for creating interactive plots
-import polars as pl  # Imports Polars for data manipulation and analysis
-from plotly.subplots import make_subplots  # Imports function for creating subplots in Plotly
-from pytranscript.utils import check_df  # Imports utility function for data validation
+import plotly.graph_objects as go
+import polars as pl
+from plotly.subplots import make_subplots
+from pytranscript.utils import check_df
 
 def make_traces(
-    data: pl.DataFrame,  # Input Polars dataframe containing transcript data
-    x_start: str = "start",  # Column name for the start position (x-axis)
-    x_end: str = "end",  # Column name for the end position (x-axis)
-    y: str = "transcript_id",  # Column name for the transcript identifier (y-axis)
-    strand: str = "strand",  # Column name for strand information (e.g., "+" or "-")
-    type: str = "type",  # Column name indicating the type of feature (e.g., exon, intron)
-    cds: str = "CDS",  # Value representing coding sequences (CDS)
-    exon: str = "exon",  # Value representing exons
-    intron: str = "intron",  # Value representing introns
-    line_color: str = "black",  # Line color for the shapes (e.g., exon, CDS)
-    fill_column: str = None,  # Optional column name for fill colors
-    fill_color: str = "grey",  # Default fill color if no fill_column is specified
-    intron_line_width: float = 0.5,  # Line width for intron shapes
-    exon_line_width: float = 0.25,  # Line width for exon shapes
-    opacity: float = 1,  # Opacity for all shapes
-    arrow_color: str = "black",  # Arrow color for directional introns
-    exon_height: float = 0.3,  # Height of exon shapes on the y-axis
-    cds_height: float = 0.5,  # Height of CDS shapes on the y-axis
-    arrow_height: float = 0.5,  # Height of directional arrows on the introns
-    arrow_length: float = 1, ## Length of the arrow shapes (x-axis coordinate)
-    arrow_line_width: float = 0.5  # Line width for the arrow shapes
+    data: pl.DataFrame,
+    x_start: str = "start",
+    x_end: str = "end",
+    y: str = "transcript_id",
+    strand: str = "strand",
+    type: str = "type",
+    cds: str = "CDS",
+    exon: str = "exon",
+    intron: str = "intron",
+    line_color: str = "black",
+    fill_column: str = None,
+    fill_color: str = "grey",
+    intron_line_width: float = 0.5,
+    exon_line_width: float = 0.25,
+    opacity: float = 1,
+    arrow_color: str = "black",
+    exon_height: float = 0.3,
+    cds_height: float = 0.5,
+    arrow_height: float = 0.5,
+    arrow_length: float = 1,
+    arrow_line_width: float = 0.5
 ) -> list:
-   
+    
     """
-    Generates Plotly traces for visualizing transcript features such as exons, coding sequences (CDS), and introns.
+    Generates Plotly traces for visualizing transcript features like exons, introns, and coding sequences (CDS).
 
-    This function creates graphical shapes (rectangles for exons/CDS, lines for introns) to represent transcript structures 
-    in a genomic visualization. It supports customizing the appearance of these features, including color, line width, 
-    height, and the addition of directional arrows for introns.
+    This function creates graphical shapes (rectangles for exons and CDS, lines for introns) for transcript visualization 
+    in genomic plots. It allows customization of appearance, such as color, line width, feature heights, and the option to 
+    add directional arrows for introns to indicate strand direction.
 
-    Parameters:
-        data (pl.DataFrame): Polars DataFrame with transcript feature data.
-        x_start (str, optional): Column name for feature start positions (default is 'start').
-        x_end (str, optional): Column name for feature end positions (default is 'end').
-        y (str, optional): Column name for transcript IDs to map to the y-axis (default is 'transcript_id').
-        strand (str, optional): Column name for strand information (default is 'strand').
-        type (str, optional): Column name indicating feature type (e.g., exon, intron, CDS) (default is 'type').
-        cds (str, optional): Feature type representing coding sequences (default is 'CDS').
-        exon (str, optional): Feature type representing exons (default is 'exon').
-        intron (str, optional): Feature type representing introns (default is 'intron').
-        line_color (str, optional): Line color for feature outlines (default is 'black').
-        fill_column (str, optional): Column name for individual feature fill colors (optional).
-        fill_color (str, optional): Default fill color for features if no fill_column is provided (default is 'grey').
-        intron_line_width (float, optional): Line width for introns (default is 0.5).
-        exon_line_width (float, optional): Line width for exons (default is 0.25).
-        opacity (float, optional): Opacity of the shapes (default is 1.0).
-        arrow_color (str, optional): Color of intron arrows (default is 'black').
-        exon_height (float, optional): Vertical height of exon shapes (default is 0.3).
-        cds_height (float, optional): Vertical height of CDS shapes (default is 0.5).
-        arrow_height (float, optional): Vertical size of intron arrows (default is 0.5).
-        arrow_length (float, optional): Length of intron arrows (default is 1.0).
-        arrow_line_width (float, optional): Line width of intron arrows (default is 0.5).
+    Parameters
+    ----------
+    data : pl.DataFrame
+        A Polars DataFrame containing transcript feature data.
+    x_start : str, optional
+        Column name for feature start positions (x-axis), by default "start".
+    x_end : str, optional
+        Column name for feature end positions (x-axis), by default "end".
+    y : str, optional
+        Column name for transcript IDs to map to the y-axis, by default "transcript_id".
+    strand : str, optional
+        Column name for strand information (e.g., "+" or "-"), by default "strand".
+    type : str, optional
+        Column name indicating the feature type (e.g., exon, intron, CDS), by default "type".
+    cds : str, optional
+        Value representing coding sequences, by default "CDS".
+    exon : str, optional
+        Value representing exons, by default "exon".
+    intron : str, optional
+        Value representing introns, by default "intron".
+    line_color : str, optional
+        Line color for feature outlines, by default "black".
+    fill_column : str, optional
+        Optional column name for individual feature fill colors.
+    fill_color : str, optional
+        Default fill color if no `fill_column` is provided, by default "grey".
+    intron_line_width : float, optional
+        Line width for introns, by default 0.5.
+    exon_line_width : float, optional
+        Line width for exons, by default 0.25.
+    opacity : float, optional
+        Opacity of all shapes, by default 1.
+    arrow_color : str, optional
+        Arrow color for directional introns, by default "black".
+    exon_height : float, optional
+        Vertical height of exon shapes, by default 0.3.
+    cds_height : float, optional
+        Vertical height of CDS shapes, by default 0.5.
+    arrow_height : float, optional
+        Vertical height of directional arrows on introns, by default 0.5.
+    arrow_length : float, optional
+        Length of intron arrows, by default 1.
+    arrow_line_width : float, optional
+        Line width for arrow shapes, by default 0.5.
 
-    Returns:
-        list: A list of Plotly trace objects for rendering genomic features in a plot.
+    Returns
+    -------
+    list
+        A list of Plotly trace objects representing exons, introns, CDS, and optional arrows.
+
+    Examples
+    --------
+    Create traces for a genomic visualization:
+
+    >>> import polars as pl
+    >>> from pytranscript.utils import check_df
+    >>> from pytranscript.plot import make_traces
+    >>> df = pl.DataFrame({
+    ...     "transcript_id": ["tx1", "tx1", "tx1"],
+    ...     "start": [100, 400, 800],
+    ...     "end": [200, 500, 900],
+    ...     "type": ["exon", "intron", "CDS"],
+    ...     "strand": ["+", "+", "+"]
+    ... })
+    >>> traces = make_traces(df)
+    >>> print(traces)
+    
+    This will return a list of Plotly traces that can be used to render the genomic features.
+    
+    Notes
+    -----
+    - The function automatically adds arrows to introns if they are long enough and provides customization options 
+      like arrow direction based on the strand column.
+    - The y-axis positions of each feature are determined by the `transcript_id` column, and you can customize 
+      colors and styles using the available parameters.
     """
 
     # Validate required columns in the data
