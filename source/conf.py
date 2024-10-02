@@ -4,12 +4,12 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 ## IMPORT STATEMENTS
-import sphinx_rtd_theme  # Read the Docs theme
-import os
-import sys
+#import sphinx_rtd_theme  # Read the Docs theme
+#import os
+#import sys
 
 # Ensure that Sphinx can find the 'src' directory where your code is located
-sys.path.insert(0, os.path.abspath('../src/'))
+#sys.path.insert(0, os.path.abspath('../src/'))
 
 
 # -- Project information -----------------------------------------------------
