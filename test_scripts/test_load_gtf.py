@@ -5,9 +5,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 ## Read gtf
-annotation = pt.read_gtf("./test_data/Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
-counts = pt.load_counts_matrix(counts_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
-                               metadata_path="./test_data/sample_metadata.tsv",
+annotation = pt.read_gtf("./raw_data/Homo_sapiens.GRCh38.110.gtf")
+
+counts = pt.load_counts_matrix(counts_path="./raw_data/counts_transcript.txt", 
+                               counts_feature_id_columns=["TXNAME", "GENEID"],
+                               #metadata_path="./test_data/sample_metadata.tsv",
                                cpm_normalization=True)
 
 print(counts.head())
