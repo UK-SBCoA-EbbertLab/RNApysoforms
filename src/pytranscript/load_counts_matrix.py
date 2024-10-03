@@ -1,6 +1,8 @@
 import polars as pl
+import pandas as pd
 from typing import List, Union, Optional
 import warnings
+import os
 
 def load_counts_matrix(
     counts_path: str,
@@ -9,7 +11,7 @@ def load_counts_matrix(
     counts_feature_id_columns: Union[List[str], str] = ["gene_id", "transcript_id"],
     metadata_sample_id_column: str = "sample_id"
 ) -> pl.DataFrame:
-   
+    
     """
     Load and process a counts matrix, optionally merging metadata and performing CPM normalization.
 
@@ -20,16 +22,18 @@ def load_counts_matrix(
     Parameters
     ----------
     counts_path : str
-        Path to the counts matrix file.
+        Path to the counts matrix file. Supported file formats include .csv, .tsv, .txt, .parquet, and .xlsx.
     metadata_path : str, optional
-        Path to the metadata file. If provided, the metadata will be merged with the counts data.
+        Path to the metadata file. If provided, the metadata will be merged with the counts data. Supported file formats
+        are the same as for `counts_path`. Default is None.
     cpm_normalization : bool, optional
         Whether to perform Counts Per Million (CPM) normalization on the counts data. Default is False.
     counts_feature_id_columns : list of str or str, optional
-        Column name(s) in the counts DataFrame that identify features (e.g., genes or transcripts).
-        Default is ["gene_id", "transcript_id"].
+        Column name(s) in the counts DataFrame that identify features (e.g., genes or transcripts). These columns will
+        remain fixed during the data transformation. Default is ["gene_id", "transcript_id"].
     metadata_sample_id_column : str, optional
-        Column name in the metadata DataFrame that identifies samples. Default is "sample_id".
+        Column name in the metadata DataFrame that identifies samples. This column is used to merge the metadata and counts data.
+        Default is "sample_id".
 
     Returns
     -------
@@ -40,9 +44,11 @@ def load_counts_matrix(
     Raises
     ------
     ValueError
-        If required columns are missing or if data types are incorrect.
+        - If required feature ID columns are missing in the counts file.
+        - If the file format is unsupported or the file cannot be read.
+        - If required columns in the metadata are missing or sample IDs do not overlap between counts and metadata.
     Warning
-        If there is partial overlap between samples in counts data and metadata.
+        - If there is partial overlap between samples in counts data and metadata.
 
     Examples
     --------
@@ -56,24 +62,26 @@ def load_counts_matrix(
     >>> df = load_counts_matrix("counts.csv")
     >>> print(df.head())
 
+    Load a TSV counts matrix and merge it with metadata from an Excel file:
+
+    >>> df = load_counts_matrix("counts.tsv", metadata_path="metadata.xlsx")
+    >>> print(df.head())
+
     Notes
     -----
-    - The function assumes that the counts data and metadata are stored in CSV format and will read them accordingly.
+    - The function supports multiple file formats (.csv, .tsv, .txt, .parquet, .xlsx) for both counts and metadata files.
     - If CPM normalization is performed, the counts will be scaled to reflect Counts Per Million for each feature across samples.
-    - The function will raise warnings if there is partial sample overlap between counts data and metadata.
-    - The resulting DataFrame will be in long format, with counts or CPM data for each sample-feature combination.
+    - Warnings are raised if there is partial sample overlap between counts data and metadata.
+    - The resulting DataFrame is returned in long format, with counts or CPM data for each sample-feature combination.
     """
 
-    # Load counts_path as a polars dataframe.
-    try:
-        counts_df = pl.read_csv(counts_path, separator="\t")
-    except Exception as e:
-        raise ValueError(f"Failed to read counts data from '{counts_path}': {e}")
+    # Load counts_path using the helper function
+    counts_df = _get_open_file(counts_path)
 
     # Ensure counts_feature_id_columns is a list
     if isinstance(counts_feature_id_columns, str):
         counts_feature_id_columns = [counts_feature_id_columns]
-
+        
     # Check if counts_feature_id_columns are present in counts_dataframe
     missing_columns = [col for col in counts_feature_id_columns if col not in counts_df.columns]
     if missing_columns:
@@ -81,7 +89,7 @@ def load_counts_matrix(
 
     # Check if all columns that are not counts_feature_id_columns are numerical
     counts_columns = [col for col in counts_df.columns if col not in counts_feature_id_columns]
-    non_numeric_columns = [col for col in counts_columns if not pl.datatypes.is_numeric_dtype(counts_df[col].dtype)]
+    non_numeric_columns = [col for col in counts_columns if not counts_df[col].dtype.is_numeric()]
     if non_numeric_columns:
         raise ValueError(f"The following columns are expected to be numerical but are not: {non_numeric_columns}")
 
@@ -95,7 +103,6 @@ def load_counts_matrix(
         ])
 
         # Transform dataframe into long format
-        # Melt counts columns
         counts_long = counts_df.melt(
             id_vars=counts_feature_id_columns,
             value_vars=counts_columns,
@@ -110,7 +117,7 @@ def load_counts_matrix(
             value_vars=CPM_columns,
             variable_name=metadata_sample_id_column,
             value_name="CPM"
-        ).with_column(
+        ).with_columns(
             pl.col(metadata_sample_id_column).str.replace(r"_CPM$", "")
         )
 
@@ -131,17 +138,14 @@ def load_counts_matrix(
         )
 
     if metadata_path is not None:
-        # Load metadata_path as a polars dataframe
-        try:
-            metadata_df = pl.read_csv(metadata_path, separator="\t")
-        except Exception as e:
-            raise ValueError(f"Failed to read metadata from '{metadata_path}': {e}")
+        # Load metadata_path using the helper function
+        metadata_df = _get_open_file(metadata_path)
 
         # Check if metadata_sample_id_column is present in metadata_dataframe
         if metadata_sample_id_column not in metadata_df.columns:
             raise ValueError(f"The metadata_sample_id_column '{metadata_sample_id_column}' is not present in the metadata dataframe.")
 
-        # Check if any values in the metadata_sample_id_column are present in the long_counts_dataframe metadata_sample_id_column
+        # Check overlap of sample IDs between counts data and metadata
         counts_sample_ids = long_counts_df[metadata_sample_id_column].unique().to_list()
         metadata_sample_ids = metadata_df[metadata_sample_id_column].unique().to_list()
 
@@ -150,7 +154,7 @@ def load_counts_matrix(
         if not overlapping_sample_ids:
             raise ValueError("No overlapping sample IDs found between counts data and metadata.")
 
-        # Check how many values in the metadata_sample_id_column are not present in the counts data
+        # Warn about sample ID mismatches
         metadata_sample_ids_not_in_counts = set(metadata_sample_ids) - set(counts_sample_ids)
         counts_sample_ids_not_in_metadata = set(counts_sample_ids) - set(metadata_sample_ids)
 
@@ -170,3 +174,57 @@ def load_counts_matrix(
         )
 
     return long_counts_df
+
+def _get_open_file(file_path: str) -> pl.DataFrame:
+
+    """
+    Open a file based on its extension and load it into a Polars DataFrame.
+
+    This function supports multiple file formats such as .csv, .tsv, .txt, .parquet, and .xlsx. 
+    It automatically determines the correct method to open the file based on its extension.
+
+    Parameters
+    ----------
+    file_path : str
+        The path to the file to be opened.
+
+    Returns
+    -------
+    pl.DataFrame
+        A Polars DataFrame containing the contents of the file.
+
+    Raises
+    ------
+    ValueError
+        If the file extension is unsupported or the file cannot be read due to an error.
+
+    Examples
+    --------
+    Open a CSV file:
+
+    >>> df = _get_open_file("data.csv")
+    
+    Open a TSV file:
+
+    >>> df = _get_open_file("data.tsv")
+
+    Notes
+    -----
+    - This function is used internally by `load_counts_matrix` to load counts and metadata files.
+    - It handles different file extensions and raises a clear error if the file format is unsupported.
+    """
+    _, file_extension = os.path.splitext(file_path)
+    
+    try:
+        if file_extension == ".tsv" or file_extension == ".txt":
+            return pl.read_csv(file_path, separator="\t")
+        elif file_extension == ".csv":
+            return pl.read_csv(file_path)
+        elif file_extension == ".parquet":
+            return pl.read_parquet(file_path)
+        elif file_extension == ".xlsx":
+            return pl.from_pandas(pd.read_excel(file_path))
+        else:
+            raise ValueError(f"Unsupported file extension '{file_extension}'. Supported extensions are .tsv, .txt, .csv, .parquet, .xlsx")
+    except Exception as e:
+        raise ValueError(f"Failed to read the file '{file_path}': {e}")
