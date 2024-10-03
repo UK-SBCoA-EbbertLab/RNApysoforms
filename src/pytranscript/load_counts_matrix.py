@@ -66,7 +66,7 @@ def load_counts_matrix(
 
     # Load counts_path as a polars dataframe.
     try:
-        counts_df = pl.read_csv(counts_path)
+        counts_df = pl.read_csv(counts_path, separator="\t")
     except Exception as e:
         raise ValueError(f"Failed to read counts data from '{counts_path}': {e}")
 
@@ -133,7 +133,7 @@ def load_counts_matrix(
     if metadata_path is not None:
         # Load metadata_path as a polars dataframe
         try:
-            metadata_df = pl.read_csv(metadata_path)
+            metadata_df = pl.read_csv(metadata_path, separator="\t")
         except Exception as e:
             raise ValueError(f"Failed to read metadata from '{metadata_path}': {e}")
 

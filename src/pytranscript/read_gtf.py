@@ -53,14 +53,29 @@ def read_gtf(path: str) -> pl.DataFrame:
     if not path.endswith('.gtf'):
         raise ValueError("File must have a .gtf extension.")
     
+    ## Specify dtypes to read data in
+    input_dtypes = {
+    "seqnames": pl.Utf8,     
+    "source": pl.Utf8,     
+    "type": pl.Utf8,         
+    "start": pl.Int64,      
+    "end": pl.Int64,         
+    "score": pl.Utf8,    
+    "strand": pl.Utf8,      
+    "phase": pl.Utf8,        
+    "attributes": pl.Utf8    
+    }
+
+    
     # Lazily scan the GTF file, treating it as a CSV-like file with tab separators
     lazy_df = pl.scan_csv(
         path, 
         separator="\t",  # The GTF file is tab-separated
         has_header=False,  # GTF files do not have a header row
         comment_prefix="#",  # Ignore comment lines that start with '#'
-        new_columns=["seqnames", "source", "type", "start", "end", "score", "strand", "phase", "attributes"]
+        new_columns=["seqnames", "source", "type", "start", "end", "score", "strand", "phase", "attributes"], 
         # Map the GTF columns to new names for easier reference
+        schema_overrides = input_dtypes
     )
     
     # Filter the LazyFrame to keep rows where the 'type' column is either 'exon' or 'CDS'

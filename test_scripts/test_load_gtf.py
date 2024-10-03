@@ -5,7 +5,13 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 ## Read gtf
-annotation = pt.read_gtf("./test_data/Homo_sapiens.GRCh38.112.chr21-22.gtf")
+annotation = pt.read_gtf("./test_data/Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
+counts = pt.load_counts_matrix(counts_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
+                               metadata_path="./test_data/sample_metadata.tsv")
+
+#print(counts.head())
+print(annotation.head())
+exit()
 
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
