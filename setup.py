@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="rna_pysoforms",
+    name="RNA-pysoforms",
     version="0.1.0-dev",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
