@@ -9,7 +9,8 @@ setup(
 
     "plotly>=5.0,<6.0",
     "polars[excel]>=1.0,<2.0",
-    "pyarrow>=17.0.0,<18.0.0",
+    "pyarrow>=17.0,<18.0",
+    "pandas>=1.3,<3.0"
 
     ],
     python_requires='>=3.8',
