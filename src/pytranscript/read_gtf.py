@@ -28,7 +28,7 @@ def read_gtf(path: str) -> pl.DataFrame:
 
     Examples
     --------
-    >>> from pytranscript.io import read_gtf
+    >>> from rna-pysoforms.io import read_gtf
     >>> df = read_gtf("/path/to/file.gtf")
     >>> print(df.head())
     

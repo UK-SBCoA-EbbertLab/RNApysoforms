@@ -1,6 +1,6 @@
 # plotly_ggtranscript
 
-`pytranscript` is a Python package that provides Plotly-based implementations of functionality similar to the R package `ggtranscript`. It's designed to help visualize genomic transcript structures using Plotly.
+`rna-pysoforms` is a Python package that provides Plotly-based implementations of functionality similar to the R package `ggtranscript`. It's designed to help visualize genomic transcript structures using Plotly.
 
 ## Features
 
@@ -12,19 +12,19 @@
 
 ## Installation
 
-You can install `pytranscript` directly from the source:
+You can install `rna-pysoforms` directly from the source:
 
 ```bash
-pip install -e /path/to/pytranscript
+pip install -e /path/to/rna-pysoforms
 ```
 
 ## Usage
 
-Here's a basic example of how to use `pytranscript`:
+Here's a basic example of how to use `rna-pysoforms`:
 
 ```python
 import pandas as pd
-from pytranscript import geom_range, geom_intron, to_intron
+from rna-pysoforms import geom_range, geom_intron, to_intron
 
 # Prepare your data
 exons = pd.DataFrame({
@@ -56,7 +56,7 @@ fig.show()
 
 ## Contributing
 
-Contributions to `pytranscript` are welcome! Please feel free to submit a Pull Request.
+Contributions to `rna-pysoforms` are welcome! Please feel free to submit a Pull Request.
 
 ## License
 

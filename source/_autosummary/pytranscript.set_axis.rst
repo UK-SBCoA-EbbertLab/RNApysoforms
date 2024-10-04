@@ -1,6 +1,6 @@
-﻿pytranscript.set\_axis
+﻿rna-pysoforms.set\_axis
 ======================
 
-.. currentmodule:: pytranscript
+.. currentmodule:: rna-pysoforms
 
 .. autofunction:: set_axis

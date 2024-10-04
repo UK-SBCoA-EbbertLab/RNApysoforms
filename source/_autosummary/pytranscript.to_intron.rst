@@ -1,6 +1,6 @@
-﻿pytranscript.to\_intron
+﻿rna-pysoforms.to\_intron
 =======================
 
-.. currentmodule:: pytranscript
+.. currentmodule:: rna-pysoforms
 
 .. autofunction:: to_intron

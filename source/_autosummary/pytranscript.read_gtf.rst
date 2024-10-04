@@ -1,6 +1,6 @@
-﻿pytranscript.read\_gtf
+﻿rna-pysoforms.read\_gtf
 ======================
 
-.. currentmodule:: pytranscript
+.. currentmodule:: rna-pysoforms
 
 .. autofunction:: read_gtf

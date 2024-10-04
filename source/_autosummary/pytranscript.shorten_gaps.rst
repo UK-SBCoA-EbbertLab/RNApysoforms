@@ -1,6 +1,6 @@
-﻿pytranscript.shorten\_gaps
+﻿rna-pysoforms.shorten\_gaps
 ==========================
 
-.. currentmodule:: pytranscript
+.. currentmodule:: rna-pysoforms
 
 .. autofunction:: shorten_gaps

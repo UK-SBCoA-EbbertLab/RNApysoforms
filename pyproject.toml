@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pytranscript"
+name = "rna-pysoforms"
 version = "0.1.0-dev"
 description = "A Plotly-based Python implementation of ggtranscript-like functionality for vizualizing RNA isoform structure and expression."
 readme = "README.md"
@@ -23,7 +23,7 @@ dependencies = [
 requires-python = ">=3.7"
 
 [project.urls]
-Homepage = "https://github.com/UK-SBCoA-EbbertLab/pytranscript"
+Homepage = "https://github.com/UK-SBCoA-EbbertLab/rna-pysoforms"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

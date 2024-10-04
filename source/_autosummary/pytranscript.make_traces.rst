@@ -1,6 +1,6 @@
-﻿pytranscript.make\_traces
+﻿rna-pysoforms.make\_traces
 =========================
 
-.. currentmodule:: pytranscript
+.. currentmodule:: rna-pysoforms
 
 .. autofunction:: make_traces
