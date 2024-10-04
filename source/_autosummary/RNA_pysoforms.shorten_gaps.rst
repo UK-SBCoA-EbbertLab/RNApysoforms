@@ -1,5 +1,5 @@
-﻿RNA_pysoforms.shorten\_gaps
-==========================
+﻿RNA\_pysoforms.shorten\_gaps
+============================
 
 .. currentmodule:: RNA_pysoforms
 

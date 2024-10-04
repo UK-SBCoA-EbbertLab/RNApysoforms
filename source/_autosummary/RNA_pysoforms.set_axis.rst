@@ -1,5 +1,5 @@
-﻿RNA_pysoforms.set\_axis
-======================
+﻿RNA\_pysoforms.set\_axis
+========================
 
 .. currentmodule:: RNA_pysoforms
 
