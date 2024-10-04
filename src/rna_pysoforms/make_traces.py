@@ -2,7 +2,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import polars as pl
 from plotly.subplots import make_subplots
-from rna_pysoforms.utils import check_df
+from RNA_pysoforms.utils import check_df
 from typing import List
 
 
@@ -94,8 +94,8 @@ def make_traces(
     Create traces for a genomic visualization:
 
     >>> import polars as pl
-    >>> from rna_pysoforms.utils import check_df
-    >>> from rna_pysoforms.plot import make_traces
+    >>> from RNA_pysoforms.utils import check_df
+    >>> from RNA_pysoforms.plot import make_traces
     >>> df = pl.DataFrame({
     ...     "transcript_id": ["tx1", "tx1", "tx1"],
     ...     "start": [100, 400, 800],
