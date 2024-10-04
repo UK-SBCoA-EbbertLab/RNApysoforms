@@ -53,7 +53,7 @@ traces = pt.make_traces(
     cds_height=0.5,
     strand="strand",
     hue="transcript_biotype",
-    color_palette=px.colors.qualitative.Plotly,
+    #color_palette=px.colors.qualitative.Plotly,
     #color_map=biotype_colors
 )
 

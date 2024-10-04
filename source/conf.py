@@ -3,11 +3,14 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../src/RNA_pysoforms/'))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'RNA_pysoforms'
+project = 'RNA-pysoforms'
 copyright = '2024, Bernardo Aguzzoli Heberle'
 author = 'Bernardo Aguzzoli Heberle'
 release = '0.1.0-dev'
@@ -41,4 +44,4 @@ add_module_names = True  # Display only function names without the module prefix
 html_theme = 'sphinx_rtd_theme'
 
 # Path to custom static files, such as CSS or JavaScript
-html_static_path = ['_static']
+html_static_path = []
