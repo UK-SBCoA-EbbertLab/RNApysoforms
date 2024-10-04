@@ -8,7 +8,7 @@ setup(
     install_requires=[
 
     "plotly>=5.0,<6.0",
-    "polars>=1.0,<2.0",
+    "polars[excel]>=1.0,<2.0",
     "pyarrow>=17.0.0,<18.0.0",
 
     ],
