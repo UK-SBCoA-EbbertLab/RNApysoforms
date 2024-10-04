@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: rna_pysoforms",
+            "name": "Python: RNA_pysoforms",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/app.py",

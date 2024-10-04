@@ -1,1 +1,1 @@
-from rna_pysoforms import *
+from RNA_pysoforms import *

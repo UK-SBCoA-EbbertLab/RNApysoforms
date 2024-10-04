@@ -7,7 +7,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'rna_pysoforms'
+project = 'RNA_pysoforms'
 copyright = '2024, Bernardo Aguzzoli Heberle'
 author = 'Bernardo Aguzzoli Heberle'
 release = '0.1.0-dev'

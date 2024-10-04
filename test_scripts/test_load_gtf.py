@@ -1,5 +1,5 @@
 ## Import libraries
-import rna_pysoforms as pt
+import RNA_pysoforms as pt
 import polars as pl
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -53,7 +53,7 @@ traces = pt.make_traces(
     cds_height=0.5,
     strand="strand",
     hue="transcript_biotype",
-    color_palette=px.colors.qualitative.Set10,
+    color_palette=px.colors.qualitative.Prism,
     #color_map=biotype_colors
 )
 

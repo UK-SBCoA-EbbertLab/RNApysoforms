@@ -1,5 +1,5 @@
 import polars as pl
-from rna_pysoforms.utils import check_df
+from RNA_pysoforms.utils import check_df
 
 def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
    
@@ -33,7 +33,7 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
     Convert exons into introns:
 
     >>> import polars as pl
-    >>> from rna_pysoforms.utils import check_df
+    >>> from RNA_pysoforms.utils import check_df
     >>> df = pl.DataFrame({
     ...     "seqnames": ["chr1", "chr1", "chr1", "chr1"],
     ...     "start": [100, 200, 400, 600],

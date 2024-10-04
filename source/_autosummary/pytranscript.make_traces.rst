@@ -1,6 +1,6 @@
-﻿rna_pysoforms.make\_traces
+﻿RNA_pysoforms.make\_traces
 =========================
 
-.. currentmodule:: rna_pysoforms
+.. currentmodule:: RNA_pysoforms
 
 .. autofunction:: make_traces

@@ -1,8 +1,8 @@
 import plotly.graph_objects as go
 from typing import List, Union
-from rna_pysoforms.to_intron import to_intron
+from RNA_pysoforms.to_intron import to_intron
 import polars as pl
-from rna_pysoforms.utils import check_df
+from RNA_pysoforms.utils import check_df
 
 def shorten_gaps(
     annotation: pl.DataFrame, 
@@ -42,7 +42,7 @@ def shorten_gaps(
     Shorten intron gaps in a genomic annotation DataFrame:
 
     >>> import polars as pl
-    >>> from rna_pysoforms.plot import shorten_gaps
+    >>> from RNA_pysoforms.plot import shorten_gaps
     >>> df = pl.DataFrame({
     ...     "transcript_id": ["tx1", "tx1", "tx1"],
     ...     "start": [100, 200, 500],
