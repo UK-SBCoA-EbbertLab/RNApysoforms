@@ -20,7 +20,7 @@ def make_traces(
     fill_color: str = "grey",
     hue: str = None,
     color_map: dict = None,
-    color_palette: List[str] =  px.colors.qualitative.Plotly,
+    color_palette: List[str] =  ["#F8766D", "#00BFC4", "#CD9600", "#7CAE00", "#00BE67", "#00A9FF", "#C77CFF", "#FF61CC"],
     intron_line_width: float = 0.5,
     exon_line_width: float = 0.25,
     opacity: float = 1,
@@ -137,7 +137,7 @@ def make_traces(
     # Generate unique colors_map if not provided and hue is provided
     if ((color_map is None) and (hue is not None)):
         # Get values we need to colormap to
-        values_to_colormap = data[hue].unique().to_list()
+        values_to_colormap = data[hue].unique(maintain_order=True).to_list()
         # Map to a dictionary like your example
         color_map = {bt: color for bt, color in zip(values_to_colormap, color_palette)}
     ## If hue is not provided set colormap to be just "grey"
