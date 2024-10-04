@@ -1,6 +1,6 @@
-﻿rna-pysoforms.to\_intron
+﻿rna_pysoforms.to\_intron
 =======================
 
-.. currentmodule:: rna-pysoforms
+.. currentmodule:: rna_pysoforms
 
 .. autofunction:: to_intron

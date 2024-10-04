@@ -1,6 +1,6 @@
-﻿rna-pysoforms.shorten\_gaps
+﻿rna_pysoforms.shorten\_gaps
 ==========================
 
-.. currentmodule:: rna-pysoforms
+.. currentmodule:: rna_pysoforms
 
 .. autofunction:: shorten_gaps

@@ -1,6 +1,6 @@
-﻿rna-pysoforms.set\_axis
+﻿rna_pysoforms.set\_axis
 ======================
 
-.. currentmodule:: rna-pysoforms
+.. currentmodule:: rna_pysoforms
 
 .. autofunction:: set_axis

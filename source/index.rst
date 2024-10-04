@@ -1,7 +1,7 @@
-rna-pysoforms documentation
+rna_pysoforms documentation
 ===========================
 
-Welcome to the documentation for the rna-pysoforms package. Below are the key functions included in this library.
+Welcome to the documentation for the rna_pysoforms package. Below are the key functions included in this library.
 
 
 Functions Overview
@@ -11,8 +11,8 @@ Functions Overview
    :toctree: _autosummary
    :recursive:
 
-   rna-pysoforms.make_traces
-   rna-pysoforms.read_gtf
-   rna-pysoforms.set_axis
-   rna-pysoforms.shorten_gaps
-   rna-pysoforms.to_intron
+   rna_pysoforms.make_traces
+   rna_pysoforms.read_gtf
+   rna_pysoforms.set_axis
+   rna_pysoforms.shorten_gaps
+   rna_pysoforms.to_intron

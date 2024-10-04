@@ -18,7 +18,7 @@ __pycache__/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-rna-pysoforms.code-workspace
+rna_pysoforms.code-workspace
 
 # PyCharm
 .idea/

@@ -3,9 +3,9 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rna-pysoforms"
+name = "rna_pysoforms"
 version = "0.1.0-dev"
-description = "A Plotly-based Python implementation of ggtranscript-like functionality for vizualizing RNA isoform structure and expression."
+description = "A Plotly-and-Polars-based Python implementation of ggtranscript-like functionality for vizualizing RNA isoform structure and expression."
 readme = "README.md"
 authors = [{name = "Your Name", email = "bernardo.aguzzoli@gmail.com"}]
 license = {text = "MIT"}
@@ -14,16 +14,19 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-keywords = ["plotly", "ggtranscript", "bioinformatics"]
+keywords = ["plotly", "RNA isoforms", "transcripts", "ggtranscript", "bioinformatics", "genomics"]
+
 dependencies = [
-    "plotly",
-    "polars",
-    "pyarrow",
+
+    "plotly>=5.0,<6.0",
+    "polars>=1.0,<2.0",
+    "pyarrow>=17.0.0,<18.0.0",
 ]
-requires-python = ">=3.7"
+
+requires-python = ">=3.8"
 
 [project.urls]
-Homepage = "https://github.com/UK-SBCoA-EbbertLab/rna-pysoforms"
+Homepage = "https://github.com/UK-SBCoA-EbbertLab/rna_pysoforms"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

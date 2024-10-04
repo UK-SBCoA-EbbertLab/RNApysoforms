@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: rna-pysoforms",
+            "name": "Python: rna_pysoforms",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/app.py",
