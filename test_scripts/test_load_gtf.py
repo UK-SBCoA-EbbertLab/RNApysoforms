@@ -14,8 +14,6 @@ counts = pt.load_counts_matrix(counts_path="./test_data/counts_matrix_chr21_and_
                                cpm_normalization=True)
 print(counts.head())
 
-exit()
-
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
     'protein_coding': '#F8766D',
