@@ -1,5 +1,4 @@
 import polars as pl
-import pandas as pd
 from typing import Optional
 import warnings
 import os
@@ -220,6 +219,9 @@ def load_counts_matrix(
 
     return long_counts_df
 
+import polars as pl
+import os
+
 def _get_open_file(file_path: str) -> pl.DataFrame:
     """
     Open a file based on its extension and load it into a Polars DataFrame.
@@ -260,14 +262,14 @@ def _get_open_file(file_path: str) -> pl.DataFrame:
     _, file_extension = os.path.splitext(file_path)
     
     try:
-        if file_extension == ".tsv" or file_extension == ".txt":
+        if file_extension in [".tsv", ".txt"]:
             return pl.read_csv(file_path, separator="\t")
         elif file_extension == ".csv":
             return pl.read_csv(file_path)
         elif file_extension == ".parquet":
             return pl.read_parquet(file_path)
         elif file_extension == ".xlsx":
-            return pl.from_pandas(pd.read_excel(file_path))
+            return pl.read_excel(file_path)
         else:
             raise ValueError(f"Unsupported file extension '{file_extension}'. Supported extensions are .tsv, .txt, .csv, .parquet, .xlsx")
     except Exception as e:
