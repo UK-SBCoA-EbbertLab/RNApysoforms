@@ -1,6 +1,6 @@
 import polars as pl
 import pandas as pd
-from typing import List, Union, Optional
+from typing import Optional
 import warnings
 import os
 
@@ -8,16 +8,18 @@ def load_counts_matrix(
     counts_path: str,
     metadata_path: Optional[str] = None,
     cpm_normalization: bool = False,
-    counts_feature_id_columns: Union[List[str], str] = ["gene_id", "transcript_id"],
+    gene_id_column_name: Optional[str] = "gene_id",
+    transcript_id_column_name: str = "transcript_id",
     metadata_sample_id_column: str = "sample_id"
 ) -> pl.DataFrame:
-    
     """
-    Load and process a counts matrix, optionally merging metadata and performing CPM normalization.
+    Load and process a counts matrix, optionally merging metadata, performing CPM normalization,
+    and calculating relative transcript abundance.
 
-    This function reads a counts matrix file and, optionally, a metadata file, merging the two on a sample identifier. 
-    The counts can also be normalized to Counts Per Million (CPM) for further analysis. The resulting DataFrame is returned
-    in long format, with counts and optional CPM values, merged with metadata if provided.
+    This function reads a counts matrix file and, optionally, a metadata file, merging the two on a sample identifier.
+    The counts can also be normalized to Counts Per Million (CPM) and relative transcript abundance can be calculated
+    for further analysis. The resulting DataFrame is returned in long format, with counts and optional CPM values and
+    relative abundance, merged with metadata if provided.
 
     Parameters
     ----------
@@ -28,9 +30,12 @@ def load_counts_matrix(
         are the same as for `counts_path`. Default is None.
     cpm_normalization : bool, optional
         Whether to perform Counts Per Million (CPM) normalization on the counts data. Default is False.
-    counts_feature_id_columns : list of str or str, optional
-        Column name(s) in the counts DataFrame that identify features (e.g., genes or transcripts). These columns will
-        remain fixed during the data transformation. Default is ["gene_id", "transcript_id"].
+    gene_id_column_name : str, optional
+        The name of the column in the counts DataFrame that contains gene identifiers. This column will remain fixed during data transformation.
+        If provided, relative transcript abundance will be calculated. Default is "gene_id". If set to None, the gene identifier will not be used.
+    transcript_id_column_name : str
+        The name of the column in the counts DataFrame that contains transcript identifiers. This parameter is required and cannot be None.
+        This column will remain fixed during data transformation. Default is "transcript_id".
     metadata_sample_id_column : str, optional
         Column name in the metadata DataFrame that identifies samples. This column is used to merge the metadata and counts data.
         Default is "sample_id".
@@ -38,12 +43,13 @@ def load_counts_matrix(
     Returns
     -------
     pl.DataFrame
-        A Polars DataFrame in long format with the counts data (and CPM values if normalization is performed),
+        A Polars DataFrame in long format with the counts data (and CPM values and relative abundance if calculated),
         optionally merged with metadata.
 
     Raises
     ------
     ValueError
+        - If 'transcript_id_column_name' is None.
         - If required feature ID columns are missing in the counts file.
         - If the file format is unsupported or the file cannot be read.
         - If required columns in the metadata are missing or sample IDs do not overlap between counts and metadata.
@@ -52,49 +58,72 @@ def load_counts_matrix(
 
     Examples
     --------
-    Load a counts matrix and perform CPM normalization, merging with metadata:
+    Load a counts matrix, perform CPM normalization, calculate relative transcript abundance, and merge with metadata:
 
     >>> df = load_counts_matrix("counts.csv", metadata_path="metadata.csv", cpm_normalization=True)
     >>> print(df.head())
 
-    Load a counts matrix without normalization:
+    Load a counts matrix without normalization but calculate relative transcript abundance:
 
     >>> df = load_counts_matrix("counts.csv")
     >>> print(df.head())
 
-    Load a TSV counts matrix and merge it with metadata from an Excel file:
+    Load a counts matrix without calculating relative abundance:
 
-    >>> df = load_counts_matrix("counts.tsv", metadata_path="metadata.xlsx")
+    >>> df = load_counts_matrix("counts.csv", gene_id_column_name=None)
     >>> print(df.head())
 
     Notes
     -----
+    - The `transcript_id_column_name` parameter is required and cannot be None.
     - The function supports multiple file formats (.csv, .tsv, .txt, .parquet, .xlsx) for both counts and metadata files.
-    - If CPM normalization is performed, the counts will be scaled to reflect Counts Per Million for each feature across samples.
+    - If CPM normalization is performed, the counts will be scaled to reflect Counts Per Million for each sample.
+    - If `gene_id_column_name` is provided, relative transcript abundance is calculated as (transcript_counts / total_gene_counts) * 100.
+      If the total gene counts are zero, the relative abundance is set to zero to avoid division by zero errors.
     - Warnings are raised if there is partial sample overlap between counts data and metadata.
-    - The resulting DataFrame is returned in long format, with counts or CPM data for each sample-feature combination.
+    - The resulting DataFrame is returned in long format, with counts, CPM values, and relative abundance for each sample-feature combination.
     """
 
+    # Check if transcript_id_column_name is None and raise an error if so
+    if transcript_id_column_name is None:
+        raise ValueError("The 'transcript_id_column_name' is required and cannot be None.")
+    
     # Load counts_path using the helper function
     counts_df = _get_open_file(counts_path)
 
-    # Ensure counts_feature_id_columns is a list
-    if isinstance(counts_feature_id_columns, str):
-        counts_feature_id_columns = [counts_feature_id_columns]
-        
-    # Check if counts_feature_id_columns are present in counts_dataframe
+    # Build counts_feature_id_columns from gene_id_column_name and transcript_id_column_name
+    counts_feature_id_columns = [transcript_id_column_name]
+    
+    if gene_id_column_name is not None:
+        counts_feature_id_columns.append(gene_id_column_name)
+
+    # Check if counts_feature_id_columns are present in counts_df
     missing_columns = [col for col in counts_feature_id_columns if col not in counts_df.columns]
     if missing_columns:
         raise ValueError(f"The following feature ID columns are missing in the counts dataframe: {missing_columns}")
 
-    # Check if all columns that are not counts_feature_id_columns are numerical
+    # Determine counts columns (exclude feature ID columns)
     counts_columns = [col for col in counts_df.columns if col not in counts_feature_id_columns]
+
+    # Check that counts_columns are numeric
     non_numeric_columns = [col for col in counts_columns if not counts_df[col].dtype.is_numeric()]
     if non_numeric_columns:
         raise ValueError(f"The following columns are expected to be numerical but are not: {non_numeric_columns}")
 
+    # Calculate relative transcript abundance if gene_id_column_name is provided
+    if gene_id_column_name is not None:
+        counts_df = counts_df.with_columns([
+            (
+                pl.when(pl.col(col).sum().over(gene_id_column_name) == 0)
+                .then(0)
+                .otherwise((pl.col(col) / pl.col(col).sum().over(gene_id_column_name)) * 100)
+                .alias(col + "_relative_abundance")
+            )
+            for col in counts_columns
+        ])
+
     if cpm_normalization:
-        # Perform CPM normalization for each transcript
+        # Perform CPM normalization for each sample
         counts_df = counts_df.with_columns([
             (
                 pl.col(col) / pl.col(col).sum() * 1e6
@@ -102,16 +131,21 @@ def load_counts_matrix(
             for col in counts_columns
         ])
 
-        # Transform dataframe into long format
-        counts_long = counts_df.melt(
-            id_vars=counts_feature_id_columns,
-            value_vars=counts_columns,
-            variable_name=metadata_sample_id_column,
-            value_name="counts"
-        )
+    # Transform counts_df into long format for counts
+    counts_long = counts_df.melt(
+        id_vars=counts_feature_id_columns,
+        value_vars=counts_columns,
+        variable_name=metadata_sample_id_column,
+        value_name="counts"
+    )
 
-        # Melt CPM columns
+    # Initialize long_counts_df with counts_long
+    long_counts_df = counts_long
+
+    # If CPM normalization was performed, melt CPM columns and join
+    if cpm_normalization:
         CPM_columns = [col + "_CPM" for col in counts_columns]
+
         CPM_long = counts_df.melt(
             id_vars=counts_feature_id_columns,
             value_vars=CPM_columns,
@@ -122,26 +156,37 @@ def load_counts_matrix(
         )
 
         # Join counts_long and CPM_long
-        long_counts_df = counts_long.join(
+        long_counts_df = long_counts_df.join(
             CPM_long,
             on=counts_feature_id_columns + [metadata_sample_id_column],
             how="left"
         )
 
-    else:
-        # Transform dataframe into long format
-        long_counts_df = counts_df.melt(
+    # If relative abundance was calculated, melt and join
+    if gene_id_column_name is not None:
+        relative_abundance_columns = [col + "_relative_abundance" for col in counts_columns]
+
+        relative_abundance_long = counts_df.melt(
             id_vars=counts_feature_id_columns,
-            value_vars=counts_columns,
+            value_vars=relative_abundance_columns,
             variable_name=metadata_sample_id_column,
-            value_name="counts"
+            value_name="relative_abundance"
+        ).with_columns(
+            pl.col(metadata_sample_id_column).str.replace(r"_relative_abundance$", "")
+        )
+
+        # Join with long_counts_df
+        long_counts_df = long_counts_df.join(
+            relative_abundance_long,
+            on=counts_feature_id_columns + [metadata_sample_id_column],
+            how="left"
         )
 
     if metadata_path is not None:
         # Load metadata_path using the helper function
         metadata_df = _get_open_file(metadata_path)
 
-        # Check if metadata_sample_id_column is present in metadata_dataframe
+        # Check if metadata_sample_id_column is present in metadata_df
         if metadata_sample_id_column not in metadata_df.columns:
             raise ValueError(f"The metadata_sample_id_column '{metadata_sample_id_column}' is not present in the metadata dataframe.")
 
@@ -166,7 +211,7 @@ def load_counts_matrix(
         if warning_message:
             warnings.warn(warning_message)
 
-        # Merge metadata_dataframe to long_counts_dataframe
+        # Merge metadata_df to long_counts_df
         long_counts_df = long_counts_df.join(
             metadata_df,
             on=metadata_sample_id_column,
@@ -176,7 +221,6 @@ def load_counts_matrix(
     return long_counts_df
 
 def _get_open_file(file_path: str) -> pl.DataFrame:
-
     """
     Open a file based on its extension and load it into a Polars DataFrame.
 
