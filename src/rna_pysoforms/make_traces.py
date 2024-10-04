@@ -20,7 +20,7 @@ def make_traces(
     fill_color: str = "grey",
     hue: str = None,
     color_map: dict = None,
-    color_palette: List[str] =  ["#F8766D", "#00BFC4", "#CD9600", "#7CAE00", "#00BE67", "#00A9FF", "#C77CFF", "#FF61CC"],
+    color_palette: List[str] = px.colors.qualitative.Plotly,
     intron_line_width: float = 0.5,
     exon_line_width: float = 0.25,
     opacity: float = 1,
