@@ -1,7 +1,10 @@
 import plotly.graph_objects as go
+import plotly.express as px
 import polars as pl
 from plotly.subplots import make_subplots
 from pytranscript.utils import check_df
+from typing import List
+
 
 def make_traces(
     data: pl.DataFrame,
@@ -14,8 +17,10 @@ def make_traces(
     exon: str = "exon",
     intron: str = "intron",
     line_color: str = "black",
-    fill_column: str = None,
     fill_color: str = "grey",
+    hue: str = None,
+    color_map: dict = None,
+    color_palette: List[str] =  px.colors.qualitative.Plotly,
     intron_line_width: float = 0.5,
     exon_line_width: float = 0.25,
     opacity: float = 1,
@@ -56,10 +61,10 @@ def make_traces(
         Value representing introns, by default "intron".
     line_color : str, optional
         Line color for feature outlines, by default "black".
-    fill_column : str, optional
+    hue : str, optional
         Optional column name for individual feature fill colors.
     fill_color : str, optional
-        Default fill color if no `fill_column` is provided, by default "grey".
+        Default fill color if no `hue` is provided, by default "grey".
     intron_line_width : float, optional
         Line width for introns, by default 0.5.
     exon_line_width : float, optional
@@ -112,10 +117,10 @@ def make_traces(
     """
 
     # Validate required columns in the data
-    if fill_column is None:
+    if hue is None:
         check_df(data, [x_start, x_end, y, type, strand])
     else:
-        check_df(data, [x_start, x_end, y, type, strand, fill_column])
+        check_df(data, [x_start, x_end, y, type, strand, hue])
 
     # Define trace lists for different types of features
     cds_traces = []  # Stores traces for CDS (coding sequences)
@@ -127,6 +132,17 @@ def make_traces(
     
     # Create a dictionary that maps each unique transcript ID to a y-position
     y_dict = {val: i for i, val in enumerate(unique_y)}
+
+
+    # Generate unique colors_map if not provided and hue is provided
+    if ((color_map is None) and (hue is not None)):
+        # Get values we need to colormap to
+        values_to_colormap = data[hue].unique().to_list()
+        # Map to a dictionary like your example
+        color_map = {bt: color for bt, color in zip(values_to_colormap, color_palette)}
+    ## If hue is not provided set colormap to be just "grey"
+    elif hue is None:
+        color_map = fill_color
 
     # Calculate the global maximum and minimum x-values (positions)
     global_max = max(
@@ -142,15 +158,25 @@ def make_traces(
     # Calculate the total size of the x-axis range
     size = int(abs(global_max - global_min))
 
-    # Handle the case where no specific fill column is provided
-    if fill_column is None:
-        fill = [fill_color] * len(data)  # Use the default fill color for all features
-    else:
-        fill = data[fill_column]  # Use the fill color from the specified column
+    ## Create list of already displayed legend colors
+    displayed_hue_names = []
 
     # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
     for idx, row in enumerate(data.iter_rows(named=True)):
         y_pos = y_dict[row[y]]  # Get the corresponding y-position for the current transcript
+        
+        if hue is None:
+            exon_and_cds_color = fill_color
+            hue_name = "Exon and/or CDS"
+        else:
+            exon_and_cds_color = color_map[row[hue]]
+            hue_name = row[hue]
+
+        if ((hue_name in displayed_hue_names) or (hue is None)):
+            display_legend = False
+        else: 
+            display_legend = True
+
 
         # If the feature type is an exon, create a rectangle trace
         if row[type] == exon:
@@ -160,11 +186,16 @@ def make_traces(
                 x1=row[x_end],  # End position on the x-axis
                 y0=y_pos - exon_height / 2,  # Bottom boundary of the rectangle on the y-axis
                 y1=y_pos + exon_height / 2,  # Top boundary of the rectangle on the y-axis
-                fillcolor=fill[idx],  # Fill color for the exon
+                fillcolor=exon_and_cds_color,  # Fill color for the exon
                 line=dict(color=line_color, width=exon_line_width),  # Border color and width
                 opacity=opacity,  # Transparency level
+                name=hue_name, ## Name legend by the hue
+                showlegend=display_legend ## show legend
             )
             exon_traces.append(trace)  # Append the trace to the exon list
+            
+            if hue_name not in displayed_hue_names:
+                displayed_hue_names.append(hue_name)
 
         # If the feature type is a CDS, create a rectangle trace
         elif row[type] == cds:
@@ -174,11 +205,16 @@ def make_traces(
                 x1=row[x_end],
                 y0=y_pos - cds_height / 2,  # Bottom boundary of the rectangle on the y-axis
                 y1=y_pos + cds_height / 2,  # Top boundary of the rectangle on the y-axis
-                fillcolor=fill[idx],  # Fill color for the CDS
+                fillcolor=exon_and_cds_color,  # Fill color for the CDS
                 line=dict(color=line_color, width=exon_line_width),  # Border color and width
                 opacity=opacity,
+                name=hue_name, ## Name legend by the hue
+                showlegend=display_legend  # Show legend only for the first CDS
             )
             cds_traces.append(trace)  # Append the trace to the CDS list
+            
+            if hue_name not in displayed_hue_names:
+                displayed_hue_names.append(hue_name)
 
         # If the feature type is an intron, create a line trace
         elif row[type] == intron:

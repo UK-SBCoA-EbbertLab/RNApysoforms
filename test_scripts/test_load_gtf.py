@@ -3,6 +3,7 @@ import pytranscript as pt
 import polars as pl
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 
 
 ## Read gtf
@@ -47,11 +48,13 @@ traces = pt.make_traces(
     x_start='start',
     x_end='end',
     y='transcript_id', 
-    fill_column="fillcolor",
     fill_color="grey",
     exon_height=0.3,
     cds_height=0.5,
-    strand="strand"
+    strand="strand",
+    hue="transcript_biotype",
+    color_palette=px.colors.qualitative.Set10,
+    #color_map=biotype_colors
 )
 
 # Create the plot
@@ -74,12 +77,13 @@ fig.update_layout(
     yaxis_title="",
     height=400,
     width=800,
-    showlegend=False,
+    showlegend=True,
     yaxis=dict(
         tickvals=list(range(rescaled_annotation.n_unique(subset="transcript_id"))),               # Positions of the ticks
         ticktext=rescaled_annotation.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
-        xaxis=dict(showticklabels=False)
+    xaxis=dict(showticklabels=False),
+    legend=dict(traceorder="reversed")
 )
 
 # Show or save the plot
