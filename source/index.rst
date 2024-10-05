@@ -16,3 +16,5 @@ Functions Overview
    RNA_pysoforms.set_axis
    RNA_pysoforms.shorten_gaps
    RNA_pysoforms.to_intron
+   RNA_pysoforms.gene_filtering
+   RNA_pysoforms.read_counts_matrix

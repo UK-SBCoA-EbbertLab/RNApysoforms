@@ -3,9 +3,17 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
 import os
 import sys
-sys.path.insert(0, os.path.abspath('./src'))
+import RNA_pysoforms
+sys.path.insert(0, os.path.abspath('../src'))
+print("Current Python Path: ", sys.path)
+
+for root, dirs, files in os.walk("."):
+    print(root, dirs, files)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
