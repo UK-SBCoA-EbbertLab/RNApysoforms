@@ -31,13 +31,13 @@ def make_traces(
     arrow_length: float = 1,
     arrow_line_width: float = 0.5
 ) -> list:
-    
     """
     Generates Plotly traces for visualizing transcript features like exons, introns, and coding sequences (CDS).
 
     This function creates graphical shapes (rectangles for exons and CDS, lines for introns) for transcript visualization 
     in genomic plots. It allows customization of appearance, such as color, line width, feature heights, and the option to 
-    add directional arrows for introns to indicate strand direction.
+    add directional arrows for introns to indicate strand direction. The function supports coloring features based on a 
+    'hue' column, enabling grouping and coloring of features based on another variable.
 
     Parameters
     ----------
@@ -61,14 +61,19 @@ def make_traces(
         Value representing introns, by default "intron".
     line_color : str, optional
         Line color for feature outlines, by default "black".
-    hue : str, optional
-        Optional column name for individual feature fill colors.
     fill_color : str, optional
         Default fill color if no `hue` is provided, by default "grey".
+    hue : str, optional
+        Column name for feature grouping to apply different fill colors.
+    color_map : dict, optional
+        A dictionary mapping unique hue values to specific colors. If None, a color map is generated using `color_palette`.
+    color_palette : List[str], optional
+        A list of colors to use when generating the color map if `color_map` is None and `hue` is provided, 
+        by default `px.colors.qualitative.Plotly`.
     intron_line_width : float, optional
         Line width for introns, by default 0.5.
     exon_line_width : float, optional
-        Line width for exons, by default 0.25.
+        Line width for exons and CDS, by default 0.25.
     opacity : float, optional
         Opacity of all shapes, by default 1.
     arrow_color : str, optional
@@ -101,12 +106,14 @@ def make_traces(
     ...     "start": [100, 400, 800],
     ...     "end": [200, 500, 900],
     ...     "type": ["exon", "intron", "CDS"],
-    ...     "strand": ["+", "+", "+"]
+    ...     "strand": ["+", "+", "+"],
+    ...     "feature_group": ["group1", "group1", "group2"]
     ... })
-    >>> traces = make_traces(df)
+    >>> traces = make_traces(df, hue="feature_group")
     >>> print(traces)
     
-    This will return a list of Plotly traces that can be used to render the genomic features.
+    This will return a list of Plotly traces that can be used to render the genomic features, 
+    colored according to the 'feature_group' column.
     
     Notes
     -----
@@ -114,6 +121,11 @@ def make_traces(
       like arrow direction based on the strand column.
     - The y-axis positions of each feature are determined by the `transcript_id` column, and you can customize 
       colors and styles using the available parameters.
+    - When a `hue` is provided, the features are colored according to the values in the `hue` column. If `color_map` 
+      is not provided, it will generate a color map using `color_palette`.
+    - The legend will display each unique hue value only once.
+    - Arrows indicate strand direction: for positive strand ('+'), arrows point leftward; for negative strand ('-'), 
+      arrows point rightward.
     """
 
     # Validate required columns in the data
@@ -123,9 +135,9 @@ def make_traces(
         check_df(data, [x_start, x_end, y, type, strand, hue])
 
     # Define trace lists for different types of features
-    cds_traces = []  # Stores traces for CDS (coding sequences)
+    cds_traces = []    # Stores traces for CDS (coding sequences)
     intron_traces = []  # Stores traces for introns
-    exon_traces = []  # Stores traces for exons
+    exon_traces = []   # Stores traces for exons
 
     # Get unique transcript IDs to map them to specific y-axis positions
     unique_y = data[y].unique(maintain_order=True).to_list()
@@ -133,14 +145,13 @@ def make_traces(
     # Create a dictionary that maps each unique transcript ID to a y-position
     y_dict = {val: i for i, val in enumerate(unique_y)}
 
-
-    # Generate unique colors_map if not provided and hue is provided
+    # Generate a color map if not provided and 'hue' is specified
     if ((color_map is None) and (hue is not None)):
-        # Get values we need to colormap to
+        # Get unique values from the hue column to map to colors
         values_to_colormap = data[hue].unique(maintain_order=True).to_list()
-        # Map to a dictionary like your example
-        color_map = {bt: color for bt, color in zip(values_to_colormap, color_palette)}
-    ## If hue is not provided set colormap to be just "grey"
+        # Create a color map dictionary mapping hue values to colors from the palette
+        color_map = {value: color for value, color in zip(values_to_colormap, color_palette)}
+    # If 'hue' is not provided, set the color map to a single fill color
     elif hue is None:
         color_map = fill_color
 
@@ -158,13 +169,14 @@ def make_traces(
     # Calculate the total size of the x-axis range
     size = int(abs(global_max - global_min))
 
-    ## Create list of already displayed legend colors
+    # Create a list to keep track of hue values already displayed in the legend
     displayed_hue_names = []
 
     # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
     for idx, row in enumerate(data.iter_rows(named=True)):
         y_pos = y_dict[row[y]]  # Get the corresponding y-position for the current transcript
         
+        # Determine the fill color and legend name based on 'hue'
         if hue is None:
             exon_and_cds_color = fill_color
             hue_name = "Exon and/or CDS"
@@ -172,11 +184,11 @@ def make_traces(
             exon_and_cds_color = color_map[row[hue]]
             hue_name = row[hue]
 
+        # Determine whether to display the legend entry for this hue value
         if ((hue_name in displayed_hue_names) or (hue is None)):
             display_legend = False
         else: 
             display_legend = True
-
 
         # If the feature type is an exon, create a rectangle trace
         if row[type] == exon:
@@ -189,11 +201,12 @@ def make_traces(
                 fillcolor=exon_and_cds_color,  # Fill color for the exon
                 line=dict(color=line_color, width=exon_line_width),  # Border color and width
                 opacity=opacity,  # Transparency level
-                name=hue_name, ## Name legend by the hue
-                showlegend=display_legend ## show legend
+                name=hue_name,  # Legend name based on hue
+                showlegend=display_legend  # Show legend only once per hue
             )
             exon_traces.append(trace)  # Append the trace to the exon list
             
+            # Keep track of hue values that have been displayed in the legend
             if hue_name not in displayed_hue_names:
                 displayed_hue_names.append(hue_name)
 
@@ -208,11 +221,12 @@ def make_traces(
                 fillcolor=exon_and_cds_color,  # Fill color for the CDS
                 line=dict(color=line_color, width=exon_line_width),  # Border color and width
                 opacity=opacity,
-                name=hue_name, ## Name legend by the hue
-                showlegend=display_legend  # Show legend only for the first CDS
+                name=hue_name,  # Legend name based on hue
+                showlegend=display_legend  # Show legend only once per hue
             )
             cds_traces.append(trace)  # Append the trace to the CDS list
             
+            # Keep track of hue values that have been displayed in the legend
             if hue_name not in displayed_hue_names:
                 displayed_hue_names.append(hue_name)
 
@@ -232,7 +246,7 @@ def make_traces(
             # Add directional arrows for introns if they are long enough
             if abs(row[x_start] - row[x_end]) > size / 25:
                 arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
-                if row[strand] == "+":  # Positive strand (direction rightward)
+                if row[strand] == "+":  # Positive strand (arrow pointing left)
                     arrow_trace = [
                         dict(
                             type="line",
@@ -253,7 +267,7 @@ def make_traces(
                             opacity=opacity,
                         )
                     ]
-                elif row[strand] == "-":  # Negative strand (direction leftward)
+                elif row[strand] == "-":  # Negative strand (arrow pointing right)
                     arrow_trace = [
                         dict(
                             type="line",
@@ -282,4 +296,3 @@ def make_traces(
     traces = exon_traces + cds_traces + intron_traces
 
     return traces  # Return the list of traces
-
