@@ -88,4 +88,4 @@ fig.update_layout(
 
 # Show or save the plot
 fig.show()
-fig.write_html(("transcript_structure.html"))
+#fig.write_html(("transcript_structure.html"))
