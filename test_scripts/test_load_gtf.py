@@ -52,7 +52,9 @@ traces = pt.make_traces(
     cds_height=0.5,
     strand="strand",
     hue="transcript_biotype",
-    is_hoverable=True
+    is_hoverable=True,
+    arrow_height=0.5,
+    arrow_length=1,
     #color_palette=px.colors.qualitative.Plotly,
     #color_map=biotype_colors
 )

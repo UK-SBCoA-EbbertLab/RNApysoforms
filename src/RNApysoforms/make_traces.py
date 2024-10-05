@@ -25,12 +25,10 @@ def make_traces(
     intron_line_width: float = 0.5,
     exon_line_width: float = 0.25,
     opacity: float = 1,
-    arrow_color: str = "black",
     exon_height: float = 0.3,
     cds_height: float = 0.5,
     arrow_height: float = 0.5,
     arrow_length: float = 1,
-    arrow_line_width: float = 0.5,
     is_hoverable: bool = True
 ) -> list:
     """
@@ -216,16 +214,20 @@ def make_traces(
             # Create the scatter trace
             trace = dict(
                 type='scatter',
-                mode='lines',
+                mode='lines+markers',  # Changed here
                 x=[x0, x1, x1, x0, x0],  # Define the corners of the rectangle
                 y=[y0, y0, y1, y1, y0],
                 fill='toself',  # Fill the area enclosed by the lines
                 fillcolor=exon_and_cds_color,  # Fill color for the exon
                 line=dict(color=line_color, width=exon_line_width),  # Border color and width
+                marker=dict(opacity=0),  # Added here
                 opacity=opacity,  # Transparency level
                 name=hue_name,  # Legend name based on hue
+                legendgroup=hue_name,
                 showlegend=display_legend,  # Show legend only once per hue
                 hovertemplate=hovertemplate_text,  # Custom hover text
+                hoverlabel=dict(namelength=-1),  # Added here
+                hoveron='fills+points'
             )
             exon_traces.append(trace)  # Append the trace to the exon list
             
@@ -244,73 +246,84 @@ def make_traces(
             # Create the scatter trace
             trace = dict(
                 type='scatter',
-                mode='lines',
+                mode='lines+markers',  # Changed here
                 x=[x0, x1, x1, x0, x0],  # Outline the rectangle
                 y=[y0, y0, y1, y1, y0],
                 fill='toself',
                 fillcolor=exon_and_cds_color,
                 line=dict(color=line_color, width=exon_line_width),
+                marker=dict(opacity=0),  # Added here
                 opacity=opacity,
                 name=hue_name,
+                legendgroup=hue_name,
                 showlegend=display_legend,
-                hovertemplate=hovertemplate_text,
+                hoverlabel=dict(namelength=-1),  # Added here
+                hovertemplate=hovertemplate_text,  # Custom hover text
+                hoveron='fills+points'
             )
             cds_traces.append(trace)  # Append the trace to the CDS list
 
             # Keep track of hue values that have been displayed in the legend
             if hue_name not in displayed_hue_names:
                 displayed_hue_names.append(hue_name)
-
+                
         # If the feature type is an intron, create a scatter trace representing a line
         elif row[type] == intron:
+            x_intron = [row[x_start], row[x_end]]  # Full start and end positions on the x-axis
+            y_intron = [y_pos, y_pos]  # Constant y to create a horizontal line
+
+            # Add directional arrows for introns if they are long enough
+            if abs(row[x_start] - row[x_end]) > size / 25:
+                arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
+                arrow_length_px = size / (150 / arrow_length) if arrow_length != 0 else 0  # Avoid division by 0
+
+                if row[strand] == "+":  # Positive strand (arrow pointing left)
+                    x_arrow = [
+                        None,  # Break before starting the arrow
+                        arrow_x, arrow_x - arrow_length_px, None,
+                        arrow_x, arrow_x - arrow_length_px, None  # Break after arrow
+                    ]
+                    y_arrow = [
+                        None,
+                        y_pos, y_pos + arrow_height / 2, None,
+                        y_pos, y_pos - arrow_height / 2, None
+                    ]
+                
+                elif row[strand] == "-":  # Negative strand (arrow pointing right)
+                    x_arrow = [
+                        None,
+                        arrow_x, arrow_x + arrow_length_px, None,
+                        arrow_x, arrow_x + arrow_length_px, None
+                    ]
+                    y_arrow = [
+                        None,
+                        y_pos, y_pos + arrow_height / 2, None,
+                        y_pos, y_pos - arrow_height / 2, None
+                    ]
+
+                # Combine the full intron line with None and arrow coordinates
+                x_combined = x_intron + x_arrow
+                y_combined = y_intron + y_arrow
+            else:
+                # If no arrow is added, use just the full intron coordinates
+                x_combined = x_intron
+                y_combined = y_intron
+
+            # Create the scatter trace for intron with the arrow included in the same trace
             trace = dict(
                 type='scatter',
                 mode='lines',
-                x=[row[x_start], row[x_end]],  # Start and end positions on the x-axis
-                y=[y_pos, y_pos],  # Constant y to create a horizontal line
+                x=x_combined,
+                y=y_combined,
                 line=dict(color=line_color, width=intron_line_width),
                 opacity=opacity,
-                hovertemplate=hovertemplate_text,
+                hovertemplate=hovertemplate_text,  # Make intron hoverable with this
                 showlegend=False  # Assuming introns don't need legend entries
             )
             intron_traces.append(trace)  # Append the trace to the intron list
 
 
-            # Add directional arrows for introns if they are long enough
-            if abs(row[x_start] - row[x_end]) > size / 25:
-                arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
-                arrow_length_px = size / (150 / arrow_length)  # Calculate arrow length in plot units
-                if row[strand] == "+":  # Positive strand (arrow pointing left)
-                    x_coords = [
-                        arrow_x, arrow_x - arrow_length_px, None,
-                        arrow_x, arrow_x - arrow_length_px
-                    ]
-                    y_coords = [
-                        y_pos, y_pos + arrow_height / 2, None,
-                        y_pos, y_pos - arrow_height / 2
-                    ]
-                elif row[strand] == "-":  # Negative strand (arrow pointing right)
-                    x_coords = [
-                        arrow_x, arrow_x + arrow_length_px, None,
-                        arrow_x, arrow_x + arrow_length_px
-                    ]
-                    y_coords = [
-                        y_pos, y_pos + arrow_height / 2, None,
-                        y_pos, y_pos - arrow_height / 2
-                    ]
 
-                arrow_trace = go.Scatter(
-                    x=x_coords,
-                    y=y_coords,
-                    mode='lines',
-                    line=dict(color=arrow_color, width=arrow_line_width),
-                    opacity=opacity,
-                    showlegend=False,
-                    hoverinfo="skip"
-                )
-
-                # Append the arrow trace to the intron traces
-                intron_traces.append(arrow_trace)
 
     # Combine all traces (exons, CDS, introns, and arrows)
     traces = exon_traces + cds_traces + intron_traces
