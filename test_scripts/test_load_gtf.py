@@ -10,7 +10,7 @@ import plotly.express as px
 annotation = pt.read_gtf("./raw_data/Homo_sapiens.GRCh38.110.gtf")
 
 
-counts = pt.load_counts_matrix(counts_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
+counts = pt.read_counts_matrix(counts_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
                                metadata_path="./test_data/sample_metadata.tsv",
                                cpm_normalization=True)
 print(counts.head())

@@ -3,7 +3,7 @@ from typing import Optional
 import warnings
 import os
 
-def load_counts_matrix(
+def read_counts_matrix(
     counts_path: str,
     metadata_path: Optional[str] = None,
     cpm_normalization: bool = False,
