@@ -1,6 +1,6 @@
 ﻿RNA\_pysoforms.read\_gtf
 ========================
 
-.. currentmodule:: RNA_pysoforms
+.. currentmodule:: RNApysoforms
 
 .. autofunction:: read_gtf

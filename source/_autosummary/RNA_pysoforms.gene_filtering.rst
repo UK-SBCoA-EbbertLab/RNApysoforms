@@ -1,6 +1,6 @@
 ﻿RNA\_pysoforms.gene\_filtering
 ==============================
 
-.. currentmodule:: RNA_pysoforms
+.. currentmodule:: RNApysoforms
 
 .. autofunction:: gene_filtering

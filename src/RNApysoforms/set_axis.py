@@ -1,7 +1,7 @@
 import polars as pl
 import plotly.graph_objects as go
 from typing import Union, List
-from RNA_pysoforms.utils import check_df
+from RNApysoforms.utils import check_df
 
 def set_axis(
     fig: go.Figure,
@@ -44,7 +44,7 @@ def set_axis(
 
     >>> import polars as pl
     >>> import plotly.graph_objects as go
-    >>> from RNA_pysoforms.plot import set_axis
+    >>> from RNApysoforms.plot import set_axis
     >>> df = pl.DataFrame({
     ...     "transcript_id": ["tx1", "tx1", "tx2", "tx2"],
     ...     "start": [100, 200, 300, 400],

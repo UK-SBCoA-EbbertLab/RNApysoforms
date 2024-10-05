@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="RNA-pysoforms",
+    name="RNApysoforms",
     version="0.1.0-dev",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
@@ -19,5 +19,5 @@ setup(
     description="A Plotly-and-Polars-based Python implementation of ggtranscript-like functionality for vizualizing RNA isoform structure and expression.",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/UK-SBCoA-EbbertLab/RNA_pysoforms",
+    url="https://github.com/UK-SBCoA-EbbertLab/RNApysoforms",
 )
