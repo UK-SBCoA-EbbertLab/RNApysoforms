@@ -1,5 +1,5 @@
 ## Import libraries
-import RNA_pysoforms as pt
+import RNApysoforms as pt
 import polars as pl
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
