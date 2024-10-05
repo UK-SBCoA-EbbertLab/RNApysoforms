@@ -3,4 +3,3 @@ sphinx-rtd-theme
 plotly==5.24.1
 polars==1.8.2
 pyarrow==17.0.0
--e .

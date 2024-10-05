@@ -4,26 +4,10 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
-import os
-import sys
-sys.path.insert(0, os.path.abspath('../src'))
-print("Current Python Path: ", sys.path)
-
-for root, dirs, files in os.walk("."):
-    print(root, dirs, files)
-
-try:
-    import RNA_pysoforms
-    print("RNA_pysoforms module found!")
-except ImportError as e:
-    print(f"Failed to import RNA_pysoforms: {e}")
-
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'RNA_pysoforms'
+project = 'RNA-pysoforms'
 copyright = '2024, Bernardo Aguzzoli Heberle'
 author = 'Bernardo Aguzzoli Heberle'
 release = '0.1.0-dev'
