@@ -52,11 +52,11 @@ traces = pt.make_traces(
     cds_height=0.5,
     strand="strand",
     hue="transcript_biotype",
+    is_hoverable=True
     #color_palette=px.colors.qualitative.Plotly,
     #color_map=biotype_colors
 )
 
-print("HIIII")
 
 # Create the plot
 fig = go.Figure()
@@ -83,8 +83,13 @@ fig.update_layout(
         ticktext=rescaled_annotation.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
     xaxis=dict(showticklabels=False),
-    legend=dict(traceorder="reversed")
-)
+    legend=dict(traceorder="reversed"),
+    hoverlabel=dict(
+    font=dict(
+        size=8  # Set the desired hover font size here
+    )
+    )
+    )
 
 # Show or save the plot
 fig.show()

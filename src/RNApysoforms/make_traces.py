@@ -197,10 +197,10 @@ def make_traces(
         if is_hoverable:
             ## Define hover template
             hovertemplate_text = (
+                f"<b>Feature Number:</b> {row[type]} {row[feature_number]}<br>"
                 f"<b>Start:</b> {row[x_start]}<br>"
                 f"<b>End:</b> {row[x_end]}<br>"
-                f"<b>Feature Number:</b> {row[type]} {row[feature_number]}<br>"
-                f"<b>{y}:</b> {row[y]}"
+                "<extra></extra>"
             )
         else:
             hovertemplate_text=None
@@ -226,7 +226,6 @@ def make_traces(
                 name=hue_name,  # Legend name based on hue
                 showlegend=display_legend,  # Show legend only once per hue
                 hovertemplate=hovertemplate_text,  # Custom hover text
-                hoverinfo='skip'  # Ensures the legend doesn't show up in the hover
             )
             exon_traces.append(trace)  # Append the trace to the exon list
             
@@ -255,7 +254,6 @@ def make_traces(
                 name=hue_name,
                 showlegend=display_legend,
                 hovertemplate=hovertemplate_text,
-                hoverinfo='skip'  # Ensures the legend doesn't show up in the hover
             )
             cds_traces.append(trace)  # Append the trace to the CDS list
 
@@ -273,7 +271,6 @@ def make_traces(
                 line=dict(color=line_color, width=intron_line_width),
                 opacity=opacity,
                 hovertemplate=hovertemplate_text,
-                hoverinfo='skip',  # Ensures the legend doesn't show up in the hover
                 showlegend=False  # Assuming introns don't need legend entries
             )
             intron_traces.append(trace)  # Append the trace to the intron list
