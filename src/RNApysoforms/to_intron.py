@@ -88,7 +88,7 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
     introns = exons_with_introns.select([
         pl.col('intron_start').alias('start'),  # Intron start position
         pl.col('intron_end').alias('end'),  # Intron end position
-        (pl.col("exon_number") + 0.5),  # Exon number (if applicable)
+        pl.col("exon_number"),  # Exon number (if applicable)
         pl.col('type'),  # Type of feature (intron)
         *other_cols_expr  # Include additional columns as necessary
     ])

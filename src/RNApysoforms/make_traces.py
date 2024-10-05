@@ -12,6 +12,7 @@ def make_traces(
     x_end: str = "end",
     y: str = "transcript_id",
     strand: str = "strand",
+    feature_number: str= "exon_number",
     type: str = "type",
     cds: str = "CDS",
     exon: str = "exon",
@@ -29,7 +30,8 @@ def make_traces(
     cds_height: float = 0.5,
     arrow_height: float = 0.5,
     arrow_length: float = 1,
-    arrow_line_width: float = 0.5
+    arrow_line_width: float = 0.5,
+    is_hoverable: bool = True
 ) -> list:
     """
     Generates Plotly traces for visualizing transcript features like exons, introns, and coding sequences (CDS).
@@ -130,7 +132,7 @@ def make_traces(
 
     # Validate required columns in the data
     if hue is None:
-        check_df(data, [x_start, x_end, y, type, strand])
+        check_df(data, [x_start, x_end, y, type, strand, "exon_number"])
     else:
         check_df(data, [x_start, x_end, y, type, strand, hue])
 
@@ -174,7 +176,9 @@ def make_traces(
 
     # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
     for idx, row in enumerate(data.iter_rows(named=True)):
+        
         y_pos = y_dict[row[y]]  # Get the corresponding y-position for the current transcript
+
         
         # Determine the fill color and legend name based on 'hue'
         if hue is None:
@@ -189,20 +193,40 @@ def make_traces(
             display_legend = False
         else: 
             display_legend = True
+        
+        if is_hoverable:
+            ## Define hover template
+            hovertemplate_text = (
+                f"<b>Start:</b> {row[x_start]}<br>"
+                f"<b>End:</b> {row[x_end]}<br>"
+                f"<b>Feature Number:</b> {row[type]} {row[feature_number]}<br>"
+                f"<b>{y}:</b> {row[y]}"
+            )
+        else:
+            hovertemplate_text=None
 
-        # If the feature type is an exon, create a rectangle trace
+        # If the feature type is an exon, create a scatter trace representing a rectangle
         if row[type] == exon:
+            # Define the coordinates of the rectangle's corners
+            x0 = row[x_start]  # Start position on the x-axis
+            x1 = row[x_end]    # End position on the x-axis
+            y0 = y_pos - exon_height / 2  # Bottom boundary of the rectangle on the y-axis
+            y1 = y_pos + exon_height / 2  # Top boundary of the rectangle on the y-axis
+
+            # Create the scatter trace
             trace = dict(
-                type="rect",  # Rectangle trace for the exon
-                x0=row[x_start],  # Start position on the x-axis
-                x1=row[x_end],  # End position on the x-axis
-                y0=y_pos - exon_height / 2,  # Bottom boundary of the rectangle on the y-axis
-                y1=y_pos + exon_height / 2,  # Top boundary of the rectangle on the y-axis
+                type='scatter',
+                mode='lines',
+                x=[x0, x1, x1, x0, x0],  # Define the corners of the rectangle
+                y=[y0, y0, y1, y1, y0],
+                fill='toself',  # Fill the area enclosed by the lines
                 fillcolor=exon_and_cds_color,  # Fill color for the exon
                 line=dict(color=line_color, width=exon_line_width),  # Border color and width
                 opacity=opacity,  # Transparency level
                 name=hue_name,  # Legend name based on hue
-                showlegend=display_legend  # Show legend only once per hue
+                showlegend=display_legend,  # Show legend only once per hue
+                hovertemplate=hovertemplate_text,  # Custom hover text
+                hoverinfo='skip'  # Ensures the legend doesn't show up in the hover
             )
             exon_traces.append(trace)  # Append the trace to the exon list
             
@@ -210,87 +234,86 @@ def make_traces(
             if hue_name not in displayed_hue_names:
                 displayed_hue_names.append(hue_name)
 
-        # If the feature type is a CDS, create a rectangle trace
+        # If the feature type is a CDS, create a scatter trace representing a rectangle
         elif row[type] == cds:
+            # Define the coordinates of the rectangle's corners
+            x0 = row[x_start]
+            x1 = row[x_end]
+            y0 = y_pos - cds_height / 2
+            y1 = y_pos + cds_height / 2
+
+            # Create the scatter trace
             trace = dict(
-                type="rect",  # Rectangle trace for the CDS
-                x0=row[x_start],
-                x1=row[x_end],
-                y0=y_pos - cds_height / 2,  # Bottom boundary of the rectangle on the y-axis
-                y1=y_pos + cds_height / 2,  # Top boundary of the rectangle on the y-axis
-                fillcolor=exon_and_cds_color,  # Fill color for the CDS
-                line=dict(color=line_color, width=exon_line_width),  # Border color and width
+                type='scatter',
+                mode='lines',
+                x=[x0, x1, x1, x0, x0],  # Outline the rectangle
+                y=[y0, y0, y1, y1, y0],
+                fill='toself',
+                fillcolor=exon_and_cds_color,
+                line=dict(color=line_color, width=exon_line_width),
                 opacity=opacity,
-                name=hue_name,  # Legend name based on hue
-                showlegend=display_legend  # Show legend only once per hue
+                name=hue_name,
+                showlegend=display_legend,
+                hovertemplate=hovertemplate_text,
+                hoverinfo='skip'  # Ensures the legend doesn't show up in the hover
             )
             cds_traces.append(trace)  # Append the trace to the CDS list
-            
+
             # Keep track of hue values that have been displayed in the legend
             if hue_name not in displayed_hue_names:
                 displayed_hue_names.append(hue_name)
 
-        # If the feature type is an intron, create a line trace
+        # If the feature type is an intron, create a scatter trace representing a line
         elif row[type] == intron:
             trace = dict(
-                type="line",  # Line trace for the intron
-                x0=row[x_start],
-                x1=row[x_end],
-                y0=y_pos,  # Introns are represented as horizontal lines
-                y1=y_pos,
-                line=dict(color=line_color, width=intron_line_width),  # Line color and width
+                type='scatter',
+                mode='lines',
+                x=[row[x_start], row[x_end]],  # Start and end positions on the x-axis
+                y=[y_pos, y_pos],  # Constant y to create a horizontal line
+                line=dict(color=line_color, width=intron_line_width),
                 opacity=opacity,
+                hovertemplate=hovertemplate_text,
+                hoverinfo='skip',  # Ensures the legend doesn't show up in the hover
+                showlegend=False  # Assuming introns don't need legend entries
             )
             intron_traces.append(trace)  # Append the trace to the intron list
+
 
             # Add directional arrows for introns if they are long enough
             if abs(row[x_start] - row[x_end]) > size / 25:
                 arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
+                arrow_length_px = size / (150 / arrow_length)  # Calculate arrow length in plot units
                 if row[strand] == "+":  # Positive strand (arrow pointing left)
-                    arrow_trace = [
-                        dict(
-                            type="line",
-                            x0=arrow_x,
-                            y0=y_pos,
-                            x1=arrow_x - (size / (150 / arrow_length)),  # Arrowhead to the left
-                            y1=y_pos + arrow_height / 2,
-                            line=dict(color=arrow_color, width=arrow_line_width),
-                            opacity=opacity,
-                        ),
-                        dict(
-                            type="line",
-                            x0=arrow_x,
-                            y0=y_pos,
-                            x1=arrow_x - (size / (150 / arrow_length)),  # Arrowhead to the left
-                            y1=y_pos - arrow_height / 2,
-                            line=dict(color=arrow_color, width=arrow_line_width),
-                            opacity=opacity,
-                        )
+                    x_coords = [
+                        arrow_x, arrow_x - arrow_length_px, None,
+                        arrow_x, arrow_x - arrow_length_px
+                    ]
+                    y_coords = [
+                        y_pos, y_pos + arrow_height / 2, None,
+                        y_pos, y_pos - arrow_height / 2
                     ]
                 elif row[strand] == "-":  # Negative strand (arrow pointing right)
-                    arrow_trace = [
-                        dict(
-                            type="line",
-                            x0=arrow_x,
-                            y0=y_pos,
-                            x1=arrow_x + (size / (150 / arrow_length)),  # Arrowhead to the right
-                            y1=y_pos + arrow_height / 2,
-                            line=dict(color=arrow_color, width=arrow_line_width),
-                            opacity=opacity,
-                        ),
-                        dict(
-                            type="line",
-                            x0=arrow_x,
-                            y0=y_pos,
-                            x1=arrow_x + (size / (150 / arrow_length)),  # Arrowhead to the right
-                            y1=y_pos - arrow_height / 2,
-                            line=dict(color=arrow_color, width=arrow_line_width),
-                            opacity=opacity,
-                        )
+                    x_coords = [
+                        arrow_x, arrow_x + arrow_length_px, None,
+                        arrow_x, arrow_x + arrow_length_px
+                    ]
+                    y_coords = [
+                        y_pos, y_pos + arrow_height / 2, None,
+                        y_pos, y_pos - arrow_height / 2
                     ]
 
+                arrow_trace = go.Scatter(
+                    x=x_coords,
+                    y=y_coords,
+                    mode='lines',
+                    line=dict(color=arrow_color, width=arrow_line_width),
+                    opacity=opacity,
+                    showlegend=False,
+                    hoverinfo="skip"
+                )
+
                 # Append the arrow trace to the intron traces
-                intron_traces.extend(arrow_trace)
+                intron_traces.append(arrow_trace)
 
     # Combine all traces (exons, CDS, introns, and arrows)
     traces = exon_traces + cds_traces + intron_traces

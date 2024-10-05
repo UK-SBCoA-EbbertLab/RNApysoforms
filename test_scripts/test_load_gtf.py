@@ -13,7 +13,6 @@ annotation = pt.read_gtf("./raw_data/Homo_sapiens.GRCh38.110.gtf")
 counts = pt.read_counts_matrix(counts_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
                                metadata_path="./test_data/sample_metadata.tsv",
                                cpm_normalization=True)
-print(counts.head())
 
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
@@ -57,13 +56,14 @@ traces = pt.make_traces(
     #color_map=biotype_colors
 )
 
+print("HIIII")
+
 # Create the plot
 fig = go.Figure()
 
-#Batch add exon, CDS, and intron shapes
-fig.update_layout(
-    shapes=[trace for trace in traces if isinstance(trace, dict)]
-)
+# Create the plot and add all traces in one step for efficiency
+fig = go.Figure(data=traces)
+
 
 # Call the new function to set the genomic axis range
 fig = pt.set_axis(fig, data=rescaled_annotation)
