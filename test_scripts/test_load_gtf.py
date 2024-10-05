@@ -44,13 +44,10 @@ rescaled_annotation = pt.shorten_gaps(annotation=annotation, group_var="transcri
 ## Create traces
 traces = pt.make_traces(
     data=rescaled_annotation,
-    x_start='start',
-    x_end='end',
     y='transcript_id', 
     fill_color="grey",
     exon_height=0.3,
     cds_height=0.5,
-    strand="strand",
     hue="transcript_biotype",
     is_hoverable=True,
     arrow_height=0.5,

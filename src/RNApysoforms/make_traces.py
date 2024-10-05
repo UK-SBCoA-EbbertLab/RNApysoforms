@@ -2,17 +2,15 @@ import plotly.graph_objects as go
 import plotly.express as px
 import polars as pl
 from plotly.subplots import make_subplots
+from RNApysoforms.shorten_gaps import shorten_gaps
 from RNApysoforms.utils import check_df
 from typing import List
 
 def make_traces(
     data: pl.DataFrame,
-    x_start: str = "start",
-    x_end: str = "end",
     y: str = "transcript_id",
-    strand: str = "strand",
-    feature_number: str = "exon_number",
-    type: str = "type",
+    rescale: bool = False,
+    target_gap: int = 100,
     cds: str = "CDS",
     exon: str = "exon",
     intron: str = "intron",
@@ -37,25 +35,19 @@ def make_traces(
     in genomic plots. It allows customization of appearance, such as color, line width, feature heights, and the option to 
     add directional arrows for introns to indicate strand direction. The function supports coloring features based on a 
     'hue' column, enabling grouping and coloring of features based on another variable. Optionally, it can display hover 
-    information for features, including feature type, feature number, and start and end positions.
+    information for features, including feature type, feature number, and start and end positions. Additionally, it supports
+    rescaling genomic coordinates to shorten long gaps for better visualization.
 
     Parameters
     ----------
     data : pl.DataFrame
         A Polars DataFrame containing transcript feature data.
-    x_start : str, optional
-        Column name for feature start positions (x-axis), by default "start".
-    x_end : str, optional
-        Column name for feature end positions (x-axis), by default "end".
     y : str, optional
         Column name for transcript IDs to map to the y-axis, by default "transcript_id".
-    strand : str, optional
-        Column name for strand information (e.g., "+" or "-"), by default "strand".
-    feature_number : str, optional
-        Column name indicating the feature number (e.g., exon number), by default "exon_number".
-        Required if `hue` is None; used in hover information to display feature numbers.
-    type : str, optional
-        Column name indicating the feature type (e.g., exon, intron, CDS), by default "type".
+    rescale : bool, optional
+        If True, genomic coordinates will be rescaled to shorten long gaps, by default False.
+    target_gap : int, optional
+        The target gap size to shorten to when rescaling, by default 100.
     cds : str, optional
         Value representing coding sequences, by default "CDS".
     exon : str, optional
@@ -121,25 +113,32 @@ def make_traces(
     -----
     - The function automatically adds arrows to introns if they are long enough and provides customization options 
       like arrow direction based on the strand column.
-    - The y-axis positions of each feature are determined by the `transcript_id` column, and you can customize 
+    - The y-axis positions of each feature are determined by the `y` column, and you can customize 
       colors and styles using the available parameters.
     - When a `hue` is provided, the features are colored according to the values in the `hue` column. If `color_map` 
       is not provided, it will generate a color map using `color_palette`.
     - The legend will display each unique hue value only once.
     - Arrows indicate strand direction: for positive strand ('+'), arrows point leftward; for negative strand ('-'), 
       arrows point rightward.
-    - The `feature_number` column is required when `hue` is None and is used to display feature numbers in hover information.
+    - The `exon_number` column is required when `hue` is None and is used to display feature numbers in hover information.
     - The `is_hoverable` parameter controls whether hover information is displayed for features. When `is_hoverable` is True,
       features will display hover information including feature type, feature number, start and end positions.
+    - If `rescale` is True, the genomic coordinates will be rescaled to shorten long gaps using the `shorten_gaps` function.
     """
 
     # Validate required columns in the data
     if hue is None:
         # Check if required columns are present when hue is None
-        check_df(data, [x_start, x_end, y, type, strand, "exon_number"])
+        check_df(data, ["start", "end", y, "type", "strand", "exon_number"])
     else:
         # Check if required columns are present when hue is specified
-        check_df(data, [x_start, x_end, y, type, strand, hue])
+        check_df(data, ["start", "end", y, "type", "strand", "exon_number", hue])
+
+    if rescale:
+        # Store the original genomic coordinates for reference
+        genomic_coordinates = data.clone()
+        # Rescale the genomic coordinates to shorten long gaps
+        data = shorten_gaps(data, group_var=y, target_gap_width=target_gap)
 
     # Initialize lists to store traces for different feature types
     cds_traces = []     # Stores traces for CDS (coding sequences)
@@ -164,13 +163,13 @@ def make_traces(
 
     # Calculate the global maximum and minimum x-values (positions)
     global_max = max(
-        data.select(pl.col(x_start).max()).item(),
-        data.select(pl.col(x_end).max()).item()
+        data.select(pl.col("start").max()).item(),
+        data.select(pl.col("end").max()).item()
     )
 
     global_min = min(
-        data.select(pl.col(x_start).min()).item(),
-        data.select(pl.col(x_end).min()).item()
+        data.select(pl.col("start").min()).item(),
+        data.select(pl.col("end").min()).item()
     )
 
     # Calculate the total size of the x-axis range
@@ -180,7 +179,7 @@ def make_traces(
     displayed_hue_names = []
 
     # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
-    for idx, row in enumerate(data.iter_rows(named=True)):
+    for row in data.iter_rows(named=True):
         
         y_pos = y_dict[row[y]]  # Get the corresponding y-position for the current transcript
 
@@ -199,22 +198,22 @@ def make_traces(
             display_legend = True
         
         if is_hoverable:
-            # Define hover template with feature type, number, start and end positions
+            # Define hover template with feature type, number, start, and end positions for each row
             hovertemplate_text = (
-                f"<b>Feature Type:</b> {row[type]}<br>"
-                f"<b>Feature Number:</b> {row[feature_number]}<br>"
-                f"<b>Start:</b> {row[x_start]}<br>"
-                f"<b>End:</b> {row[x_end]}<br>"
+                f"<b>Feature Type:</b> {row['type']}<br>"
+                f"<b>Feature Number:</b> {row.get('exon_number', 'N/A')}<br>"
+                f"<b>Start:</b> {row['start']}<br>"
+                f"<b>End:</b> {row['end']}<br>"
                 "<extra></extra>"
             )
         else:
             hovertemplate_text = None
 
         # If the feature type is an exon, create a scatter trace representing a rectangle
-        if row[type] == exon:
+        if row["type"] == exon:
             # Define the coordinates of the rectangle's corners
-            x0 = row[x_start]                   # Start position on the x-axis
-            x1 = row[x_end]                     # End position on the x-axis
+            x0 = row["start"]                   # Start position on the x-axis
+            x1 = row["end"]                     # End position on the x-axis
             y0 = y_pos - exon_height / 2        # Bottom boundary of the rectangle on the y-axis
             y1 = y_pos + exon_height / 2        # Top boundary of the rectangle on the y-axis
 
@@ -243,10 +242,10 @@ def make_traces(
                 displayed_hue_names.append(hue_name)
 
         # If the feature type is a CDS, create a scatter trace representing a rectangle
-        elif row[type] == cds:
+        elif row["type"] == cds:
             # Define the coordinates of the rectangle's corners
-            x0 = row[x_start]
-            x1 = row[x_end]
+            x0 = row["start"]
+            x1 = row["end"]
             y0 = y_pos - cds_height / 2
             y1 = y_pos + cds_height / 2
 
@@ -275,17 +274,17 @@ def make_traces(
                 displayed_hue_names.append(hue_name)
                 
         # If the feature type is an intron, create a scatter trace representing a line
-        elif row[type] == intron:
-            x_intron = [row[x_start], row[x_end]]  # Start and end positions on the x-axis
+        elif row["type"] == intron:
+            x_intron = [row["start"], row["end"]]  # Start and end positions on the x-axis
             y_intron = [y_pos, y_pos]              # Constant y to create a horizontal line
 
             # Add directional arrows for introns if they are long enough
-            if abs(row[x_start] - row[x_end]) > size / 25:
-                arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
+            if abs(row["start"] - row["end"]) > size / 25:
+                arrow_x = (row["start"] + row["end"]) / 2  # Midpoint of the intron
                 # Calculate arrow length in data units
                 arrow_length_px = size / (150 / arrow_length) if arrow_length != 0 else 0  
 
-                if row[strand] == "+":  # Positive strand (arrow pointing left)
+                if row["strand"] == "+":  # Positive strand (arrow pointing left)
                     x_arrow = [
                         None,                              # Break before starting the arrow
                         arrow_x, arrow_x - arrow_length_px, None,
@@ -297,7 +296,7 @@ def make_traces(
                         y_pos, y_pos - arrow_height / 2, None
                     ]
                 
-                elif row[strand] == "-":  # Negative strand (arrow pointing right)
+                elif row["strand"] == "-":  # Negative strand (arrow pointing right)
                     x_arrow = [
                         None,
                         arrow_x, arrow_x + arrow_length_px, None,
