@@ -49,11 +49,11 @@ def make_traces(
     target_gap : int, optional
         The target gap size to shorten to when rescaling, by default 100.
     cds : str, optional
-        Value representing coding sequences, by default "CDS".
+        Value in the 'type' column representing coding sequences, by default "CDS".
     exon : str, optional
-        Value representing exons, by default "exon".
+        Value the 'type' column representing exons, by default "exon".
     intron : str, optional
-        Value representing introns, by default "intron".
+        Value the 'type' column representing introns, by default "intron".
     line_color : str, optional
         Line color for feature outlines, by default "black".
     fill_color : str, optional
