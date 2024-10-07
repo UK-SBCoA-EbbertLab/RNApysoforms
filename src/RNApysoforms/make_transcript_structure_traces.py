@@ -1,13 +1,11 @@
 import plotly.graph_objects as go
 import plotly.express as px
 import polars as pl
-from plotly.subplots import make_subplots
-from RNApysoforms.shorten_gaps import shorten_gaps
 from RNApysoforms.utils import check_df
 from typing import List
 
-def make_traces(
-    data: pl.DataFrame,
+def make_transcript_structure_traces(
+    annotation: pl.DataFrame,
     y: str = "transcript_id",
     x_start: str = "start",
     x_end: str = "end",
@@ -40,7 +38,7 @@ def make_traces(
     display details like feature type, feature number, and start and end positions. Additionally, the function supports 
     rescaling genomic coordinates to shorten long gaps, enhancing visualization clarity.
     
-    **Required Columns in `data`:**
+    **Required Columns in `annotation`:**
     - Columns specified by `y`, `x_start`, `x_end`.
     - `type`: Indicates the feature type (e.g., exon, intron, CDS).
     - `strand`: Indicates the strand direction ('+' or '-').
@@ -50,8 +48,8 @@ def make_traces(
     
     Parameters
     ----------
-    data : pl.DataFrame
-        A Polars DataFrame containing transcript feature data. Must include columns for transcript ID, start and end 
+    annotation : pl.DataFrame
+        A Polars DataFrame containing transcript feature annotation. Must include columns for transcript ID, start and end 
         positions, feature type, strand direction, exon number, and sequence names. If `hue` is specified, the 
         corresponding column must also be present.
     y : str, optional
@@ -112,7 +110,7 @@ def make_traces(
     
     >>> import polars as pl
     >>> from RNApysoforms.utils import check_df
-    >>> from RNApysoforms.plot import make_traces
+    >>> from RNApysoforms.plot import make_transcript_structure_traces
     >>> df = pl.DataFrame({
     ...     "transcript_id": ["tx1", "tx1", "tx1"],
     ...     "start": [100, 400, 800],
@@ -123,7 +121,7 @@ def make_traces(
     ...     "exon_number": [1, 1, 2],
     ...     "seqnames": ["chr1", "chr1", "chr1"]
     ... })
-    >>> traces = make_traces(df, hue="feature_group")
+    >>> traces = make_transcript_structure_traces(df, hue="feature_group")
     >>> print(traces)
         
     This will return a list of Plotly traces that can be used to render the genomic features, 
@@ -150,19 +148,19 @@ def make_traces(
     Raises
     ------
     TypeError
-        If the `data` parameter is not a Polars DataFrame.
+        If the `annotation` parameter is not a Polars DataFrame.
     ValueError
-        If required columns are missing from the `data` DataFrame based on the provided parameters.
+        If required columns are missing from the `annotation` DataFrame based on the provided parameters.
     """
     
-    # Check if data is a Polars DataFrame
-    if not isinstance(data, pl.DataFrame):
+    # Check if annotation is a Polars DataFrame
+    if not isinstance(annotation, pl.DataFrame):
         raise TypeError(
-            f"Expected data to be of type pl.DataFrame, got {type(data)}. "
+            f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}. "
             "You can use polars_df = pl.from_pandas(pandas_df) to convert a pandas DataFrame into a Polars DataFrame."
         )
     
-    # Validate required columns in the data based on the presence of 'hue'
+    # Validate required columns in the annotation based on the presence of 'hue'
     if hue is None:
         # Required columns when 'hue' is not specified
         required_columns = [x_start, x_end, y, "type", "strand", "exon_number", "seqnames"]
@@ -170,7 +168,7 @@ def make_traces(
         # Required columns when 'hue' is specified
         required_columns = [x_start, x_end, y, "type", "strand", "exon_number", hue, "seqnames"]
     
-    check_df(data, required_columns)
+    check_df(annotation, required_columns)
     
     # Initialize lists to store traces for different feature types
     cds_traces = []      # Stores traces for CDS (coding sequences)
@@ -178,7 +176,7 @@ def make_traces(
     exon_traces = []     # Stores traces for exons
     
     # Get unique transcript IDs to map them to specific y-axis positions
-    unique_y = data[y].unique(maintain_order=True).to_list()
+    unique_y = annotation[y].unique(maintain_order=True).to_list()
     
     # Create a dictionary that maps each unique transcript ID to a y-position
     y_dict = {val: i for i, val in enumerate(unique_y)}
@@ -186,7 +184,7 @@ def make_traces(
     # Generate a color map if not provided and 'hue' is specified
     if (color_map is None) and (hue is not None):
         # Get unique values from the hue column to map to colors
-        values_to_colormap = data[hue].unique(maintain_order=True).to_list()
+        values_to_colormap = annotation[hue].unique(maintain_order=True).to_list()
         # Create a color map dictionary mapping hue values to colors from the palette
         color_map = {value: color for value, color in zip(values_to_colormap, color_palette)}
     elif hue is None:
@@ -195,13 +193,13 @@ def make_traces(
     
     # Calculate the global maximum and minimum x-values (positions)
     global_max = max(
-        data.select(pl.col(x_start).max()).item(),
-        data.select(pl.col(x_end).max()).item()
+        annotation.select(pl.col(x_start).max()).item(),
+        annotation.select(pl.col(x_end).max()).item()
     )
     
     global_min = min(
-        data.select(pl.col(x_start).min()).item(),
-        data.select(pl.col(x_end).min()).item()
+        annotation.select(pl.col(x_start).min()).item(),
+        annotation.select(pl.col(x_end).min()).item()
     )
     
     # Calculate the total size of the x-axis range
@@ -211,7 +209,7 @@ def make_traces(
     displayed_hue_names = []
     
     # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
-    for row in data.iter_rows(named=True):
+    for row in annotation.iter_rows(named=True):
         
         y_pos = y_dict[row[y]]  # Get the corresponding y-position for the current transcript
     
@@ -315,7 +313,7 @@ def make_traces(
             # Add directional arrows for introns if they are long enough
             if abs(row[x_start] - row[x_end]) > size / 25:
                 arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
-                # Calculate arrow length in data units
+                # Calculate arrow length in annotation units
                 arrow_length_px = size / (150 / arrow_length) if arrow_length != 0 else 0  
     
                 if row["strand"] == "+":  # Positive strand (arrow pointing left)

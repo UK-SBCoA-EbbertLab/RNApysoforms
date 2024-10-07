@@ -1,7 +1,7 @@
 import polars as pl
 from RNApysoforms.utils import check_df
 
-def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
+def calculate_exon_number(annotation: pl.DataFrame, transcript_id_column: str = "transcript_id") -> pl.DataFrame:
     """
     Assigns exon numbers to exons, CDS, and introns within a genomic annotation dataset based on transcript structure.
     
@@ -14,7 +14,7 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
     **Required Columns in `annotation`:**
     - `start`: Start position of the feature.
     - `end`: End position of the feature.
-    - `group_var` (default `"transcript_id"`): Identifier for grouping features into transcripts.
+    - `transcript_id_column` (default `"transcript_id"`): Identifier for grouping features into transcripts.
     - `type`: Type of the feature (`"exon"`, `"CDS"`, or `"intron"`).
     - `strand`: Strand direction of the feature (`"+"` or `"-"`).
     
@@ -23,8 +23,8 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
     annotation : pl.DataFrame
         A Polars DataFrame containing genomic annotation data. Must include columns for start and end positions, 
         feature type, strand direction, and a grouping variable (default is 'transcript_id'). If a different 
-        grouping variable is used, specify it using the `group_var` parameter.
-    group_var : str, optional
+        grouping variable is used, specify it using the `transcript_id_column` parameter.
+    transcript_id_column : str, optional
         The column name that identifies transcript groups within the DataFrame, by default "transcript_id".
     
     Returns
@@ -83,7 +83,7 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
     -----
     1. **Input Validation:**
         - Verifies that the input `annotation` is a Polars DataFrame.
-        - Checks for the presence of required columns: 'start', 'end', the grouping variable (`group_var`), 'type', and 'strand'.
+        - Checks for the presence of required columns: 'start', 'end', the grouping variable (`transcript_id_column`), 'type', and 'strand'.
     2. **Exon Extraction and Numbering:**
         - Filters the DataFrame to extract exon entries.
         - Assigns exon numbers based on strand direction:
@@ -117,7 +117,7 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
         )
     
     # Ensure required columns are present in the DataFrame
-    required_columns = ["start", "end", group_var, "type", "strand"]
+    required_columns = ["start", "end", transcript_id_column, "type", "strand"]
     check_df(annotation, required_columns)
     
     # Step 1: Extract exons and assign exon numbers based on strand direction
@@ -125,8 +125,8 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
     
     exon_annotation = exon_annotation.with_columns(
         pl.when(pl.col('strand') == '+')
-        .then(pl.col('start').rank('dense').over(group_var).cast(pl.Int64))
-        .otherwise(pl.col('end').rank('dense', descending=True).over(group_var).cast(pl.Int64))
+        .then(pl.col('start').rank('dense').over(transcript_id_column).cast(pl.Int64))
+        .otherwise(pl.col('end').rank('dense', descending=True).over(transcript_id_column).cast(pl.Int64))
         .alias('exon_number')
     )
     
@@ -136,15 +136,15 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
     if not cds_annotation.is_empty():
         # Join CDS with exons to find overlapping exons
         cds_exon_annotation = cds_annotation.join(
-            exon_annotation.select([group_var, 'start', 'end', 'exon_number']),
-            on=group_var,
+            exon_annotation.select([transcript_id_column, 'start', 'end', 'exon_number']),
+            on=transcript_id_column,
             how='left',
             suffix='_exon'
         ).filter(
             (pl.col('start') <= pl.col('end_exon')) & (pl.col('end') >= pl.col('start_exon'))
         )
         # Assign the minimum exon_number in case of multiple overlaps
-        cds_exon_annotation = cds_exon_annotation.group_by([group_var, 'start', 'end', 'strand', 'type']).agg(
+        cds_exon_annotation = cds_exon_annotation.group_by([transcript_id_column, 'start', 'end', 'strand', 'type']).agg(
             pl.col('exon_number').min().alias('exon_number')
         )
     else:
@@ -163,21 +163,21 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
         if not strand_introns.is_empty():
             # Join introns with exons to find adjacent exons
             intron_exon_annotation = strand_introns.join(
-                strand_exons.select([group_var, 'start', 'end', 'exon_number']),
-                on=group_var,
+                strand_exons.select([transcript_id_column, 'start', 'end', 'exon_number']),
+                on=transcript_id_column,
                 how='left',
                 suffix='_exon'
             )
             if strand == '+':
                 # For positive strand, introns inherit exon_number of preceding exon
                 intron_exon_annotation = intron_exon_annotation.filter(pl.col('end_exon') <= pl.col('start'))
-                intron_exon_annotation = intron_exon_annotation.group_by([group_var, 'start', 'end', 'strand', 'type']).agg(
+                intron_exon_annotation = intron_exon_annotation.group_by([transcript_id_column, 'start', 'end', 'strand', 'type']).agg(
                     pl.col('exon_number').filter(pl.col('end_exon') == pl.col('end_exon').max()).first().alias('exon_number')
                 )
             else:
                 # For negative strand, introns inherit exon_number of following exon
                 intron_exon_annotation = intron_exon_annotation.filter(pl.col('start_exon') >= pl.col('end'))
-                intron_exon_annotation = intron_exon_annotation.group_by([group_var, 'start', 'end', 'strand', 'type']).agg(
+                intron_exon_annotation = intron_exon_annotation.group_by([transcript_id_column, 'start', 'end', 'strand', 'type']).agg(
                     pl.col('exon_number').filter(pl.col('start_exon') == pl.col('start_exon').min()).first().alias('exon_number')
                 )
             intron_exon_annotation_list.append(intron_exon_annotation)
@@ -191,9 +191,9 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
     
     # Combine exons, CDS, and introns with their assigned exon numbers
     result_annotation = pl.concat([
-        exon_annotation.select([group_var, 'start', 'end', 'strand', 'type', 'exon_number']),
-        cds_exon_annotation.select([group_var, 'start', 'end', 'strand', 'type', 'exon_number']),
-        intron_exon_annotation.select([group_var, 'start', 'end', 'strand', 'type', 'exon_number'])
-    ]).sort([group_var, 'start'])
+        exon_annotation.select([transcript_id_column, 'start', 'end', 'strand', 'type', 'exon_number']),
+        cds_exon_annotation.select([transcript_id_column, 'start', 'end', 'strand', 'type', 'exon_number']),
+        intron_exon_annotation.select([transcript_id_column, 'start', 'end', 'strand', 'type', 'exon_number'])
+    ]).sort([transcript_id_column, 'start'])
     
     return result_annotation

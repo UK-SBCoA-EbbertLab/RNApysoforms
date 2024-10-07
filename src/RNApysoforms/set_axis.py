@@ -9,13 +9,13 @@ def set_axis(
     x_start: str = "start",
     x_end: str = "end",
     padding: int = 100,
-    group_var: str = "transcript_id"
+    transcript_id_column: str = "transcript_id"
 ) -> go.Figure:
     """
     Adjusts the x-axis and y-axis ranges of a Plotly figure to fit genomic coordinates and groupings.
 
     This function updates the x-axis range based on the genomic coordinates from the columns specified by `x_start` and `x_end` in the input DataFrame,
-    applying optional padding for better visualization. It also configures the y-axis based on the number of unique groups defined by `group_var`
+    applying optional padding for better visualization. It also configures the y-axis based on the number of unique groups defined by `transcript_id_column`
     (e.g., transcript IDs) to ensure clear and readable plots.
 
     Parameters
@@ -30,7 +30,7 @@ def set_axis(
         Column name representing the end position of genomic features, by default "end".
     padding : int, optional
         Amount of padding to add around the x-axis range for visualization purposes (default is 100).
-    group_var : str, optional
+    transcript_id_column : str, optional
         The column name used to group data for the y-axis (e.g., transcript IDs), by default "transcript_id".
 
     Returns
@@ -67,7 +67,7 @@ def set_axis(
     Notes
     -----
     - The x-axis range is defined by the minimum value in the `x_start` column and the maximum value in the `x_end` column, with optional padding applied.
-    - The y-axis range is calculated based on the number of unique groups defined by `group_var`, such as transcripts, allowing multiple groups to be visualized clearly.
+    - The y-axis range is calculated based on the number of unique groups defined by `transcript_id_column`, such as transcripts, allowing multiple groups to be visualized clearly.
     - Customizing `x_start` and `x_end` allows flexibility in handling different genomic coordinate columns.
     - Ensure that the columns specified by `x_start` and `x_end` contain numeric values representing genomic positions.
     - Padding enhances visualization by preventing features from being too close to the plot boundaries.
@@ -100,8 +100,8 @@ def set_axis(
     # Update the x-axis range in the Plotly figure based on the calculated genomic range
     fig.update_xaxes(range=[x_min, x_max])
     
-    # Calculate the total number of distinct groups (e.g., transcripts) based on the group_var
-    num_groups = data[group_var].n_unique()
+    # Calculate the total number of distinct groups (e.g., transcripts) based on the transcript_id_column
+    num_groups = data[transcript_id_column].n_unique()
     
     # Update the y-axis range based on the number of distinct groups
     # Setting range to [-0.8, num_groups - 0.2] provides space for visual clarity
