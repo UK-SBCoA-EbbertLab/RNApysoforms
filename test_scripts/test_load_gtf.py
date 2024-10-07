@@ -34,9 +34,6 @@ gene_name = "APP"
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
                                        target_gene=gene_name, transcript_id_column="transcript_id")
 
-print(counts.filter(pl.col("transcript_id") == "ENST00000348990"))
-
-
 #MIR99AHG
 #SOD1
 #RUNX1
@@ -54,16 +51,15 @@ traces = pt.make_transcript_structure_traces(
     exon_height=0.3,
     cds_height=0.5,
     hue="transcript_biotype",
-    is_hoverable=True,
     arrow_height=0.5,
     arrow_length=1,
 )
 
 ## Set expression traces
-counts_traces = pt.make_transcript_expression_traces(counts)
+counts_traces = pt.make_transcript_expression_traces(counts, hue="AD status")
 
 ## Set expression traces
-relative_abundance_traces = pt.make_transcript_expression_traces(counts, x="relative_abundance")
+relative_abundance_traces = pt.make_transcript_expression_traces(counts, x="relative_abundance", hue="AD status")
 
 
 fig = pt.make_plot(transcript_structure_traces = traces, expression_traces=[counts_traces, relative_abundance_traces],
