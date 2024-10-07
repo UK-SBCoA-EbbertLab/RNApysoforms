@@ -3,10 +3,12 @@ from typing import Optional
 import warnings
 import os
 
-def read_counts_matrix(
-    counts_path: str,
+def read_expression_matrix(
+    expression_matrix_path: str,
     metadata_path: Optional[str] = None,
+    expression_measure_name = "counts",
     cpm_normalization: bool = False,
+    relative_abundance: bool = False,
     gene_id_column_name: Optional[str] = "gene_id",
     transcript_id_column_name: str = "transcript_id",
     metadata_sample_id_column: str = "sample_id"
@@ -22,11 +24,11 @@ def read_counts_matrix(
 
     Parameters
     ----------
-    counts_path : str
+    expression_matrix_path : str
         Path to the counts matrix file. Supported file formats include .csv, .tsv, .txt, .parquet, and .xlsx.
     metadata_path : str, optional
         Path to the metadata file. If provided, the metadata will be merged with the counts data. Supported file formats
-        are the same as for `counts_path`. Default is None.
+        are the same as for `expression_matrix_path`. Default is None.
     cpm_normalization : bool, optional
         Whether to perform Counts Per Million (CPM) normalization on the counts data. Default is False.
     gene_id_column_name : str, optional
@@ -87,66 +89,71 @@ def read_counts_matrix(
     if transcript_id_column_name is None:
         raise ValueError("The 'transcript_id_column_name' is required and cannot be None.")
     
-    # Load counts_path using the helper function
-    counts_df = _get_open_file(counts_path)
+    # Load expression_matrix_path using the helper function
+    expression_df = _get_open_file(expression_matrix_path)
 
-    # Build counts_feature_id_columns from gene_id_column_name and transcript_id_column_name
-    counts_feature_id_columns = [transcript_id_column_name]
+    # Build feature_id_columns from gene_id_column_name and transcript_id_column_name
+    feature_id_columns = [transcript_id_column_name]
     
     if gene_id_column_name is not None:
-        counts_feature_id_columns.append(gene_id_column_name)
+        feature_id_columns.append(gene_id_column_name)
 
-    # Check if counts_feature_id_columns are present in counts_df
-    missing_columns = [col for col in counts_feature_id_columns if col not in counts_df.columns]
+    # Check if feature_id_columns are present in expression_df
+    missing_columns = [col for col in feature_id_columns if col not in expression_df.columns]
     if missing_columns:
-        raise ValueError(f"The following feature ID columns are missing in the counts dataframe: {missing_columns}")
+        raise ValueError(f"The following feature ID columns are missing in the expression dataframe: {missing_columns}")
 
     # Determine counts columns (exclude feature ID columns)
-    counts_columns = [col for col in counts_df.columns if col not in counts_feature_id_columns]
+    expression_columns = [col for col in expression_df.columns if col not in feature_id_columns]
 
-    # Check that counts_columns are numeric
-    non_numeric_columns = [col for col in counts_columns if not counts_df[col].dtype.is_numeric()]
+    # Check that expression_columns are numeric
+    non_numeric_columns = [col for col in expression_columns if not expression_df[col].dtype.is_numeric()]
     if non_numeric_columns:
         raise ValueError(f"The following columns are expected to be numerical but are not: {non_numeric_columns}")
 
     # Calculate relative transcript abundance if gene_id_column_name is provided
-    if gene_id_column_name is not None:
-        counts_df = counts_df.with_columns([
+    if ((gene_id_column_name is not None) and (relative_abundance)):
+        expression_df = expression_df.with_columns([
             (
                 pl.when(pl.col(col).sum().over(gene_id_column_name) == 0)
                 .then(0)
                 .otherwise((pl.col(col) / pl.col(col).sum().over(gene_id_column_name)) * 100)
                 .alias(col + "_relative_abundance")
             )
-            for col in counts_columns
+            for col in expression_columns
         ])
+    
+    ## If relative abundance is true and gene_id_column_name is None
+    elif ((gene_id_column_name is  None) and (relative_abundance)):
+        warnings.warn("relative_abundance was set to True, but gene_id_column_name was not provided (set to None). "
+            "Therefore, relative abundance calculation is being skipped.", UserWarning)
 
     if cpm_normalization:
         # Perform CPM normalization for each sample
-        counts_df = counts_df.with_columns([
+        expression_df = expression_df.with_columns([
             (
                 pl.col(col) / pl.col(col).sum() * 1e6
             ).alias(col + "_CPM")
-            for col in counts_columns
+            for col in expression_columns
         ])
 
-    # Transform counts_df into long format for counts
-    counts_long = counts_df.melt(
-        id_vars=counts_feature_id_columns,
-        value_vars=counts_columns,
+    # Transform expression_df into long format for counts
+    expression_long = expression_df.melt(
+        id_vars=feature_id_columns,
+        value_vars=expression_columns,
         variable_name=metadata_sample_id_column,
-        value_name="counts"
+        value_name=expression_measure_name
     )
 
-    # Initialize long_counts_df with counts_long
-    long_counts_df = counts_long
+    # Initialize long_expression_df with expression_long
+    long_expression_df = expression_long
 
     # If CPM normalization was performed, melt CPM columns and join
     if cpm_normalization:
-        CPM_columns = [col + "_CPM" for col in counts_columns]
+        CPM_columns = [col + "_CPM" for col in expression_columns]
 
-        CPM_long = counts_df.melt(
-            id_vars=counts_feature_id_columns,
+        CPM_long = expression_df.melt(
+            id_vars=feature_id_columns,
             value_vars=CPM_columns,
             variable_name=metadata_sample_id_column,
             value_name="CPM"
@@ -154,19 +161,19 @@ def read_counts_matrix(
             pl.col(metadata_sample_id_column).str.replace(r"_CPM$", "")
         )
 
-        # Join counts_long and CPM_long
-        long_counts_df = long_counts_df.join(
+        # Join expression_long and CPM_long
+        long_expression_df = long_expression_df.join(
             CPM_long,
-            on=counts_feature_id_columns + [metadata_sample_id_column],
+            on=feature_id_columns + [metadata_sample_id_column],
             how="left"
         )
 
     # If relative abundance was calculated, melt and join
-    if gene_id_column_name is not None:
-        relative_abundance_columns = [col + "_relative_abundance" for col in counts_columns]
+    if ((gene_id_column_name is not None) and (relative_abundance)):
+        relative_abundance_columns = [col + "_relative_abundance" for col in expression_columns]
 
-        relative_abundance_long = counts_df.melt(
-            id_vars=counts_feature_id_columns,
+        relative_abundance_long = expression_df.melt(
+            id_vars=feature_id_columns,
             value_vars=relative_abundance_columns,
             variable_name=metadata_sample_id_column,
             value_name="relative_abundance"
@@ -174,12 +181,17 @@ def read_counts_matrix(
             pl.col(metadata_sample_id_column).str.replace(r"_relative_abundance$", "")
         )
 
-        # Join with long_counts_df
-        long_counts_df = long_counts_df.join(
+        # Join with long_expression_df
+        long_expression_df = long_expression_df.join(
             relative_abundance_long,
-            on=counts_feature_id_columns + [metadata_sample_id_column],
+            on=feature_id_columns + [metadata_sample_id_column],
             how="left"
         )
+
+    ## If relative abundance is true and gene_id_column_name is None
+    elif ((gene_id_column_name is  None) and (relative_abundance)):
+        warnings.warn("relative_abundance was set to True, but gene_id_column_name was not provided (set to None). "
+            "Therefore, relative abundance calculation is being skipped.", UserWarning)
 
     if metadata_path is not None:
         # Load metadata_path using the helper function
@@ -188,9 +200,10 @@ def read_counts_matrix(
         # Check if metadata_sample_id_column is present in metadata_df
         if metadata_sample_id_column not in metadata_df.columns:
             raise ValueError(f"The metadata_sample_id_column '{metadata_sample_id_column}' is not present in the metadata dataframe.")
+        
 
         # Check overlap of sample IDs between counts data and metadata
-        counts_sample_ids = long_counts_df[metadata_sample_id_column].unique().to_list()
+        counts_sample_ids = long_expression_df[metadata_sample_id_column].unique().to_list()
         metadata_sample_ids = metadata_df[metadata_sample_id_column].unique().to_list()
 
         overlapping_sample_ids = set(counts_sample_ids).intersection(set(metadata_sample_ids))
@@ -210,14 +223,14 @@ def read_counts_matrix(
         if warning_message:
             warnings.warn(warning_message)
 
-        # Merge metadata_df to long_counts_df
-        long_counts_df = long_counts_df.join(
+        # Merge metadata_df to long_expression_df
+        long_expression_df = long_expression_df.join(
             metadata_df,
             on=metadata_sample_id_column,
             how="left"
         )
 
-    return long_counts_df
+    return long_expression_df
 
 import polars as pl
 import os
