@@ -2,13 +2,12 @@ import polars as pl
 import os
 
 def read_gtf(path: str) -> pl.DataFrame:
-   
     """
     Reads a GTF (Gene Transfer Format) file, extracts transcript and gene features, and returns the data as a Polars DataFrame.
 
     This function parses the contents of a GTF file, specifically focusing on 'exon' and 'CDS' feature types. It extracts
-    key attributes like `gene_id`, `transcript_id`, and `exon_number` from the file's attributes column. The function also 
-    validates the file path and ensures proper handling of missing values by substituting default values where necessary.
+    key attributes like `gene_id`, `transcript_id`, `transcript_name`, `transcript_biotype`, and `exon_number` from the file's attributes column.
+    The function also validates the file path and ensures proper handling of missing values by substituting default values where necessary.
 
     Parameters
     ----------
@@ -18,27 +17,29 @@ def read_gtf(path: str) -> pl.DataFrame:
     Returns
     -------
     pl.DataFrame
-        A Polars DataFrame containing relevant gene and transcript data, including columns such as `gene_id`, `transcript_id`, 
-        `exon_number`, `seqnames`, `start`, and `end` coordinates.
+        A Polars DataFrame containing relevant gene and transcript data, including columns such as `gene_id`, `gene_name`, 
+        `transcript_id`, `transcript_name`, `transcript_biotype`, `seqnames`, `strand`, `type`, `start`, `end`, and `exon_number`.
 
     Raises
     ------
     ValueError
-        If the file path does not exist, is not a file, or does not have a .gtf extension.
+        - If the file path does not exist, is not a file, or does not have a .gtf extension.
+        - If required columns are missing or if the file cannot be read properly.
 
     Examples
     --------
     >>> from RNApysoforms.io import read_gtf
     >>> df = read_gtf("/path/to/file.gtf")
     >>> print(df.head())
-    
+        
     This will load the GTF file, extract transcript data, and return it as a Polars DataFrame.
 
     Notes
     -----
     - The function filters out non-exon and non-CDS rows and only retains relevant attributes for transcript features.
     - It lazily loads the file, making the operation efficient for large files by only processing the necessary rows.
-    - The missing `gene_name` and `transcript_name` are substituted by `gene_id` and `transcript_id`, respectively, if absent.
+    - Missing `gene_name` and `transcript_name` values are substituted with `gene_id` and `transcript_id`, respectively, if absent.
+    - The resulting DataFrame includes detailed information about each transcript feature, facilitating downstream analysis.
     """
     
     # Validate the file path existence
@@ -53,19 +54,18 @@ def read_gtf(path: str) -> pl.DataFrame:
     if not path.endswith('.gtf'):
         raise ValueError("File must have a .gtf extension.")
     
-    ## Specify dtypes to read data in
+    ## Specify data types for each column to ensure proper parsing
     input_dtypes = {
-    "seqnames": pl.Utf8,     
-    "source": pl.Utf8,     
-    "type": pl.Utf8,         
-    "start": pl.Int64,      
-    "end": pl.Int64,         
-    "score": pl.Utf8,    
-    "strand": pl.Utf8,      
-    "phase": pl.Utf8,        
-    "attributes": pl.Utf8    
+        "seqnames": pl.Utf8,     
+        "source": pl.Utf8,     
+        "type": pl.Utf8,         
+        "start": pl.Int64,      
+        "end": pl.Int64,         
+        "score": pl.Utf8,    
+        "strand": pl.Utf8,      
+        "phase": pl.Utf8,        
+        "attributes": pl.Utf8    
     }
-
     
     # Lazily scan the GTF file, treating it as a CSV-like file with tab separators
     lazy_df = pl.scan_csv(
@@ -74,8 +74,8 @@ def read_gtf(path: str) -> pl.DataFrame:
         has_header=False,  # GTF files do not have a header row
         comment_prefix="#",  # Ignore comment lines that start with '#'
         new_columns=["seqnames", "source", "type", "start", "end", "score", "strand", "phase", "attributes"], 
-        # Map the GTF columns to new names for easier reference
-        schema_overrides = input_dtypes
+        # Assign column names for easier reference
+        schema_overrides=input_dtypes  # Apply specified data types
     )
     
     # Filter the LazyFrame to keep rows where the 'type' column is either 'exon' or 'CDS'
@@ -88,7 +88,7 @@ def read_gtf(path: str) -> pl.DataFrame:
         pl.col("attributes").str.extract(r'transcript_id "([^"]+)"', 1).alias("transcript_id"),  # Extract transcript_id
         pl.col("attributes").str.extract(r'transcript_name "([^"]+)"', 1).alias("transcript_name"),  # Extract transcript_name
         pl.col("attributes").str.extract(r'transcript_biotype "([^"]+)"', 1).alias("transcript_biotype"),  # Extract transcript_biotype
-        pl.col("attributes").str.extract(r'exon_number "([^"]+)"', 1).alias("exon_number")  # Extract exon number
+        pl.col("attributes").str.extract(r'exon_number "([^"]+)"', 1).alias("exon_number")  # Extract exon_number
     ])
     
     # Fill missing gene_name values with gene_id, and missing transcript_name with transcript_id
@@ -113,10 +113,9 @@ def read_gtf(path: str) -> pl.DataFrame:
     # Ensure the start, end, and exon_number columns are stored as integers
     result_lazy = result_lazy.with_columns([
         pl.col("start").cast(pl.Int64),  # Convert start coordinates to integer
-        pl.col("end").cast(pl.Int64),  # Convert end coordinates to integer
+        pl.col("end").cast(pl.Int64),    # Convert end coordinates to integer
         pl.col("exon_number").cast(pl.Int64)  # Convert exon_number to integer
     ])
     
     # Trigger the lazy computation by collecting the data into an eager DataFrame
     return result_lazy.collect()
-

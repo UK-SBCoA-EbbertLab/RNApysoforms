@@ -3,48 +3,54 @@ import warnings
 from RNApysoforms.utils import check_df
 
 def gene_filtering(
-    gene_name_to_filter: str,
+    target_gene: str,
     annotation: pl.DataFrame,
     expression_matrix: pl.DataFrame = None,
-    group_var: str = "transcript_id"
+    group_var: str = "transcript_id",
+    gene_id_column: str = "gene_name"
 ):
     """
-    Filters genomic annotations and, optionally, a expression matrix based on a specific gene name.
+    Filters genomic annotations and, optionally, an expression matrix based on a specific gene identifier.
 
-    This function filters the provided annotation DataFrame to include only the specified gene, identified by the `gene_name`.
-    If a expression matrix is provided, it will also filter the expression matrix to retain only the transcripts corresponding to the
-    filtered gene. The function checks for missing transcripts between the annotation and expression matrix and issues warnings
-    if discrepancies are found.
+    This function filters the provided annotation DataFrame to include only the specified gene, identified by the `target_gene`.
+    The gene is identified using the column specified by `gene_id_column`. If an expression matrix is provided, it will also
+    filter the expression matrix to retain only the entries corresponding to the filtered gene based on the `group_var` column.
+    The function checks for missing entries between the annotation and expression matrix and issues warnings if discrepancies
+    are found.
 
     Parameters
     ----------
-    gene_name_to_filter : str
-        The gene name to filter in the annotation DataFrame.
+    target_gene : str
+        The gene identifier to filter in the annotation DataFrame.
     annotation : pl.DataFrame
-        A Polars DataFrame containing genomic annotations. Must include 'gene_name' and 'transcript_id' columns.
+        A Polars DataFrame containing genomic annotations. Must include the column specified by `gene_id_column` and the column specified by `group_var`.
     expression_matrix : pl.DataFrame, optional
-        A Polars DataFrame containing transcript expression data. If provided, it will be filtered to match the filtered annotation.
+        A Polars DataFrame containing expression data. If provided, it will be filtered to match the filtered annotation based on `group_var`.
         Default is None.
     group_var : str, optional
-        The column name in the expression matrix representing transcript IDs. Default is 'transcript_id'.
+        The column name representing group identifiers (e.g., transcript IDs) in both the annotation and expression matrix.
+        Default is 'transcript_id'.
+    gene_id_column : str, optional
+        The column name in the annotation DataFrame that contains gene identifiers used for filtering.
+        Default is 'gene_name'.
 
     Returns
     -------
-    tuple
-        If `expression_matrix` is provided, returns a tuple of (filtered_annotation, filtered_expression_matrix).
-        If `expression_matrix` is None, returns only the `filtered_annotation`.
+    tuple or pl.DataFrame
+        - If `expression_matrix` is provided, returns a tuple of (filtered_annotation, filtered_expression_matrix).
+        - If `expression_matrix` is None, returns only the `filtered_annotation`.
 
     Raises
     ------
     TypeError
         If the `annotation` or `expression_matrix` are not Polars DataFrames.
     ValueError
-        If required columns ('gene_name', 'transcript_id') are missing in the annotation DataFrame, or if the expression matrix
-        does not contain the `group_var`.
+        If required columns (`gene_id_column`, `group_var`) are missing in the annotation DataFrame,
+        or if the expression matrix does not contain the `group_var`.
     ValueError
         If the filtered expression matrix is empty after filtering.
     Warning
-        If there are discrepancies between transcripts in the annotation and expression matrix.
+        If there are discrepancies between groups in the annotation and expression matrix.
 
     Examples
     --------
@@ -73,33 +79,38 @@ def gene_filtering(
 
     Notes
     -----
-    - The function assumes the `annotation` DataFrame contains the columns 'gene_name' and 'transcript_id'.
-    - If a `expression_matrix` is provided, the function checks for discrepancies between transcripts in the annotation and
+    - The function assumes the `annotation` DataFrame contains the columns specified by `gene_id_column` and `group_var`.
+    - If an `expression_matrix` is provided, the function checks for discrepancies between groups in the annotation and
       expression matrix and raises warnings if there are differences.
-    - If no matching transcripts are found after filtering the expression matrix, the function raises an error.
+    - If no matching groups are found after filtering the expression matrix, the function raises an error.
     """
 
-
-    # Check if data is a polars DataFrame
+    # Check if annotation is a Polars DataFrame
     if not isinstance(annotation, pl.DataFrame):
-        raise TypeError(f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}" +
-                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
+        raise TypeError(
+            f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}" +
+            "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df"
+        )
 
-    # Check if annotation has 'gene_name' and 'transcript_id' columns
-    check_df(annotation, ["gene_name", group_var])
+    # Check if annotation has the specified gene_id_column and group_var columns
+    check_df(annotation, [gene_id_column, group_var])
 
-    # Filter annotation based on 'gene_name'
-    filtered_annotation = annotation.filter(pl.col("gene_name") == gene_name_to_filter)
+    # Filter annotation based on 'target_gene'
+    filtered_annotation = annotation.filter(pl.col(gene_id_column) == target_gene)
+
+    # Check if filtered_annotation is empty and raise an error if true
+    if filtered_annotation.is_empty():
+        raise ValueError(f"No annotation found for gene: {target_gene} in the '{gene_id_column}' column")
 
     if expression_matrix is not None:
-        # Check if expression_matrix is a polars DataFrame
+        # Check if expression_matrix is a Polars DataFrame
         if not isinstance(expression_matrix, pl.DataFrame):
             raise TypeError("Counts matrix must be a polars DataFrame.")
 
-        # Check if expression_matrix has the group_var
+        # Check if expression_matrix has the group_var column
         check_df(expression_matrix, [group_var])
 
-        # Filter expression_matrix based on transcripts in filtered_annotation
+        # Filter expression_matrix based on groups in filtered_annotation
         filtered_expression_matrix = expression_matrix.filter(
             pl.col(group_var).is_in(filtered_annotation[group_var])
         )
@@ -107,31 +118,31 @@ def gene_filtering(
         # If filtered expression matrix is empty, throw informative error
         if filtered_expression_matrix.is_empty():
             raise ValueError(
-                "Filtered expression matrix is empty after filtering. No matching transcripts found."
+                f"Filtered expression matrix is empty after filtering. No matching entries {group_var} entries found for {target_gene} gene."
             )
 
-        # Check for discrepancies between transcripts in annotation and expression_matrix
-        annotation_transcripts = set(filtered_annotation[group_var].unique())
-        expression_transcripts = set(filtered_expression_matrix[group_var].unique())
+        # Check for discrepancies between groups in annotation and expression_matrix
+        annotation_groups = set(filtered_annotation[group_var].unique())
+        expression_groups = set(filtered_expression_matrix[group_var].unique())
 
-        # Transcripts in annotation but not in expression matrix
-        missing_in_expression = annotation_transcripts - expression_transcripts
+        # Groups in annotation but not in expression matrix
+        missing_in_expression = annotation_groups - expression_groups
 
-        # Transcripts in expression matrix but not in annotation
-        missing_in_annotation = expression_transcripts - annotation_transcripts
+        # Groups in expression matrix but not in annotation
+        missing_in_annotation = expression_groups - annotation_groups
 
-        # Warn about transcripts missing in the expression matrix
+        # Warn about groups missing in the expression matrix
         if missing_in_expression:
             warnings.warn(
-                f"{len(missing_in_expression)} transcript(s) are present in the annotation but missing in the expression matrix. "
-                f"Missing transcripts: {', '.join(sorted(missing_in_expression))}"
+                f"{len(missing_in_expression)} group(s) are present in the annotation but missing in the expression matrix. "
+                f"Missing groups: {', '.join(sorted(missing_in_expression))}"
             )
 
-        # Warn about transcripts missing in the annotation
+        # Warn about groups missing in the annotation
         if missing_in_annotation:
             warnings.warn(
-                f"{len(missing_in_annotation)} transcript(s) are present in the expression matrix but missing in the annotation. "
-                f"Missing transcripts: {', '.join(sorted(missing_in_annotation))}"
+                f"{len(missing_in_annotation)} group(s) are present in the expression matrix but missing in the annotation. "
+                f"Missing groups: {', '.join(sorted(missing_in_annotation))}"
             )
 
         return filtered_annotation, filtered_expression_matrix

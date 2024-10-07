@@ -32,14 +32,14 @@ def make_traces(
 ) -> list:
     """
     Generates Plotly traces for visualizing transcript features such as exons, introns, and coding sequences (CDS).
-
+    
     This function creates graphical shapes—rectangles for exons and CDS, and lines for introns—for transcript visualization 
     in genomic plots. It allows extensive customization of appearance, including colors, line widths, feature heights, 
     and the option to add directional arrows to introns to indicate strand direction. Features can be colored based on a 
     specified 'hue' column, facilitating grouping and differentiation based on another variable. Hover information can 
     display details like feature type, feature number, and start and end positions. Additionally, the function supports 
     rescaling genomic coordinates to shorten long gaps, enhancing visualization clarity.
-
+    
     **Required Columns in `data`:**
     - Columns specified by `y`, `x_start`, `x_end`.
     - `type`: Indicates the feature type (e.g., exon, intron, CDS).
@@ -47,7 +47,7 @@ def make_traces(
     - `exon_number`: Numerical identifier for exons.
     - `seqnames`: Chromosome or sequence name.
     - If `hue` is provided, the column specified by `hue` must also be present.
-
+    
     Parameters
     ----------
     data : pl.DataFrame
@@ -74,8 +74,8 @@ def make_traces(
         Column name for feature grouping to apply different fill colors. If provided, features will be colored 
         based on the unique values in this column, enabling visual differentiation of groups.
     color_map : dict, optional
-        A dictionary mapping unique `hue` values to specific colors. If `None`, a color map is generated using 
-        `color_palette`.
+        A dictionary mapping unique `hue` values to specific colors. If `hue` is provided and `color_map` is `None`, 
+        a color map is generated using `color_palette`. This parameter is ignored if `hue` is not provided.
     color_palette : List[str], optional
         A list of colors to use when generating the color map if `color_map` is `None` and `hue` is provided. 
         Defaults to `px.colors.qualitative.Plotly`.
@@ -100,16 +100,16 @@ def make_traces(
         Column name representing the start position for hover information, by default "start".
     hover_end : str, optional
         Column name representing the end position for hover information, by default "end".
-
+    
     Returns
     -------
     list
         A list of Plotly trace objects representing exons, introns, CDS, and optional arrows for visualization.
-
+    
     Examples
     --------
     Create traces for a genomic visualization:
-
+    
     >>> import polars as pl
     >>> from RNApysoforms.utils import check_df
     >>> from RNApysoforms.plot import make_traces
@@ -128,7 +128,7 @@ def make_traces(
         
     This will return a list of Plotly traces that can be used to render the genomic features, 
     colored according to the 'feature_group' column.
-
+    
     Notes
     -----
     - The function automatically adds arrows to introns if they are sufficiently long, with arrow direction 
@@ -137,6 +137,7 @@ def make_traces(
       visualized on the same plot.
     - When a `hue` is provided, features are colored according to the values in the `hue` column. If `color_map` 
       is not provided, a color map is generated using `color_palette`.
+    - If `hue` is not provided, all features are filled with the `fill_color`.
     - The legend will display each unique `hue` value only once to avoid redundancy.
     - Arrows indicate strand direction: for positive strand ('+'), arrows point leftward; for negative strand ('-'), 
       arrows point rightward.
@@ -145,7 +146,7 @@ def make_traces(
     - The `seqnames` column is required for displaying chromosome or sequence names in hover information.
     - The `is_hoverable` parameter controls whether hover information is displayed for features. When `is_hoverable` 
       is `True`, features will display hover information including feature type, feature number, start and end positions.
-
+    
     Raises
     ------
     TypeError

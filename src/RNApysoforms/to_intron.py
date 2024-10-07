@@ -1,32 +1,47 @@
 import polars as pl
 from RNApysoforms.utils import check_df
 
+
 def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
-   
     """
     Converts exon coordinates into corresponding intron coordinates within a genomic annotation dataset.
 
     This function identifies introns by calculating the genomic intervals between consecutive exons for each transcript.
     It returns a DataFrame with the calculated intron coordinates and retains relevant grouping based on the specified 
-    `group_var`, typically 'transcript_id'.
+    `group_var`, typically 'transcript_id'. If intron entries are absent in the input data, the function generates them.
 
     Parameters
     ----------
     annotation : pl.DataFrame
-        A DataFrame containing genomic annotations, including exon coordinates with group_var, 'start', 'end', and 'exon_number' columns.
+        A Polars DataFrame containing genomic annotations, including exon coordinates with the following required columns:
+        - `seqnames`: Chromosome or sequence name.
+        - `start`: Start position of the exon.
+        - `end`: End position of the exon.
+        - `type`: Feature type, expected to include "exon".
+        - `exon_number`: Numerical identifier for exons.
+        - `group_var`: Column used to group transcripts, typically "transcript_id".
     group_var : str, optional
         The column used to group data, typically 'transcript_id'. Default is 'transcript_id'.
 
     Returns
     -------
     pl.DataFrame
-        A DataFrame containing intron coordinates derived from the exons data, as well as other genomic features like CDS.
+        A Polars DataFrame containing both exon and intron coordinates, including other genomic features such as CDS if present.
+        The DataFrame includes the following columns:
+        - `seqnames`
+        - `start`
+        - `end`
+        - `type` ("exon" or "intron")
+        - `exon_number`
+        - Additional columns from the input DataFrame.
 
     Raises
     ------
+    TypeError
+        If `annotation` is not a Polars DataFrame.
     ValueError
-        If the input DataFrame does not contain the required columns (`seqnames`, `start`, `end`, `type`, `exon_number`, 
-        and `group_var`).
+        If the input DataFrame does not contain the required columns (`seqnames`, `start`, `end`, `type`, `exon_number`, and `group_var`).
+        If exons are not from a single chromosome and strand.
 
     Examples
     --------
@@ -50,36 +65,38 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
     Notes
     -----
     - The function filters out invalid introns where `start` or `end` is null, and introns with length ≤ 1 are discarded.
-    - The input DataFrame must contain the `seqnames`, `start`, `end`, `type`, `exon_number`, and group_var
-    - The resulting DataFrame retains all necessary columns from the input exons and supports optional columns.
-    - The input DataFrame can contain just exons or other "type" values as well such as CDS.
+    - The input DataFrame must contain columns 'seqnames', 'start', 'end', 'type', 'exon_number', and the specified `group_var`.
+    - The function can handle input DataFrames with or without existing intron entries. If intron entries are absent, the function generates them.
+    - Exons are expected to be from a single chromosome and strand to accurately identify gaps.
+    - Additional genomic features (e.g., CDS) present in the input DataFrame are retained and merged with intron entries.
     """
 
-    # Check if annotation is a polars DataFrame
+    # Check if annotation is a Polars DataFrame
     if not isinstance(annotation, pl.DataFrame):
-        raise TypeError(f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}" +
-                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
+        raise TypeError(
+            f"Expected 'annotation' to be of type pl.DataFrame, got {type(annotation)}."
+            "\nYou can convert a pandas DataFrame to Polars using: polars_df = pl.from_pandas(pandas_df)"
+        )
 
-    # Check required columns in the input DataFrame
+    # Validate the input DataFrame to ensure required columns are present
     check_df(annotation, ["seqnames", "start", "end", "type", "exon_number", group_var])
 
-    ## Separate CDS and exon
+    # Separate exons and other features (e.g., CDS) from the annotation data
     exons = annotation.filter(pl.col("type") == "exon")
-    other = annotation.filter(pl.col("type") != "exon")
+    other_features = annotation.filter(pl.col("type") != "exon")
 
-    # Sort exons by group_var, start, and end coordinates
-    sort_cols = [group_var, 'start', 'end']
-    exons_sorted = exons.sort(sort_cols)
+    # Sort exons by group_var, start, and end coordinates to ensure correct intron calculation
+    sort_columns = [group_var, 'start', 'end']
+    exons_sorted = exons.sort(sort_columns)
 
-    # Calculate intron start and end positions, shift 'end' to get 'intron_start'
+    # Calculate intron start and end positions by shifting exon coordinates within each group
     exons_with_introns = exons_sorted.with_columns([
-        pl.col('end').shift(1).over(group_var).alias('intron_start'),  # Intron start = previous exon end
-        pl.col('start').alias('intron_end'),  # Intron end = next exon start
-        pl.lit('intron').alias('type'),  # Set type as 'intron'
-        pl.col("exon_number").alias("exon_number")  # Retain exon_number column
+        pl.col('end').shift(1).over(group_var).alias('intron_start'),  # Intron start = previous exon end + 1
+        pl.col('start').alias('intron_end'),                           # Intron end = current exon start - 1
+        pl.lit('intron').alias('type')                                 # Set feature type as 'intron'
     ])
 
-    # Exclude certain columns that are either renamed or already processed
+    # Exclude columns that are either renamed or already processed
     exclude_cols = ['start', 'end', 'intron_start', 'intron_end', 'type', 'exon_number']
     columns_to_add = [col for col in exons.columns if col not in exclude_cols]
 
@@ -89,13 +106,13 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
     else:
         other_cols_expr = [pl.col(col).first().alias(col) for col in columns_to_add]
 
-    # Select intron columns (start, end, exon_number, type) and any other required columns
+    # Select intron columns and include any additional required columns
     introns = exons_with_introns.select([
         pl.col('intron_start').alias('start'),  # Intron start position
-        pl.col('intron_end').alias('end'),  # Intron end position
-        pl.col("exon_number"),  # Exon number (if applicable)
-        pl.col('type'),  # Type of feature (intron)
-        *other_cols_expr  # Include additional columns as necessary
+        pl.col('intron_end').alias('end'),      # Intron end position
+        pl.col("exon_number"),                   # Retain exon_number column for reference
+        pl.col('type'),                          # Type of feature ('intron')
+        *other_cols_expr                        # Include additional columns as necessary
     ])
 
     # Remove rows where either 'start' or 'end' is null (invalid introns)
@@ -110,13 +127,13 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
         pl.col('end').cast(pl.Int64)
     ])
 
-    ## Set intron column order to match exons and cds
+    # Reorder intron columns to match the order of exons for consistency
     introns = introns[exons.columns]
 
-    ## Update annotations to include introns and exons
-    annotation = pl.concat([exons, other, introns])
+    # Concatenate exons, other features, and introns into a single DataFrame
+    combined_annotation = pl.concat([exons, other_features, introns])
 
-    ## Sort to make output more neat
-    annotation = annotation.sort(["seqnames", group_var, "start", "end", "type"], descending=False)
+    # Sort the combined DataFrame by 'seqnames', group_var, 'start', 'end', and 'type' for organized output
+    combined_annotation = combined_annotation.sort(["seqnames", group_var, "start", "end", "type"], descending=False)
 
-    return annotation  # Return the DataFrame annotation containing valid intron coordinates
+    return combined_annotation  # Return the combined DataFrame with intron entries

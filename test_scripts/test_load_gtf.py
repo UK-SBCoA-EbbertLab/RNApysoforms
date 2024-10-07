@@ -10,7 +10,7 @@ import plotly.express as px
 annotation = pt.read_gtf("./raw_data/Homo_sapiens.GRCh38.110.gtf")
 
 
-counts = pt.read_expression_matrix(counts_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
+counts = pt.read_expression_matrix(expression_matrix_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
                                metadata_path="./test_data/sample_metadata.tsv",
                                cpm_normalization=True)
 
@@ -30,8 +30,8 @@ annotation = annotation.with_columns(pl.col('transcript_biotype').replace_strict
 gene_name = "APP"
 
 ## Filter gene name in annotation and counts matrix
-annotation, counts = pt.gene_filtering(annotation=annotation, counts_matrix=counts, 
-                                       gene_name_to_filter=gene_name, group_var="transcript_id")
+annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
+                                       target_gene=gene_name, group_var="transcript_id")
 
 
 #MIR99AHG

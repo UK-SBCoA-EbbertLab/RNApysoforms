@@ -1,12 +1,12 @@
 import polars as pl
-from typing import Optional
+from typing import Optional, List
 import warnings
 import os
 
 def read_expression_matrix(
     expression_matrix_path: str,
     metadata_path: Optional[str] = None,
-    expression_measure_name = "counts",
+    expression_measure_name: str = "counts",
     cpm_normalization: bool = False,
     relative_abundance: bool = False,
     gene_id_column_name: Optional[str] = "gene_id",
@@ -14,77 +14,97 @@ def read_expression_matrix(
     metadata_sample_id_column: str = "sample_id"
 ) -> pl.DataFrame:
     """
-    Load and process a counts matrix, optionally merging metadata, performing CPM normalization,
+    Load and process an expression matrix, optionally merging metadata, performing CPM normalization,
     and calculating relative transcript abundance.
-
-    This function reads a counts matrix file and, optionally, a metadata file, merging the two on a sample identifier.
-    The counts can also be normalized to Counts Per Million (CPM) and relative transcript abundance can be calculated
-    for further analysis. The resulting DataFrame is returned in long format, with counts and optional CPM values and
+    
+    This function reads an expression matrix file and, optionally, a metadata file, merging the two on a sample identifier.
+    The expression measures can also be normalized to Counts Per Million (CPM) and relative transcript abundance can be calculated
+    for further analysis. The resulting DataFrame is returned in long format, with expression measures and optional CPM values and
     relative abundance, merged with metadata if provided.
-
+    
     Parameters
     ----------
     expression_matrix_path : str
-        Path to the counts matrix file. Supported file formats include .csv, .tsv, .txt, .parquet, and .xlsx.
+        Path to the expression matrix file. Supported file formats include .csv, .tsv, .txt, .parquet, and .xlsx.
     metadata_path : str, optional
-        Path to the metadata file. If provided, the metadata will be merged with the counts data. Supported file formats
+        Path to the metadata file. If provided, the metadata will be merged with the expression data. Supported file formats
         are the same as for `expression_matrix_path`. Default is None.
+    expression_measure_name : str, optional
+        The name to assign to the expression measure column after melting. This will be the name of the column 
+        containing the expression values in the long-format DataFrame. Default is "counts".
     cpm_normalization : bool, optional
-        Whether to perform Counts Per Million (CPM) normalization on the counts data. Default is False.
+        Whether to perform Counts Per Million (CPM) normalization on the expression data. Default is False.
+    relative_abundance : bool, optional
+        Whether to calculate relative transcript abundance based on gene counts. This requires `gene_id_column_name` 
+        to be provided. Default is False.
     gene_id_column_name : str, optional
-        The name of the column in the counts DataFrame that contains gene identifiers. This column will remain fixed during data transformation.
+        The name of the column in the expression DataFrame that contains gene identifiers. This column will remain fixed during data transformation.
         If provided, relative transcript abundance will be calculated. Default is "gene_id". If set to None, the gene identifier will not be used.
     transcript_id_column_name : str
-        The name of the column in the counts DataFrame that contains transcript identifiers. This parameter is required and cannot be None.
+        The name of the column in the expression DataFrame that contains transcript identifiers. This parameter is required and cannot be None.
         This column will remain fixed during data transformation. Default is "transcript_id".
     metadata_sample_id_column : str, optional
-        Column name in the metadata DataFrame that identifies samples. This column is used to merge the metadata and counts data.
+        Column name in the metadata DataFrame that identifies samples. This column is used to merge the metadata and expression data.
         Default is "sample_id".
-
+    
     Returns
     -------
     pl.DataFrame
-        A Polars DataFrame in long format with the counts data (and CPM values and relative abundance if calculated),
+        A Polars DataFrame in long format with the expression data (and CPM values and relative abundance if calculated),
         optionally merged with metadata.
-
+    
     Raises
     ------
     ValueError
-        - If 'transcript_id_column_name' is None.
-        - If required feature ID columns are missing in the counts file.
+        - If `transcript_id_column_name` is None.
+        - If required feature ID columns are missing in the expression file.
         - If the file format is unsupported or the file cannot be read.
-        - If required columns in the metadata are missing or sample IDs do not overlap between counts and metadata.
+        - If required columns in the metadata are missing or sample IDs do not overlap between expression data and metadata.
     Warning
-        - If there is partial overlap between samples in counts data and metadata.
-
+        - If there is partial overlap between samples in expression data and metadata.
+    
     Examples
     --------
-    Load a counts matrix, perform CPM normalization, calculate relative transcript abundance, and merge with metadata:
-
-    >>> df = load_counts_matrix("counts.csv", metadata_path="metadata.csv", cpm_normalization=True)
+    Load an expression matrix, perform CPM normalization, calculate relative transcript abundance, and merge with metadata:
+    
+    >>> df = read_expression_matrix(
+    ...     expression_matrix_path="counts.csv",
+    ...     metadata_path="metadata.csv",
+    ...     expression_measure_name="counts",
+    ...     cpm_normalization=True,
+    ...     relative_abundance=True
+    ... )
     >>> print(df.head())
-
-    Load a counts matrix without normalization but calculate relative transcript abundance:
-
-    >>> df = load_counts_matrix("counts.csv")
+    
+    Load an expression matrix without normalization but calculate relative transcript abundance:
+    
+    >>> df = read_expression_matrix(
+    ...     expression_matrix_path="counts.csv",
+    ...     expression_measure_name="counts",
+    ...     relative_abundance=True
+    ... )
     >>> print(df.head())
-
-    Load a counts matrix without calculating relative abundance:
-
-    >>> df = load_counts_matrix("counts.csv", gene_id_column_name=None)
+    
+    Load an expression matrix without calculating relative abundance:
+    
+    >>> df = read_expression_matrix(
+    ...     expression_matrix_path="counts.csv",
+    ...     gene_id_column_name=None
+    ... )
     >>> print(df.head())
-
+    
     Notes
     -----
     - The `transcript_id_column_name` parameter is required and cannot be None.
-    - The function supports multiple file formats (.csv, .tsv, .txt, .parquet, .xlsx) for both counts and metadata files.
-    - If CPM normalization is performed, the counts will be scaled to reflect Counts Per Million for each sample.
+    - The function supports multiple file formats (.csv, .tsv, .txt, .parquet, .xlsx) for both expression and metadata files.
+    - If CPM normalization is performed, the expression measures will be scaled to reflect Counts Per Million for each sample.
     - If `gene_id_column_name` is provided, relative transcript abundance is calculated as (transcript_counts / total_gene_counts) * 100.
       If the total gene counts are zero, the relative abundance is set to zero to avoid division by zero errors.
-    - Warnings are raised if there is partial sample overlap between counts data and metadata.
-    - The resulting DataFrame is returned in long format, with counts, CPM values, and relative abundance for each sample-feature combination.
+    - Warnings are raised if there is partial sample overlap between expression data and metadata.
+    - The resulting DataFrame is returned in long format, with expression measures, CPM values, and relative abundance for each sample-feature combination.
+    - The `expression_measure_name` allows customization of the name of the expression values column in the long-format DataFrame.
     """
-
+    
     # Check if transcript_id_column_name is None and raise an error if so
     if transcript_id_column_name is None:
         raise ValueError("The 'transcript_id_column_name' is required and cannot be None.")
@@ -103,7 +123,7 @@ def read_expression_matrix(
     if missing_columns:
         raise ValueError(f"The following feature ID columns are missing in the expression dataframe: {missing_columns}")
 
-    # Determine counts columns (exclude feature ID columns)
+    # Determine expression columns (exclude feature ID columns)
     expression_columns = [col for col in expression_df.columns if col not in feature_id_columns]
 
     # Check that expression_columns are numeric
@@ -124,9 +144,12 @@ def read_expression_matrix(
         ])
     
     ## If relative abundance is true and gene_id_column_name is None
-    elif ((gene_id_column_name is  None) and (relative_abundance)):
-        warnings.warn("relative_abundance was set to True, but gene_id_column_name was not provided (set to None). "
-            "Therefore, relative abundance calculation is being skipped.", UserWarning)
+    elif ((gene_id_column_name is None) and (relative_abundance)):
+        warnings.warn(
+            "relative_abundance was set to True, but gene_id_column_name was not provided (set to None). "
+            "Therefore, relative abundance calculation is being skipped.", 
+            UserWarning
+        )
 
     if cpm_normalization:
         # Perform CPM normalization for each sample
@@ -137,7 +160,7 @@ def read_expression_matrix(
             for col in expression_columns
         ])
 
-    # Transform expression_df into long format for counts
+    # Transform expression_df into long format for expression_measure_name
     expression_long = expression_df.melt(
         id_vars=feature_id_columns,
         value_vars=expression_columns,
@@ -189,9 +212,12 @@ def read_expression_matrix(
         )
 
     ## If relative abundance is true and gene_id_column_name is None
-    elif ((gene_id_column_name is  None) and (relative_abundance)):
-        warnings.warn("relative_abundance was set to True, but gene_id_column_name was not provided (set to None). "
-            "Therefore, relative abundance calculation is being skipped.", UserWarning)
+    elif ((gene_id_column_name is None) and (relative_abundance)):
+        warnings.warn(
+            "relative_abundance was set to True, but gene_id_column_name was not provided (set to None). "
+            "Therefore, relative abundance calculation is being skipped.", 
+            UserWarning
+        )
 
     if metadata_path is not None:
         # Load metadata_path using the helper function
@@ -199,17 +225,19 @@ def read_expression_matrix(
 
         # Check if metadata_sample_id_column is present in metadata_df
         if metadata_sample_id_column not in metadata_df.columns:
-            raise ValueError(f"The metadata_sample_id_column '{metadata_sample_id_column}' is not present in the metadata dataframe.")
+            raise ValueError(
+                f"The metadata_sample_id_column '{metadata_sample_id_column}' is not present in the metadata dataframe."
+            )
         
 
-        # Check overlap of sample IDs between counts data and metadata
+        # Check overlap of sample IDs between expression data and metadata
         counts_sample_ids = long_expression_df[metadata_sample_id_column].unique().to_list()
         metadata_sample_ids = metadata_df[metadata_sample_id_column].unique().to_list()
 
         overlapping_sample_ids = set(counts_sample_ids).intersection(set(metadata_sample_ids))
 
         if not overlapping_sample_ids:
-            raise ValueError("No overlapping sample IDs found between counts data and metadata.")
+            raise ValueError("No overlapping sample IDs found between expression data and metadata.")
 
         # Warn about sample ID mismatches
         metadata_sample_ids_not_in_counts = set(metadata_sample_ids) - set(counts_sample_ids)
@@ -217,9 +245,9 @@ def read_expression_matrix(
 
         warning_message = ""
         if metadata_sample_ids_not_in_counts:
-            warning_message += f"The following sample IDs are present in metadata but not in counts data: {list(metadata_sample_ids_not_in_counts)}. "
+            warning_message += f"The following sample IDs are present in metadata but not in expression data: {list(metadata_sample_ids_not_in_counts)}. "
         if counts_sample_ids_not_in_metadata:
-            warning_message += f"The following sample IDs are present in counts data but not in metadata: {list(counts_sample_ids_not_in_metadata)}."
+            warning_message += f"The following sample IDs are present in expression data but not in metadata: {list(counts_sample_ids_not_in_metadata)}."
         if warning_message:
             warnings.warn(warning_message)
 
@@ -232,44 +260,41 @@ def read_expression_matrix(
 
     return long_expression_df
 
-import polars as pl
-import os
-
 def _get_open_file(file_path: str) -> pl.DataFrame:
     """
     Open a file based on its extension and load it into a Polars DataFrame.
-
+    
     This function supports multiple file formats such as .csv, .tsv, .txt, .parquet, and .xlsx. 
     It automatically determines the correct method to open the file based on its extension.
-
+    
     Parameters
     ----------
     file_path : str
         The path to the file to be opened.
-
+    
     Returns
     -------
     pl.DataFrame
         A Polars DataFrame containing the contents of the file.
-
+    
     Raises
     ------
     ValueError
         If the file extension is unsupported or the file cannot be read due to an error.
-
+    
     Examples
     --------
     Open a CSV file:
-
+    
     >>> df = _get_open_file("data.csv")
     
     Open a TSV file:
-
+    
     >>> df = _get_open_file("data.tsv")
-
+    
     Notes
     -----
-    - This function is used internally by `load_counts_matrix` to load counts and metadata files.
+    - This function is used internally by `read_expression_matrix` to load expression and metadata files.
     - It handles different file extensions and raises a clear error if the file format is unsupported.
     """
     _, file_extension = os.path.splitext(file_path)
@@ -284,6 +309,8 @@ def _get_open_file(file_path: str) -> pl.DataFrame:
         elif file_extension == ".xlsx":
             return pl.read_excel(file_path)
         else:
-            raise ValueError(f"Unsupported file extension '{file_extension}'. Supported extensions are .tsv, .txt, .csv, .parquet, .xlsx")
+            raise ValueError(
+                f"Unsupported file extension '{file_extension}'. Supported extensions are .tsv, .txt, .csv, .parquet, .xlsx"
+            )
     except Exception as e:
         raise ValueError(f"Failed to read the file '{file_path}': {e}")
