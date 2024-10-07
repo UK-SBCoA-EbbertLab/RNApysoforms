@@ -1,11 +1,12 @@
 import polars as pl
 import warnings
+from RNApysoforms.utils import check_df
 
 def gene_filtering(
     gene_name_to_filter: str,
     annotation: pl.DataFrame,
     counts_matrix: pl.DataFrame = None,
-    transcript_feature_column: str = "transcript_id"
+    group_var: str = "transcript_id"
 ):
     """
     Filters genomic annotations and, optionally, a counts matrix based on a specific gene name.
@@ -24,7 +25,7 @@ def gene_filtering(
     counts_matrix : pl.DataFrame, optional
         A Polars DataFrame containing transcript counts data. If provided, it will be filtered to match the filtered annotation.
         Default is None.
-    transcript_feature_column : str, optional
+    group_var : str, optional
         The column name in the counts matrix representing transcript IDs. Default is 'transcript_id'.
 
     Returns
@@ -37,7 +38,7 @@ def gene_filtering(
     ------
     ValueError
         If required columns ('gene_name', 'transcript_id') are missing in the annotation DataFrame, or if the counts matrix
-        does not contain the `transcript_feature_column`.
+        does not contain the `group_var`.
     ValueError
         If the filtered counts matrix is empty after filtering.
     Warning
@@ -82,12 +83,7 @@ def gene_filtering(
         raise ValueError("Annotation must be a polars DataFrame.")
 
     # Check if annotation has 'gene_name' and 'transcript_id' columns
-    required_columns = {"gene_name", "transcript_id"}
-    missing_columns = required_columns - set(annotation.columns)
-    if missing_columns:
-        raise ValueError(
-            f"Annotation dataframe must contain the following columns: {', '.join(missing_columns)}."
-        )
+    check_df(annotation, ["gene_name", group_var])
 
     # Filter annotation based on 'gene_name'
     filtered_annotation = annotation.filter(pl.col("gene_name") == gene_name_to_filter)
@@ -97,15 +93,12 @@ def gene_filtering(
         if not isinstance(counts_matrix, pl.DataFrame):
             raise ValueError("Counts matrix must be a polars DataFrame.")
 
-        # Check if counts_matrix has the transcript_feature_column
-        if transcript_feature_column not in counts_matrix.columns:
-            raise ValueError(
-                f"Counts matrix must contain the '{transcript_feature_column}' column."
-            )
+        # Check if counts_matrix has the group_var
+        check_df(counts_matrix, ["gene_name", group_var])
 
         # Filter counts_matrix based on transcripts in filtered_annotation
         filtered_counts_matrix = counts_matrix.filter(
-            pl.col(transcript_feature_column).is_in(filtered_annotation["transcript_id"])
+            pl.col(group_var).is_in(filtered_annotation[group_var])
         )
 
         # If filtered counts matrix is empty, throw informative error
@@ -116,7 +109,7 @@ def gene_filtering(
 
         # Check for discrepancies between transcripts in annotation and counts_matrix
         annotation_transcripts = set(filtered_annotation["transcript_id"].unique())
-        counts_transcripts = set(filtered_counts_matrix[transcript_feature_column].unique())
+        counts_transcripts = set(filtered_counts_matrix[group_var].unique())
 
         missing_transcripts = annotation_transcripts - counts_transcripts
         if missing_transcripts:
