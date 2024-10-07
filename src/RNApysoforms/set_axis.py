@@ -101,10 +101,10 @@ def set_axis(
     fig.update_xaxes(range=[x_min, x_max])
     
     # Calculate the total number of distinct groups (e.g., transcripts) based on the transcript_id_column
-    num_groups = data[transcript_id_column].n_unique()
+    num_transcripts = data[transcript_id_column].n_unique()
     
     # Update the y-axis range based on the number of distinct groups
-    # Setting range to [-0.8, num_groups - 0.2] provides space for visual clarity
-    fig.update_yaxes(range=[-0.8, (num_groups - 0.2)])
+    # Setting range to [-0.8, num_transcripts - 0.2] provides space for visual clarity
+    fig.update_yaxes(range=[-0.8, (num_transcripts - 0.2)])
     
     return fig  # Return the updated figure
