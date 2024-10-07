@@ -94,6 +94,7 @@ def make_plot(
                 range=[-0.8, (len(unique_transcripts) - 0.2)]
             )
 
+
     # Update overall layout
     fig.update_layout(
         title_text="Transcript Analysis",
@@ -103,7 +104,8 @@ def make_plot(
         template=template,
         legend=dict(traceorder="reversed"),
         hoverlabel=dict(font=dict(size=8)),
-        margin=dict(l=100, r=50, t=100, b=50)  # Adjust margins as needed
+        margin=dict(l=100, r=50, t=100, b=50),  # Adjust margins as needed
+        boxmode='group'
     )
 
     return fig
