@@ -127,7 +127,7 @@ def shorten_gaps(
         # Combine the rescaled CDS data into the final DataFrame
         rescaled_tx = pl.concat([rescaled_tx, rescaled_cds])
         # Sort the DataFrame by group_var (e.g., transcript) and start position
-        rescaled_tx = rescaled_tx.sort(by=[group_var, 'start', 'end'] if group_var else ['start', 'end'])
+        rescaled_tx = rescaled_tx.sort(by=[group_var, 'start', 'end'])
 
     return rescaled_tx  # Return the rescaled transcript DataFrame
 
@@ -532,16 +532,13 @@ def _get_rescaled_txs(
           .alias('rescaled_end')
     ])
     
-    # Drop original 'start', 'end', and 'width' columns, renaming rescaled columns
-    rescaled_tx = rescaled_tx.drop(['start', 'end', 'width']).rename({
-        'rescaled_start': 'start',
-        'rescaled_end': 'end'
-    })
+    # Drop 'width' column
+    rescaled_tx = rescaled_tx.drop(['width'])
     
     # Reorder columns for consistency in the output
     columns = rescaled_tx.columns
-    column_order = ['seqnames', 'start', 'end', 'strand'] + [
-        col for col in columns if col not in ['seqnames', 'start', 'end', 'strand']
+    column_order = ['seqnames', 'start', 'end', "rescaled_start", "rescaled_end", 'strand'] + [
+        col for col in columns if col not in ['seqnames', 'start', 'end', "rescaled_start", "rescaled_end", 'strand']
     ]
     rescaled_tx = rescaled_tx.select(column_order)
     
@@ -572,7 +569,7 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
         cds_regions = cds_regions.drop('type')
 
     # Rename 'start' and 'end' columns in exon regions for clarity
-    exons = gene_exons.rename({'start': 'exon_start', 'end': 'exon_end'})
+    exons = gene_exons.rename({'start': 'exon_start', 'start': 'exon_end'})
 
     # Remove the 'type' column if it exists in exons
     if 'type' in exons.columns:
@@ -624,7 +621,7 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
     )
 
     # Rename columns in rescaled exons for consistency
-    exons_prepared = gene_rescaled_exons.rename({'start': 'exon_start', 'end': 'exon_end'})
+    exons_prepared = gene_rescaled_exons.rename({'rescaled_start': 'exon_start', 'rescaled_end': 'exon_end'})
 
     # Drop 'type' column if present
     if 'type' in exons_prepared.columns:
