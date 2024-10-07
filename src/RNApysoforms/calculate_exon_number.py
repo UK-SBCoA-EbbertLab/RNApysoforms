@@ -68,7 +68,8 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
 
     # Ensure 'annotation' is a Polars DataFrame
     if not isinstance(annotation, pl.DataFrame):
-        raise ValueError("Annotation must be a polars DataFrame.")
+        raise TypeError(f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}" +
+                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
     
     # Ensure required columns are present
     check_df(annotation, ["start", "end", group_var, "type", "strand"])

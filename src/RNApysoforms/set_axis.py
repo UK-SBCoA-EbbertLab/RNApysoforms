@@ -63,7 +63,13 @@ def set_axis(
     - The x-axis range is defined by the minimum `start` and maximum `end` values, with optional padding applied.
     - The y-axis range is calculated based on the number of unique groups defined by `group_var`, such as transcripts.
     """
-
+    
+    # Check if data is a polars DataFrame and fig is a do.Figure
+    if not isinstance(fig, go.Figure):
+        raise TypeError(f"Expected fig to be of type go.Figure, got {type(fig)}")
+    if not isinstance(data, pl.DataFrame):
+        raise TypeError(f"Expected data to be of type pl.DataFrame, got {type(data)}" +
+                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
     
     # Ensure the DataFrame contains the required columns ('start' and 'end')
     check_df(data, [x_start, x_end])

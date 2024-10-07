@@ -11,7 +11,6 @@ def make_traces(
     y: str = "transcript_id",
     x_start: str = "start",
     x_end: str = "end",
-    target_gap: int = 100,
     cds: str = "CDS",
     exon: str = "exon",
     intron: str = "intron",
@@ -128,7 +127,12 @@ def make_traces(
       features will display hover information including feature type, feature number, start and end positions.
     - If `rescale` is True, the genomic coordinates will be rescaled to shorten long gaps using the `shorten_gaps` function.
     """
-
+    
+    # Check if data is a polars DataFrame
+    if not isinstance(data, pl.DataFrame):
+        raise TypeError(f"Expected annotation to be of type pl.DataFrame, got {type(data)}" +
+                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
+    
     # Validate required columns in the data
     if hue is None:
         # Check if required columns are present when hue is None

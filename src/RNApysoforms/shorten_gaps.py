@@ -66,6 +66,11 @@ def shorten_gaps(
     - Rescaling is applied to the entire transcript structure after the gaps have been shortened.
     """
     
+    # Check if annotation is a polars DataFrame
+    if not isinstance(annotation, pl.DataFrame):
+        raise TypeError(f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}" +
+                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
+
     # Validate the input DataFrame to ensure required columns are present
     check_df(annotation, ["start", "end", "type", "strand", "seqnames", group_var])
 

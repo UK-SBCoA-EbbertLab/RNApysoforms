@@ -55,6 +55,11 @@ def to_intron(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.
     - The input DataFrame can contain just exons or other "type" values as well such as CDS.
     """
 
+    # Check if annotation is a polars DataFrame
+    if not isinstance(annotation, pl.DataFrame):
+        raise TypeError(f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}" +
+                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
+
     # Check required columns in the input DataFrame
     check_df(annotation, ["seqnames", "start", "end", "type", "exon_number", group_var])
 

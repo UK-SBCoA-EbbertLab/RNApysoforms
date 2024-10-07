@@ -78,9 +78,10 @@ def gene_filtering(
     """
 
 
-    # Check if annotation is a polars DataFrame
+    # Check if data is a polars DataFrame
     if not isinstance(annotation, pl.DataFrame):
-        raise ValueError("Annotation must be a polars DataFrame.")
+        raise TypeError(f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}" +
+                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
 
     # Check if annotation has 'gene_name' and 'transcript_id' columns
     check_df(annotation, ["gene_name", group_var])
