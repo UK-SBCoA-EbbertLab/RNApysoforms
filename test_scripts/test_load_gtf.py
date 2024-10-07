@@ -45,6 +45,8 @@ rescaled_annotation = pt.shorten_gaps(annotation=annotation, group_var="transcri
 traces = pt.make_traces(
     data=rescaled_annotation,
     y='transcript_id', 
+    x_start="rescaled_start",
+    x_end="rescaled_end",
     fill_color="grey",
     exon_height=0.3,
     cds_height=0.5,
@@ -65,7 +67,7 @@ fig = go.Figure(data=traces)
 
 
 # Call the new function to set the genomic axis range
-fig = pt.set_axis(fig, data=rescaled_annotation)
+fig = pt.set_axis(fig, data=rescaled_annotation, x_start="rescaled_start", x_end="rescaled_end")
 
 
 # Update layout and show the plot

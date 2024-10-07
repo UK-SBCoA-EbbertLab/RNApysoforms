@@ -137,12 +137,6 @@ def make_traces(
         # Check if required columns are present when hue is specified
         check_df(data, [x_start, x_end, y, "type", "strand", "exon_number", hue, "seqnames"])
 
-    if rescale:
-        # Store the original genomic coordinates for reference
-        genomic_coordinates = data.clone()
-        # Rescale the genomic coordinates to shorten long gaps
-        data = shorten_gaps(data, group_var=y, target_gap_width=target_gap)
-
     # Initialize lists to store traces for different feature types
     cds_traces = []     # Stores traces for CDS (coding sequences)
     intron_traces = []  # Stores traces for introns
@@ -202,12 +196,14 @@ def make_traces(
         
         if is_hoverable:
             # Define hover template with feature type, number, start, and end positions for each row
+            size = abs(row[hover_end] - row[hover_start])
             hovertemplate_text = (
                 f"<b>Feature Type:</b> {row['type']}<br>"
                 f"<b>Feature Number:</b> {row.get('exon_number', 'N/A')}<br>"
-                f"<b>Chromosome:</b> {row["seqnames"]}<br>"
+                f"<b>Chromosome:</b> {row['seqnames']}<br>"
                 f"<b>Start:</b> {row[hover_start]}<br>"
                 f"<b>End:</b> {row[hover_end]}<br>"
+                f"<b>Size:</b> {size}<br>"
                 "<extra></extra>"
             )
         else:

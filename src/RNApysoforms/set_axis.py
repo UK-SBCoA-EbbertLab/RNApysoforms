@@ -6,6 +6,8 @@ from RNApysoforms.utils import check_df
 def set_axis(
     fig: go.Figure,
     data: pl.DataFrame,
+    x_start="start",
+    x_end="end",
     padding: int = 100,
     group_var: str = "transcript_id"
 ) -> go.Figure:
@@ -64,11 +66,11 @@ def set_axis(
 
     
     # Ensure the DataFrame contains the required columns ('start' and 'end')
-    check_df(data, ["start", "end"])
+    check_df(data, [x_start, x_end])
 
     # Find the minimum start and maximum end values to define the x-axis range
-    min_start = data['start'].min()  # Minimum value of the 'start' column
-    max_end = data['end'].max()  # Maximum value of the 'end' column
+    min_start = data[x_start].min()  # Minimum value of the 'start' column
+    max_end = data[x_end].max()  # Maximum value of the 'end' column
     
     # Add padding to the genomic range for better visualization
     x_min = min_start - padding  # Minimum x-axis value with padding
