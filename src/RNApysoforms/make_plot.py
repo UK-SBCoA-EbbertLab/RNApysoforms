@@ -9,6 +9,7 @@ def make_plot(
     transcript_structure_traces: List[go.Trace],
     annotation: pl.DataFrame,
     expression_traces: Optional[List[List[go.Trace]]] = None,
+    y: str = "transcript_id",
     subplot_titles: List[str] = ["Transcript Structure"],
     horizontal_spacing: float = 0.1,
     vertical_spacing: float = 0.1,
@@ -31,11 +32,6 @@ def make_plot(
     else:
         full_trace_list = [transcript_structure_traces]
 
-    print(f"Number of subplots: {len(full_trace_list)}")
-
-    # Extract and sort transcripts
-    transcripts = annotation.select("transcript_id").unique(maintain_order=True).to_series().to_list()
-
     # Initialize the subplot figure with shared y-axes
     fig = make_subplots(
         rows=1,
@@ -45,6 +41,11 @@ def make_plot(
         vertical_spacing=vertical_spacing,
         shared_yaxes=True  # Share y-axes across all subplots
     )
+
+
+    # Create a consistent y-axis mapping
+    unique_transcripts = annotation[y].unique(maintain_order=True).to_list()
+    y_dict = {val: i for i, val in enumerate(unique_transcripts)}
 
     # Add all traces to their respective subplots
     for i, subplot_traces in enumerate(full_trace_list, start=1):
@@ -56,13 +57,13 @@ def make_plot(
 
     # Customize the shared y-axis (only for the first subplot)
     fig.update_yaxes(
-        tickvals=list(range(len(transcripts))),
-        ticktext=transcripts,
+        tickvals=list(y_dict.values()),
+        ticktext=list(y_dict.keys()),
         tickfont=dict(size=10, family='DejaVu Sans', color='black'),
         title="Transcripts",  # Optional
         row=1,
         col=1,
-        range=[-0.8, (len(transcripts) - 0.2)]
+        range=[-0.8, (len(unique_transcripts) - 0.2)]
     )
 
     # Customize x-axes
@@ -85,10 +86,12 @@ def make_plot(
             )
             # Hide y-axis labels for additional subplots
             fig.update_yaxes(
+                tickvals=list(y_dict.values()),
+                ticktext=list(y_dict.keys()),
                 showticklabels=False,
                 row=1,
                 col=i,
-                range=[-0.8, (len(transcripts) - 0.2)]
+                range=[-0.8, (len(unique_transcripts) - 0.2)]
             )
 
     # Update overall layout

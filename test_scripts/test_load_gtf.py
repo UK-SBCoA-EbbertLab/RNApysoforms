@@ -14,6 +14,7 @@ counts = pt.read_expression_matrix(expression_matrix_path="./test_data/counts_ma
                                metadata_path="./test_data/sample_metadata.tsv",
                                cpm_normalization=False, relative_abundance=True)
 
+
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
     'protein_coding': '#F8766D',
@@ -32,6 +33,8 @@ gene_name = "APP"
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
                                        target_gene=gene_name, transcript_id_column="transcript_id")
+
+print(counts.filter(pl.col("transcript_id") == "ENST00000348990"))
 
 
 #MIR99AHG
@@ -54,8 +57,6 @@ traces = pt.make_transcript_structure_traces(
     is_hoverable=True,
     arrow_height=0.5,
     arrow_length=1,
-    #color_palette=px.colors.qualitative.Plotly,
-    #color_map=biotype_colors
 )
 
 ## Set expression traces

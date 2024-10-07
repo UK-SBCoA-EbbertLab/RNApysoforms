@@ -5,7 +5,8 @@ from typing import List
 def make_transcript_expression_traces(
     long_expression_matrix: pl.DataFrame,
     y: str = "transcript_id",
-    x: str = "counts"
+    x: str = "counts",
+    line_width: float = 0.5
 ) -> List[go.Box]:
     """
     Create a list of Plotly Box traces for each unique transcript.
@@ -23,11 +24,10 @@ def make_transcript_expression_traces(
     if y not in long_expression_matrix.columns or x not in long_expression_matrix.columns:
         raise ValueError(f"Columns '{y}' and/or '{x}' not found in the DataFrame.")
     
-    # Get unique transcript IDs
+    # Create a consistent y-axis mapping
     unique_transcripts = long_expression_matrix[y].unique(maintain_order=True).to_list()
-    
-    # Create a dictionary that maps each unique transcript ID to a y-position
     y_dict = {val: i for i, val in enumerate(unique_transcripts)}
+    
     
     # Initialize list of Box traces
     traces_list = []
@@ -38,21 +38,23 @@ def make_transcript_expression_traces(
         y_pos = y_dict[transcript]  # Get the corresponding y-position for the current transcript
 
         # Filter counts for the current transcript
-        counts = long_expression_matrix.filter(pl.col(y) == transcript)[x].to_list()
+        expression = long_expression_matrix.filter(pl.col(y) == transcript)[x].to_list()
 
-        print(counts)
-        print(len(counts))
-        print(y_pos)
+        ## Sample Names
         
         # Create a Box trace
         box_trace = go.Box(
-            x=counts,  # Numerical data for the box plot
-            #y=([y_pos] * len(counts)), 
+            x=expression,  # Numerical data for the box plot
+            #y=[y_pos] * len(expression), 
             name=transcript,  # Label for the trace
             boxmean=True,  # Display the mean
+            boxpoints='all',
             marker_color="black",  # Marker color
-            line=dict(width=2)  # Line styling
+            line=dict(width=line_width),  # Line styling
+            fillcolor="blue"
         )
+
+        print(box_trace)
         
         traces_list.append(box_trace)
     
