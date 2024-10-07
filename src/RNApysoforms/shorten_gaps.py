@@ -569,7 +569,7 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
         cds_regions = cds_regions.drop('type')
 
     # Rename 'start' and 'end' columns in exon regions for clarity
-    exons = gene_exons.rename({'start': 'exon_start', 'start': 'exon_end'})
+    exons = gene_exons.rename({'start': 'exon_start', 'end': 'exon_end'})
 
     # Remove the 'type' column if it exists in exons
     if 'type' in exons.columns:
@@ -613,7 +613,7 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
     """
 
     # Assign a 'type' column with the value "CDS" and drop unnecessary columns
-    columns_to_drop = ['cds_start', 'cds_end', 'exon_start', 'exon_end']
+    columns_to_drop = ['exon_start', 'exon_end']
     cds_prepared = (
         cds_exon_diff
         .with_columns(pl.lit("CDS").alias("type"))
@@ -622,6 +622,7 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
 
     # Rename columns in rescaled exons for consistency
     exons_prepared = gene_rescaled_exons.rename({'rescaled_start': 'exon_start', 'rescaled_end': 'exon_end'})
+    exons_prepared = exons_prepared.drop(["start", "end"])
 
     # Drop 'type' column if present
     if 'type' in exons_prepared.columns:
@@ -637,11 +638,17 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
 
     # Adjust start and end positions of CDS based on exon positions
     gene_rescaled_cds = gene_rescaled_cds.with_columns([
-        (pl.col('exon_start') + pl.col('diff_start')).alias('start'),
-        (pl.col('exon_end') - pl.col('diff_end')).alias('end')
+        (pl.col('exon_start') + pl.col('diff_start')).alias('rescaled_start'),
+        (pl.col('exon_end') - pl.col('diff_end')).alias('rescaled_end')
     ])
 
     # Drop unnecessary columns used for the difference calculations
     gene_rescaled_cds = gene_rescaled_cds.drop(['exon_start', 'exon_end', 'diff_start', 'diff_end'])
+
+    ## Rename cds start and cds end to start and end
+    gene_rescaled_cds = gene_rescaled_cds.rename({
+        "cds_start": "start",
+        "cds_end": "end"
+    })
 
     return gene_rescaled_cds

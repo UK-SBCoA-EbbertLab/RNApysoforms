@@ -31,7 +31,7 @@ gene_name = "APP"
 
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, counts_matrix=counts, 
-                                       gene_name_to_filter=gene_name, transcript_feature_column="transcript_id")
+                                       gene_name_to_filter=gene_name, group_var="transcript_id")
 
 
 #MIR99AHG

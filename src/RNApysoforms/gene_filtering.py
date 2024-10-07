@@ -94,7 +94,7 @@ def gene_filtering(
             raise ValueError("Counts matrix must be a polars DataFrame.")
 
         # Check if counts_matrix has the group_var
-        check_df(counts_matrix, ["gene_name", group_var])
+        check_df(counts_matrix, [group_var])
 
         # Filter counts_matrix based on transcripts in filtered_annotation
         filtered_counts_matrix = counts_matrix.filter(
