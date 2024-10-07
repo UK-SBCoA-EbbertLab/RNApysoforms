@@ -9,7 +9,8 @@ from typing import List
 def make_traces(
     data: pl.DataFrame,
     y: str = "transcript_id",
-    rescale: bool = False,
+    x_start: str = "start",
+    x_end: str = "end",
     target_gap: int = 100,
     cds: str = "CDS",
     exon: str = "exon",
@@ -26,7 +27,9 @@ def make_traces(
     cds_height: float = 0.5,
     arrow_height: float = 0.5,
     arrow_length: float = 1,
-    is_hoverable: bool = True
+    is_hoverable: bool = True,
+    hover_start: str = "start",
+    hover_end: str = "end"
 ) -> list:
     """
     Generates Plotly traces for visualizing transcript features like exons, introns, and coding sequences (CDS).
@@ -129,10 +132,10 @@ def make_traces(
     # Validate required columns in the data
     if hue is None:
         # Check if required columns are present when hue is None
-        check_df(data, ["start", "end", y, "type", "strand", "exon_number"])
+        check_df(data, [x_start, x_end, y, "type", "strand", "exon_number", "seqnames"])
     else:
         # Check if required columns are present when hue is specified
-        check_df(data, ["start", "end", y, "type", "strand", "exon_number", hue])
+        check_df(data, [x_start, x_end, y, "type", "strand", "exon_number", hue, "seqnames"])
 
     if rescale:
         # Store the original genomic coordinates for reference
@@ -163,13 +166,13 @@ def make_traces(
 
     # Calculate the global maximum and minimum x-values (positions)
     global_max = max(
-        data.select(pl.col("start").max()).item(),
-        data.select(pl.col("end").max()).item()
+        data.select(pl.col(x_start).max()).item(),
+        data.select(pl.col(x_end).max()).item()
     )
 
     global_min = min(
-        data.select(pl.col("start").min()).item(),
-        data.select(pl.col("end").min()).item()
+        data.select(pl.col(x_start).min()).item(),
+        data.select(pl.col(x_end).min()).item()
     )
 
     # Calculate the total size of the x-axis range
@@ -202,8 +205,9 @@ def make_traces(
             hovertemplate_text = (
                 f"<b>Feature Type:</b> {row['type']}<br>"
                 f"<b>Feature Number:</b> {row.get('exon_number', 'N/A')}<br>"
-                f"<b>Start:</b> {row['start']}<br>"
-                f"<b>End:</b> {row['end']}<br>"
+                f"<b>Chromosome:</b> {row["seqnames"]}<br>"
+                f"<b>Start:</b> {row[hover_start]}<br>"
+                f"<b>End:</b> {row[hover_end]}<br>"
                 "<extra></extra>"
             )
         else:
@@ -212,8 +216,8 @@ def make_traces(
         # If the feature type is an exon, create a scatter trace representing a rectangle
         if row["type"] == exon:
             # Define the coordinates of the rectangle's corners
-            x0 = row["start"]                   # Start position on the x-axis
-            x1 = row["end"]                     # End position on the x-axis
+            x0 = row[x_start]                   # Start position on the x-axis
+            x1 = row[x_end]                     # End position on the x-axis
             y0 = y_pos - exon_height / 2        # Bottom boundary of the rectangle on the y-axis
             y1 = y_pos + exon_height / 2        # Top boundary of the rectangle on the y-axis
 
@@ -244,8 +248,8 @@ def make_traces(
         # If the feature type is a CDS, create a scatter trace representing a rectangle
         elif row["type"] == cds:
             # Define the coordinates of the rectangle's corners
-            x0 = row["start"]
-            x1 = row["end"]
+            x0 = row[x_start]
+            x1 = row[x_end]
             y0 = y_pos - cds_height / 2
             y1 = y_pos + cds_height / 2
 
@@ -275,12 +279,12 @@ def make_traces(
                 
         # If the feature type is an intron, create a scatter trace representing a line
         elif row["type"] == intron:
-            x_intron = [row["start"], row["end"]]  # Start and end positions on the x-axis
+            x_intron = [row[x_start], row[x_end]]  # Start and end positions on the x-axis
             y_intron = [y_pos, y_pos]              # Constant y to create a horizontal line
 
             # Add directional arrows for introns if they are long enough
-            if abs(row["start"] - row["end"]) > size / 25:
-                arrow_x = (row["start"] + row["end"]) / 2  # Midpoint of the intron
+            if abs(row[x_start] - row[x_end]) > size / 25:
+                arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
                 # Calculate arrow length in data units
                 arrow_length_px = size / (150 / arrow_length) if arrow_length != 0 else 0  
 
