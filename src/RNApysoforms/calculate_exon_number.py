@@ -4,35 +4,49 @@ from RNApysoforms.utils import check_df
 def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript_id") -> pl.DataFrame:
     """
     Assigns exon numbers to exons, CDS, and introns within a genomic annotation dataset based on transcript structure.
-
-    This function processes an annotation dataset, identifies exons, CDS, and introns, and assigns exon numbers to 
-    these features based on the transcript's structure and strand direction. Exons are assigned numbers sequentially,
-    while CDS and introns inherit exon numbers based on their overlap or position relative to exons.
-
+    
+    This function processes a genomic annotation dataset to identify exons, CDS (coding sequences), and introns, 
+    assigning exon numbers to these features based on their position within each transcript and the strand direction. 
+    Exons are numbered sequentially, while CDS and introns inherit exon numbers based on their overlap or 
+    positional relationship to exons. The numbering accounts for strand orientation, ensuring accurate representation 
+    of transcript structure.
+    
+    **Required Columns in `annotation`:**
+    - `start`: Start position of the feature.
+    - `end`: End position of the feature.
+    - `group_var` (default `"transcript_id"`): Identifier for grouping features into transcripts.
+    - `type`: Type of the feature (`"exon"`, `"CDS"`, or `"intron"`).
+    - `strand`: Strand direction of the feature (`"+"` or `"-"`).
+    
     Parameters
     ----------
     annotation : pl.DataFrame
-        A Polars DataFrame containing the genomic annotation data. Must include columns 'start', 'end', 'type', 
-        'strand', and the grouping variable (default 'transcript_id').
+        A Polars DataFrame containing genomic annotation data. Must include columns for start and end positions, 
+        feature type, strand direction, and a grouping variable (default is 'transcript_id'). If a different 
+        grouping variable is used, specify it using the `group_var` parameter.
     group_var : str, optional
-        The column name that identifies the transcript groups (default is 'transcript_id').
-
+        The column name that identifies transcript groups within the DataFrame, by default "transcript_id".
+    
     Returns
     -------
     pl.DataFrame
-        A Polars DataFrame with the original annotation data, now including a new 'exon_number' column. This column 
-        assigns exon numbers to exons, CDS, and introns based on their relationships within the transcript structure.
-
+        A Polars DataFrame that includes all original annotation data along with a new 'exon_number' column. This 
+        column assigns exon numbers to exons, CDS, and introns based on their order and relationships within 
+        each transcript.
+    
     Raises
     ------
+    TypeError
+        If the `annotation` parameter is not a Polars DataFrame.
     ValueError
-        If the input annotation is not a Polars DataFrame or if required columns are missing from the DataFrame.
-
+        If required columns are missing from the `annotation` DataFrame based on the provided parameters.
+    
     Examples
     --------
     Assign exon numbers to genomic features:
-
+    
     >>> import polars as pl
+    >>> from RNApysoforms.utils import check_df
     >>> from RNApysoforms.annotation import calculate_exon_number
     >>> df = pl.DataFrame({
     ...     "transcript_id": ["tx1", "tx1", "tx1", "tx2", "tx2"],
@@ -43,38 +57,70 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
     ... })
     >>> result_df = calculate_exon_number(df)
     >>> result_df.show()
-
+    
     This will output a DataFrame where exons, CDS, and introns are numbered according to their order and relationships 
     within each transcript.
-
+    
     Notes
     -----
-    - Exons are numbered based on their relative positions within the transcript, accounting for strand orientation 
-      (ascending for positive strand and descending for negative strand).
-    - CDS regions are assigned the exon number of the overlapping exon.
-    - Introns are assigned the exon number of the adjacent exon based on the strand direction (preceding exon for positive 
-      strand and following exon for negative strand).
+    - **Exon Numbering:**
+        - For transcripts on the positive strand (`"+"`), exons are numbered in ascending order based on their start positions.
+        - For transcripts on the negative strand (`"-"`), exons are numbered in descending order based on their end positions.
+    - **CDS Assignment:**
+        - CDS regions inherit the exon number of overlapping exons. If a CDS overlaps multiple exons, it is assigned 
+          the smallest exon number among the overlapping exons.
+    - **Intron Assignment:**
+        - Introns are assigned the exon number of the adjacent exon based on strand direction:
+            - Positive strand (`"+"`): Introns inherit the exon number of the preceding exon.
+            - Negative strand (`"-"`): Introns inherit the exon number of the following exon.
+    - **Data Integrity:**
+        - The function ensures that all required columns are present and correctly formatted before processing.
+        - If no CDS or introns are present in the data, the function handles these cases gracefully without errors.
+    - **Performance:**
+        - Utilizes Polars' efficient data manipulation capabilities to handle large genomic datasets effectively.
     
     Steps
     -----
-    1. The function first checks the input DataFrame for required columns and verifies its type.
-    2. Exons are extracted and assigned numbers sequentially based on their position within the transcript and strand.
-    3. CDS regions are processed next, inheriting the exon number from overlapping exons.
-    4. Introns are assigned exon numbers based on the nearest adjacent exon (preceding exon for '+' strand, following 
-       exon for '-' strand).
-    5. The processed annotations (exons, CDS, and introns) are then combined into a single DataFrame with exon numbers assigned.
-
+    1. **Input Validation:**
+        - Verifies that the input `annotation` is a Polars DataFrame.
+        - Checks for the presence of required columns: 'start', 'end', the grouping variable (`group_var`), 'type', and 'strand'.
+    2. **Exon Extraction and Numbering:**
+        - Filters the DataFrame to extract exon entries.
+        - Assigns exon numbers based on strand direction:
+            - Positive strand: Exons are ranked in ascending order of their start positions.
+            - Negative strand: Exons are ranked in descending order of their end positions.
+    3. **CDS Numbering:**
+        - Filters the DataFrame to extract CDS entries.
+        - Joins CDS entries with exon annotations to identify overlapping exons.
+        - Assigns the smallest overlapping exon number to each CDS.
+        - If no CDS entries are present, assigns `None` to exon numbers for CDS.
+    4. **Intron Numbering:**
+        - Filters the DataFrame to extract intron entries.
+        - For each strand (`"+"` and `"-"`), joins introns with exons to find adjacent exons.
+        - Assigns exon numbers to introns based on the nearest adjacent exon:
+            - Positive strand: Inherits the exon number of the preceding exon.
+            - Negative strand: Inherits the exon number of the following exon.
+        - If no intron entries are present, assigns `None` to exon numbers for introns.
+    5. **Combining Annotations:**
+        - Concatenates exon, CDS, and intron annotations with their assigned exon numbers.
+        - Sorts the combined DataFrame by the grouping variable and start positions to maintain logical order.
+    6. **Output:**
+        - Returns the final DataFrame with exon numbers assigned to all relevant features.
+    
     """
-
+    
     # Ensure 'annotation' is a Polars DataFrame
     if not isinstance(annotation, pl.DataFrame):
-        raise TypeError(f"Expected annotation to be of type pl.DataFrame, got {type(annotation)}" +
-                        "\n You can use polars_df = pandas_df.from_pandas() to convert a pandas df into a polars df")
+        raise TypeError(
+            f"Expected 'annotation' to be of type pl.DataFrame, got {type(annotation)}. "
+            "You can convert a pandas DataFrame to Polars using pl.from_pandas(pandas_df)."
+        )
     
-    # Ensure required columns are present
-    check_df(annotation, ["start", "end", group_var, "type", "strand"])
+    # Ensure required columns are present in the DataFrame
+    required_columns = ["start", "end", group_var, "type", "strand"]
+    check_df(annotation, required_columns)
     
-    # Step 1: Extract exons and assign exon_numbers
+    # Step 1: Extract exons and assign exon numbers based on strand direction
     exon_annotation = annotation.filter(pl.col('type') == 'exon')
     
     exon_annotation = exon_annotation.with_columns(
@@ -88,6 +134,7 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
     cds_annotation = annotation.filter(pl.col('type') == 'CDS')
     
     if not cds_annotation.is_empty():
+        # Join CDS with exons to find overlapping exons
         cds_exon_annotation = cds_annotation.join(
             exon_annotation.select([group_var, 'start', 'end', 'exon_number']),
             on=group_var,
@@ -96,22 +143,25 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
         ).filter(
             (pl.col('start') <= pl.col('end_exon')) & (pl.col('end') >= pl.col('start_exon'))
         )
-        # Assign the minimum exon_number (in case of multiple overlaps)
+        # Assign the minimum exon_number in case of multiple overlaps
         cds_exon_annotation = cds_exon_annotation.group_by([group_var, 'start', 'end', 'strand', 'type']).agg(
             pl.col('exon_number').min().alias('exon_number')
         )
     else:
-        cds_exon_annotation = cds_annotation.with_columns(pl.lit(None).alias('exon_number'))
+        # If no CDS entries, assign None to exon_number
+        cds_exon_annotation = cds_annotation.with_columns(pl.lit(None).cast(pl.Int64).alias('exon_number'))
     
-    # Step 3: Assign exon numbers to intron entries based on the exon behind them
+    # Step 3: Assign exon numbers to intron entries based on adjacent exons
     intron_annotation = annotation.filter(pl.col('type') == 'intron')
     intron_exon_annotation_list = []
     
     for strand in ['+', '-']:
+        # Filter introns and exons by strand
         strand_introns = intron_annotation.filter(pl.col('strand') == strand)
         strand_exons = exon_annotation.filter(pl.col('strand') == strand)
         
         if not strand_introns.is_empty():
+            # Join introns with exons to find adjacent exons
             intron_exon_annotation = strand_introns.join(
                 strand_exons.select([group_var, 'start', 'end', 'exon_number']),
                 on=group_var,
@@ -119,22 +169,27 @@ def calculate_exon_number(annotation: pl.DataFrame, group_var: str = "transcript
                 suffix='_exon'
             )
             if strand == '+':
+                # For positive strand, introns inherit exon_number of preceding exon
                 intron_exon_annotation = intron_exon_annotation.filter(pl.col('end_exon') <= pl.col('start'))
                 intron_exon_annotation = intron_exon_annotation.group_by([group_var, 'start', 'end', 'strand', 'type']).agg(
                     pl.col('exon_number').filter(pl.col('end_exon') == pl.col('end_exon').max()).first().alias('exon_number')
                 )
             else:
+                # For negative strand, introns inherit exon_number of following exon
                 intron_exon_annotation = intron_exon_annotation.filter(pl.col('start_exon') >= pl.col('end'))
                 intron_exon_annotation = intron_exon_annotation.group_by([group_var, 'start', 'end', 'strand', 'type']).agg(
                     pl.col('exon_number').filter(pl.col('start_exon') == pl.col('start_exon').min()).first().alias('exon_number')
                 )
             intron_exon_annotation_list.append(intron_exon_annotation)
+    
     if intron_exon_annotation_list:
+        # Concatenate all intron annotations with assigned exon numbers
         intron_exon_annotation = pl.concat(intron_exon_annotation_list)
     else:
-        intron_exon_annotation = intron_annotation.with_columns(pl.lit(None).alias('exon_number'))
+        # If no intron entries, assign None to exon_number
+        intron_exon_annotation = intron_annotation.with_columns(pl.lit(None).cast(pl.Int64).alias('exon_number'))
     
-    # Combine all annotations
+    # Combine exons, CDS, and introns with their assigned exon numbers
     result_annotation = pl.concat([
         exon_annotation.select([group_var, 'start', 'end', 'strand', 'type', 'exon_number']),
         cds_exon_annotation.select([group_var, 'start', 'end', 'strand', 'type', 'exon_number']),
