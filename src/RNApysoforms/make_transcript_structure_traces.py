@@ -24,7 +24,6 @@ def make_transcript_structure_traces(
     cds_height: float = 0.5,
     arrow_height: float = 0.5,
     arrow_length: float = 1,
-    is_hoverable: bool = True,
     hover_start: str = "start",
     hover_end: str = "end"
 ) -> list:
@@ -91,8 +90,6 @@ def make_transcript_structure_traces(
         Vertical height of directional arrows on introns, by default 0.5.
     arrow_length : float, optional
         Length of the directional arrows on introns, by default 1.
-    is_hoverable : bool, optional
-        If `True`, features will display hover information including feature type, feature number, start and 
         end positions; by default `True`.
     hover_start : str, optional
         Column name representing the start position for hover information, by default "start".
@@ -142,8 +139,6 @@ def make_transcript_structure_traces(
     - The `exon_number` column is required when `hue` is `None` and is used to display feature numbers in hover 
       information.
     - The `seqnames` column is required for displaying chromosome or sequence names in hover information.
-    - The `is_hoverable` parameter controls whether hover information is displayed for features. When `is_hoverable` 
-      is `True`, features will display hover information including feature type, feature number, start and end positions.
     
     Raises
     ------
@@ -226,22 +221,20 @@ def make_transcript_structure_traces(
             display_legend = False
         else: 
             display_legend = True
-        
-        if is_hoverable:
-            # Define hover template with feature type, number, start, and end positions for each row
-            feature_size = abs(row[hover_end] - row[hover_start])
-            hovertemplate_text = (
-                f"<b>Feature Type:</b> {row['type']}<br>"
-                f"<b>Feature Number:</b> {row.get('exon_number', 'N/A')}<br>"
-                f"<b>Chromosome:</b> {row['seqnames']}<br>"
-                f"<b>Start:</b> {row[hover_start]}<br>"
-                f"<b>End:</b> {row[hover_end]}<br>"
-                f"<b>Size:</b> {feature_size}<br>"
-                "<extra></extra>"
-            )
-        else:
-            hovertemplate_text = None
-    
+
+        # Define hover template with feature type, number, start, and end positions for each row
+        feature_size = abs(row[hover_end] - row[hover_start])
+        hovertemplate_text = (
+            f"<b>{y}:</b> {row[y]}<br>"
+            f"<b>Feature Type:</b> {row['type']}<br>"
+            f"<b>Feature Number:</b> {row.get('exon_number', 'N/A')}<br>"
+            f"<b>Chromosome:</b> {row['seqnames']}<br>"
+            f"<b>Start:</b> {row[hover_start]}<br>"
+            f"<b>End:</b> {row[hover_end]}<br>"
+            f"<b>Size:</b> {feature_size}<br>"
+            "<extra></extra>"
+        )
+
         # Create trace based on the feature type
         if row["type"] == exon:
             # Define the coordinates of the rectangle's corners for exon

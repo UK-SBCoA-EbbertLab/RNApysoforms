@@ -6,7 +6,8 @@ def make_transcript_expression_traces(
     long_expression_matrix: pl.DataFrame,
     y: str = "transcript_id",
     x: str = "counts",
-    line_width: float = 0.5
+    line_width: float = 0.5,
+    sample_id_column: str = "sample_id"
 ) -> List[go.Box]:
     """
     Create a list of Plotly Box traces for each unique transcript.
@@ -27,6 +28,9 @@ def make_transcript_expression_traces(
     # Create a consistent y-axis mapping
     unique_transcripts = long_expression_matrix[y].unique(maintain_order=True).to_list()
     y_dict = {val: i for i, val in enumerate(unique_transcripts)}
+
+    # Sample names with transcript names
+    long_expression_matrix = long_expression_matrix.with_columns((pl.col(sample_id_column) + "_" + pl.col(y)).alias("trace_name"))
     
     
     # Initialize list of Box traces
@@ -40,13 +44,15 @@ def make_transcript_expression_traces(
         # Filter counts for the current transcript
         expression = long_expression_matrix.filter(pl.col(y) == transcript)[x].to_list()
 
-        ## Sample Names
+        ## Trace name
+        sample_id = long_expression_matrix.filter(pl.col(y) == transcript)[sample_id_column].to_list()
         
         # Create a Box trace
         box_trace = go.Box(
             x=expression,  # Numerical data for the box plot
-            #y=[y_pos] * len(expression), 
-            name=transcript,  # Label for the trace
+            text=sample_id,  # Label for the trace
+            name=transcript,
+            pointpos=0,
             boxmean=True,  # Display the mean
             boxpoints='all',
             marker_color="black",  # Marker color
