@@ -1,24 +1,48 @@
 import plotly.graph_objects as go
-import plotly.express as px
 import polars as pl
-from RNApysoforms.utils import check_df
 from typing import List
 
 def make_transcript_expression_traces(
     long_expression_matrix: pl.DataFrame,
     y: str = "transcript_id",
     x: str = "counts"
-) -> list:
+) -> List[go.Box]:
+    """
+    Create a list of Plotly Box traces for each unique transcript.
+
+    Parameters:
+    - long_expression_matrix (pl.DataFrame): DataFrame containing transcript expression data.
+    - y (str): Column name for transcript IDs (categorical axis).
+    - x (str): Column name for counts (numerical axis).
+
+    Returns:
+    - List[go.Box]: List of Plotly Box traces.
+    """
     
-    boxplot_traces = []
-
-    unique_y
-
-    for sp in species:
-        trace = dict(
-            y=long_expression_matrix.select(pl.col(y)),
-            name=sp,
-            boxmean=True,
-            marker_color=colors[sp],
-            line=dict(width=2)
-        ))
+    # Ensure the necessary columns exist
+    if y not in long_expression_matrix.columns or x not in long_expression_matrix.columns:
+        raise ValueError(f"Columns '{y}' and/or '{x}' not found in the DataFrame.")
+    
+    # Get unique transcript IDs
+    unique_transcripts = long_expression_matrix[y].unique().to_list()
+    
+    # Initialize list of Box traces
+    traces_list = []
+    
+    # Iterate over each unique transcript to create a Box trace
+    for transcript in unique_transcripts:
+        # Filter counts for the current transcript
+        counts = long_expression_matrix.filter(pl.col(y) == transcript)[x].to_list()
+        
+        # Create a Box trace
+        box_trace = go.Box(
+            x=counts,  # Numerical data for the box plot
+            name=transcript,  # Label for the trace
+            boxmean=True,  # Display the mean
+            marker_color="black",  # Marker color
+            line=dict(width=2)  # Line styling
+        )
+        
+        traces_list.append(box_trace)
+    
+    return traces_list

@@ -8,8 +8,10 @@ from .read_expression_matrix import read_expression_matrix # Function to load co
 from .gene_filtering import gene_filtering # Function to filter by gene_name 
 from .calculate_exon_number import calculate_exon_number ## Function to calculate exon number if missing
 from .make_transcript_expression_traces import make_transcript_expression_traces ## Function to make transcript expression traces for boxplots
+from .make_plot import make_plot
 
 # Define the public API of this module by specifying which functions to expose when imported
 __all__ = ['shorten_gaps', 'to_intron', 'set_axis', "read_gtf", "make_transcript_structure_traces",
-           "read_expression_matrix", "gene_filtering", "calculate_exon_number", "make_transcript_expression_traces"]
+           "read_expression_matrix", "gene_filtering", "calculate_exon_number", "make_transcript_expression_traces",
+           "make_plot"]
 
