@@ -60,7 +60,7 @@ def make_plot(
         tickvals=list(y_dict.values()),
         ticktext=list(y_dict.keys()),
         tickfont=dict(size=10, family='DejaVu Sans', color='black'),
-        title="Transcripts",  # Optional
+        title="",  # Optional
         row=1,
         col=1,
         range=[-0.8, (len(unique_transcripts) - 0.2)]
@@ -70,7 +70,7 @@ def make_plot(
     # First subplot (Transcript Structure)
     fig.update_xaxes(
         showticklabels=False,
-        title="Genomic Position",
+        title="",
         row=1,
         col=1
     )
@@ -80,7 +80,7 @@ def make_plot(
         for i in range(2, len(full_trace_list) + 1):
             fig.update_xaxes(
                 showticklabels=True,  # Show x-axis labels for expression plots
-                title=f"Expression Metric {i-1}",  # Customize as needed
+                title=f"",  # Customize as needed
                 row=1,
                 col=i
             )
@@ -97,7 +97,7 @@ def make_plot(
 
     # Update overall layout
     fig.update_layout(
-        title_text="Transcript Analysis",
+        title_text="",
         showlegend=showlegend,
         height=height,
         width=width,
