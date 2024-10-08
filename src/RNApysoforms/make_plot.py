@@ -16,7 +16,7 @@ def make_plot(
     showlegend: bool = True,
     height: int = 800,
     width: int = 1800,
-    template: str = "simple_white",
+    template: str = "plotly_white",
 ) -> go.Figure:
     """
     Create a Plotly figure with multiple aligned subplots.
@@ -83,16 +83,19 @@ def make_plot(
                 showticklabels=True,  # Show x-axis labels for expression plots
                 title=f"",  # Customize as needed
                 row=1,
-                col=i
+                col=i,
+                showgrid=True
             )
             # Hide y-axis labels for additional subplots
             fig.update_yaxes(
                 tickvals=list(y_dict.values()),
                 ticktext=list(y_dict.keys()),
                 showticklabels=False,
+                ticks='',
                 row=1,
                 col=i,
-                range=[-0.8, (len(unique_transcripts) - 0.2)]
+                range=[-0.8, (len(unique_transcripts) - 0.2)],
+                showgrid=True
             )
 
 
@@ -106,7 +109,9 @@ def make_plot(
         legend=dict(traceorder="reversed"),
         hoverlabel=dict(font=dict(size=12)),
         margin=dict(l=100, r=50, t=100, b=50),  # Adjust margins as needed
-        boxmode='group'
+        boxmode='group',
+        yaxis=dict(showgrid=True),
+        xaxis=dict(showgrid=True)
     )
 
     return fig

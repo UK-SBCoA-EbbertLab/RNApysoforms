@@ -11,9 +11,9 @@ def make_transcript_expression_traces(
     sample_id_column: str = "sample_id",
     hue: Optional[str] = None,  # New hue parameter
     fill_color="grey",
-    line_width: float = 0.5,
     color_palette: List[str] = px.colors.qualitative.Plotly_r,
     color_map: dict = None,  # Optional color map for hues    
+    line_width: float = 0.5
 ) -> List[go.Box]:
     """
     Create a list of Plotly Box traces for each unique transcript, colored and dodged by a hue variable.
@@ -82,7 +82,7 @@ def make_transcript_expression_traces(
                     marker=dict(color=color_map[hue_val]),  # Color based on hue
                     line=dict(width=line_width),  # Line styling
                     fillcolor=color_map[hue_val],  # Fill color
-                    boxmean=True,  # Display the mean
+                    boxmean=False,  # Display the mean
                     orientation='h',  # Horizontal box plots
                     legendgroup=str(hue_val),
                     showlegend=show_legend
@@ -125,7 +125,7 @@ def make_transcript_expression_traces(
                     text=sample_id,  # Label for the trace
                     name=transcript,
                     pointpos=0,
-                    boxmean=True,  # Display the mean
+                    boxmean=False,  # Display the mean
                     boxpoints='all',
                     marker_color="black",  # Marker color
                     line=dict(width=line_width),  # Line styling
