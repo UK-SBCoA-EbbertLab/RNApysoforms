@@ -11,8 +11,8 @@ def make_plot(
     expression_traces: Optional[List[List[go.Trace]]] = None,
     y: str = "transcript_id",
     subplot_titles: List[str] = ["Transcript Structure"],
-    horizontal_spacing: float = 0.1,
-    vertical_spacing: float = 0.1,
+    horizontal_spacing: float = 0.02,
+    vertical_spacing: float = 0.02,
     showlegend: bool = True,
     height: int = 800,
     width: int = 1800,
@@ -103,7 +103,7 @@ def make_plot(
         width=width,
         template=template,
         legend=dict(traceorder="reversed"),
-        hoverlabel=dict(font=dict(size=8)),
+        hoverlabel=dict(font=dict(size=12)),
         margin=dict(l=100, r=50, t=100, b=50),  # Adjust margins as needed
         boxmode='group'
     )

@@ -304,7 +304,7 @@ def make_transcript_structure_traces(
             y_intron = [y_pos, y_pos]              # Constant y to create a horizontal line
     
             # Add directional arrows for introns if they are long enough
-            if abs(row[x_start] - row[x_end]) > size / 25:
+            if abs(row[x_start] - row[x_end]) > size / 15:
                 arrow_x = (row[x_start] + row[x_end]) / 2  # Midpoint of the intron
                 # Calculate arrow length in annotation units
                 arrow_length_px = size / (150 / arrow_length) if arrow_length != 0 else 0  

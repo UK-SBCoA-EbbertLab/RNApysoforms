@@ -28,7 +28,7 @@ annotation = annotation.with_columns(pl.col('transcript_biotype').replace_strict
 
 
 ## Define gene name to filter
-gene_name = "RUNX1"
+gene_name = "APP"
 
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
@@ -51,8 +51,9 @@ traces = pt.make_transcript_structure_traces(
     exon_height=0.3,
     cds_height=0.5,
     hue="transcript_biotype",
-    arrow_height=0.3,
-    arrow_length=2,
+    arrow_height=0.2,
+    arrow_length=1.6,
+    
 )
 
 ## Set expression traces
@@ -66,8 +67,8 @@ fig = pt.make_plot(transcript_structure_traces = traces, expression_traces=[coun
                    annotation=rescaled_annotation, 
                     subplot_titles = ["Transcript Structure", "Counts", "Relative Abundance"],
                     showlegend = True,
-                    height = 600,
-                    width = 1200)
+                    height = 900,
+                    width = 1800)
 
 
 # Update layout and show the plot
