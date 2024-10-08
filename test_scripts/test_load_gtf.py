@@ -34,6 +34,11 @@ gene_name = "APP"
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
                                        target_gene=gene_name, transcript_id_column="transcript_id")
 
+## TODO: Add these parameters to gene_filtering
+#order_by="",
+#keep_top_expressed_transcripts="",
+#add_annotation=""
+
 #MIR99AHG
 #SOD1
 #RUNX1
@@ -57,13 +62,9 @@ traces = pt.make_transcript_structure_traces(
 )
 
 ## Set expression traces
-counts_traces = pt.make_transcript_expression_traces(counts, hue="AD status")
+expression_traces = pt.make_transcript_expression_traces(counts, hue="AD status", expression_columns=["counts", "relative_abundance"])
 
-## Set expression traces
-relative_abundance_traces = pt.make_transcript_expression_traces(counts, x="relative_abundance", hue="AD status")
-
-
-fig = pt.make_plot(transcript_structure_traces = traces, expression_traces=[counts_traces, relative_abundance_traces],
+fig = pt.make_plot(transcript_structure_traces = traces, expression_traces=expression_traces,
                    annotation=rescaled_annotation, 
                     subplot_titles = ["Transcript Structure", "Counts", "Relative Abundance"],
                     showlegend = True,

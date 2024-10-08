@@ -8,7 +8,7 @@ from RNApysoforms import set_axis
 def make_plot(
     transcript_structure_traces: List[go.Trace],
     annotation: pl.DataFrame,
-    expression_traces: Optional[List[List[go.Trace]]] = None,
+    expression_traces: Optional[List[List[go.Trace]]] = None, 
     y: str = "transcript_id",
     subplot_titles: List[str] = ["Transcript Structure"],
     horizontal_spacing: float = 0.02,
@@ -16,7 +16,7 @@ def make_plot(
     showlegend: bool = True,
     height: int = 800,
     width: int = 1800,
-    template: str = "plotly_white",
+    template: str = "simple_white",
 ) -> go.Figure:
     """
     Create a Plotly figure with multiple aligned subplots.
@@ -39,7 +39,7 @@ def make_plot(
         subplot_titles=subplot_titles,
         horizontal_spacing=horizontal_spacing,
         vertical_spacing=vertical_spacing,
-        shared_yaxes=True  # Share y-axes across all subplots
+        shared_yaxes=True,  # Share y-axes across all subplots
     )
 
 
@@ -49,6 +49,7 @@ def make_plot(
 
     # Add all traces to their respective subplots
     for i, subplot_traces in enumerate(full_trace_list, start=1):
+
         fig.add_traces(
             subplot_traces,
             rows=[1] * len(subplot_traces),
