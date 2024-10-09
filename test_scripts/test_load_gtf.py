@@ -23,10 +23,6 @@ biotype_colors = {
 }
 
 
-## Add biotype colors
-annotation = annotation.with_columns(pl.col('transcript_biotype').replace_strict(biotype_colors, default="gray").alias('fillcolor'))
-
-
 ## Define gene name to filter
 gene_name = "APP"
 
@@ -45,6 +41,10 @@ print(counts.head())
 
 ## Shorten gaps
 rescaled_annotation = pt.shorten_gaps(annotation=annotation, transcript_id_column="transcript_id")
+
+print(rescaled_annotation.head())
+print(rescaled_annotation.columns)
+
 
 
 ## Create traces
