@@ -32,12 +32,12 @@ gene_name = "APP"
 
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
-                                       target_gene=gene_name, transcript_id_column="transcript_id")
+                                       target_gene=gene_name, transcript_id_column="transcript_id",
+                                       order_by_expression=False)
 
-## TODO: Add these parameters to gene_filtering
-#order_by="",
-#keep_top_expressed_transcripts="",
-#add_annotation=""
+print(annotation.head())
+print(counts.head())
+
 
 #MIR99AHG
 #SOD1
@@ -45,6 +45,7 @@ annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=
 
 ## Shorten gaps
 rescaled_annotation = pt.shorten_gaps(annotation=annotation, transcript_id_column="transcript_id")
+
 
 ## Create traces
 traces = pt.make_transcript_structure_traces(

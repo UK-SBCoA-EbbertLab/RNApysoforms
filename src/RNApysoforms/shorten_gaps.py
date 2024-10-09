@@ -137,8 +137,15 @@ def shorten_gaps(
         rescaled_cds = rescaled_cds[rescaled_tx.columns]
         # Combine the rescaled CDS data into the final DataFrame
         rescaled_tx = pl.concat([rescaled_tx, rescaled_cds])
-        # Sort the DataFrame by transcript_id_column (e.g., transcript) and start position
-        rescaled_tx = rescaled_tx.sort(by=[transcript_id_column, 'start', 'end'])
+
+    # Sort the DataFrame by start and end position position
+    rescaled_tx = rescaled_tx.sort(by=['start', 'end'])
+
+    ## Return transcripts in original order they were given
+    original_order = annotation[transcript_id_column].unique(maintain_order=True).to_list()
+    order_mapping = {transcript: index for index, transcript in enumerate(original_order)}
+    rescaled_tx = (rescaled_tx.with_columns(pl.col(transcript_id_column).replace(order_mapping).alias("order")).sort("order").drop("order"))
+
 
     return rescaled_tx  # Return the rescaled transcript DataFrame
 
