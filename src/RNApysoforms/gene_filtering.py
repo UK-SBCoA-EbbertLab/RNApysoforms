@@ -7,7 +7,10 @@ def gene_filtering(
     annotation: pl.DataFrame,
     expression_matrix: pl.DataFrame = None,
     transcript_id_column: str = "transcript_id",
-    gene_id_column: str = "gene_name"
+    gene_id_column: str = "gene_name",
+    expression_column: str = "counts",
+    order_by_expression: bool = True,
+    keep_top_expressed_transcripts: str = "all"
 ):
     """
     Filters genomic annotations and, optionally, an expression matrix based on a specific gene identifier.
@@ -145,6 +148,40 @@ def gene_filtering(
                 f"Missing groups: {', '.join(sorted(missing_in_annotation))}"
             )
 
+        if order_by_expression:
+
+            # Step 1 & 2: Group by 'transcript_id' and sum the 'counts'
+            aggregated_df = filtered_expression_matrix.groupby(transcript_id_column).agg(
+                pl.col(expression_column).sum().alias("total_expression")
+            )
+
+            if keep_top_expressed_transcripts == "all":
+                # Step 3: Sort the DataFrame by 'total_counts' in descending order
+                transcript_order = aggregated_df.sort("total_expression", reverse=True)[transcript_id_column].unique(maintain_order=True).to_list()
+
+            elif ((isinstance(keep_top_expressed_transcripts, int)) and (keep_top_expressed_transcripts > 0)):
+                if keep_top_expressed_transcripts > len(transcript_order):
+                    transcript_order = aggregated_df.sort("total_expression", reverse=True)[transcript_id_column].unique(maintain_order=True).to_list()
+                else:
+                    transcript_order = aggregated_df.sort("total_expression", reverse=True)[transcript_id_column].unique(maintain_order=True).to_list()
+                    transcript_order = transcript_order[:keep_top_expressed_transcripts]
+            else:
+                raise ValueError(f"keep_top_expressed_transcripts must be set to 'all' or to an integer greater than 0")
+            
+
+            order_mapping = {transcript: index for index, transcript in enumerate(transcript_order)}
+
+            filtered_expression_matrix = filtered_expression_matrix.filter(pl.col(transcript_id_column).is_in(transcript_order))
+            filtered_expression_matrix = (filtered_expression_matrix.with_column(
+                                pl.col("transcript_id").map_dict(order_mapping).alias("order"))
+                            .sort("order").drop("order"))
+            
+            filtered_annotation = filtered_annotation.filter(pl.col(transcript_id_column).is_in(transcript_order))
+            filtered_annotation = (filtered_annotation.with_column(
+                    pl.col("transcript_id").map_dict(order_mapping).alias("order"))
+                .sort("order").drop("order"))
+
         return filtered_annotation, filtered_expression_matrix
+
     else:
         return filtered_annotation
