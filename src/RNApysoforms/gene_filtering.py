@@ -139,6 +139,7 @@ def gene_filtering(
             warnings.warn(
                 f"{len(missing_in_expression)} group(s) are present in the annotation but missing in the expression matrix. "
                 f"Missing groups: {', '.join(sorted(missing_in_expression))}"
+                "Only returning transcripts present in both the expression matrix and annotation"
             )
 
         # Warn about groups missing in the annotation
@@ -146,41 +147,42 @@ def gene_filtering(
             warnings.warn(
                 f"{len(missing_in_annotation)} group(s) are present in the expression matrix but missing in the annotation. "
                 f"Missing groups: {', '.join(sorted(missing_in_annotation))}"
+                "Only returning transcripts present in both the expression matrix and annotation"
             )
+
+        filtered_annotation = filtered_annotation.filter(pl.col(transcript_id_column).is_in(
+                        filtered_expression_matrix[transcript_id_column].unique()))
+        filtered_expression_matrix = filtered_expression_matrix.filter(pl.col(transcript_id_column).is_in(
+                        filtered_annotation[transcript_id_column].unique()))
 
         if order_by_expression:
 
             # Step 1 & 2: Group by 'transcript_id' and sum the 'counts'
             aggregated_df = filtered_expression_matrix.group_by(transcript_id_column).agg(
                 pl.col(expression_column).sum().alias("total_expression")
-            )
+            )[["transcript_id", "total_expression"]]
 
-            if keep_top_expressed_transcripts == "all":
-                # Step 3: Sort the DataFrame by 'total_counts' in descending order
-                transcript_order = aggregated_df.sort("total_expression", descending=True)[transcript_id_column].unique(maintain_order=True).to_list()
 
-            elif ((isinstance(keep_top_expressed_transcripts, int)) and (keep_top_expressed_transcripts > 0)):
-                if keep_top_expressed_transcripts > len(transcript_order):
-                    transcript_order = aggregated_df.sort("total_expression", descending=True)[transcript_id_column].unique(maintain_order=True).to_list()
+            transcript_to_keep = aggregated_df.sort("total_expression", descending=True)[transcript_id_column].unique(maintain_order=True).to_list()
+
+            if ((isinstance(keep_top_expressed_transcripts, int)) and (keep_top_expressed_transcripts > 0)):
+                if keep_top_expressed_transcripts < len(transcript_to_keep):
+                    transcript_to_keep = transcript_to_keep[:keep_top_expressed_transcripts]
                 else:
-                    transcript_order = aggregated_df.sort("total_expression", descending=True)[transcript_id_column].unique(maintain_order=True).to_list()
-                    transcript_order = transcript_order[:keep_top_expressed_transcripts]
-            else:
+                    warnings.warn("keep_top_expressed_transcripts was set to a number greater or equal to the total number"
+                                   "of transcripts, therefore all transcripts were kept")
+            elif keep_top_expressed_transcripts != "all":
                 raise ValueError(f"keep_top_expressed_transcripts must be set to 'all' or to an integer greater than 0")
             
+            ## Only keep transcripts to keep
+            filtered_expression_matrix = filtered_expression_matrix.filter(pl.col(transcript_id_column).is_in(transcript_to_keep))
 
-            order_mapping = {transcript: index for index, transcript in enumerate(transcript_order)}
-
-            filtered_expression_matrix = filtered_expression_matrix.filter(pl.col(transcript_id_column).is_in(transcript_order))
-            filtered_expression_matrix = (filtered_expression_matrix.with_columns(
-                                pl.col(transcript_id_column).replace(order_mapping).alias("order"))
-                            .sort("order").drop("order"))
-            
-            filtered_annotation = filtered_annotation.filter(pl.col(transcript_id_column).is_in(transcript_order))
-            filtered_annotation = (filtered_annotation.with_columns(
-                    pl.col(transcript_id_column).replace(order_mapping).alias("order"))
-                .sort("order").drop("order"))
-
+            ## Order transcripts and annotation by total counts
+            filtered_expression_matrix = filtered_expression_matrix.join(aggregated_df, on=transcript_id_column, how="inner")
+            filtered_expression_matrix = filtered_expression_matrix.sort(by="total_expression", descending=False).drop("total_expression")
+            filtered_annotation = filtered_annotation.join(aggregated_df, on=transcript_id_column, how="inner")
+            filtered_annotation = filtered_annotation.sort(by="total_expression", descending=False).drop("total_expression")
+ 
         return filtered_annotation, filtered_expression_matrix
 
     else:

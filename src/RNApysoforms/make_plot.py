@@ -6,9 +6,7 @@ from RNApysoforms.utils import check_df  # Ensure this is correctly imported
 from RNApysoforms import set_axis
 
 def make_plot(
-    transcript_structure_traces: List[go.Trace],
-    annotation: pl.DataFrame,
-    expression_traces: Optional[List[List[go.Trace]]] = None, 
+    traces: List[go.Trace],
     y: str = "transcript_id",
     subplot_titles: List[str] = ["Transcript Structure"],
     horizontal_spacing: float = 0.02,
@@ -23,14 +21,12 @@ def make_plot(
     
     [Docstring remains unchanged for brevity]
     """
-    if expression_traces is not None:
-        full_trace_list = [transcript_structure_traces] + expression_traces
-        # Update subplot titles if needed
-        if len(subplot_titles) < len(full_trace_list):
-            additional_titles = [f"Expression Metric {i}" for i in range(2, len(full_trace_list)+1)]
-            subplot_titles += additional_titles
-    else:
-        full_trace_list = [transcript_structure_traces]
+    y_dict = traces[-1]
+
+    full_trace_list = traces[:-1]
+
+    print(len(full_trace_list))
+
 
     # Initialize the subplot figure with shared y-axes
     fig = make_subplots(
@@ -39,13 +35,22 @@ def make_plot(
         subplot_titles=subplot_titles,
         horizontal_spacing=horizontal_spacing,
         vertical_spacing=vertical_spacing,
-        shared_yaxes=True,  # Share y-axes across all subplots
+        shared_yaxes=False,  # Share y-axes across all subplots
     )
 
+    transcript_traces = []
+    expression_traces = []
 
-    # Create a consistent y-axis mapping
-    unique_transcripts = annotation[y].unique(maintain_order=True).to_list()
-    y_dict = {val: i for i, val in enumerate(unique_transcripts)}
+
+    for trace in full_trace_list:
+
+
+        if trace.get('type', '').lower() == "scatter":
+            transcript_traces.extend(trace)
+            
+        else:
+            expression_traces.append(trace)
+
 
     # Add all traces to their respective subplots
     for i, subplot_traces in enumerate(full_trace_list, start=1):
@@ -55,7 +60,7 @@ def make_plot(
             rows=[1] * len(subplot_traces),
             cols=[i] * len(subplot_traces)
         )
-
+    
     # Customize the shared y-axis (only for the first subplot)
     fig.update_yaxes(
         tickvals=list(y_dict.values()),
@@ -76,6 +81,8 @@ def make_plot(
         col=1
     )
 
+    
+
     # Additional subplots (Expression Traces)
     if expression_traces:
         for i in range(2, len(full_trace_list) + 1):
@@ -90,7 +97,7 @@ def make_plot(
             fig.update_yaxes(
                 tickvals=list(y_dict.values()),
                 ticktext=list(y_dict.keys()),
-                showticklabels=False,
+                showticklabels=True,
                 ticks='',
                 row=1,
                 col=i,

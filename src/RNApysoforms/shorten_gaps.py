@@ -144,7 +144,11 @@ def shorten_gaps(
     ## Return transcripts in original order they were given
     original_order = annotation[transcript_id_column].unique(maintain_order=True).to_list()
     order_mapping = {transcript: index for index, transcript in enumerate(original_order)}
-    rescaled_tx = (rescaled_tx.with_columns(pl.col(transcript_id_column).replace(order_mapping).alias("order")).sort("order").drop("order"))
+    rescaled_tx = (rescaled_tx
+                .with_columns(pl.col(transcript_id_column).replace(order_mapping).alias("order"))
+                .sort("order")
+                .drop("order"))
+
 
     ## Pass final column so everything is in good order
     final_columns = annotation.columns + ["rescaled_start", "rescaled_end"]

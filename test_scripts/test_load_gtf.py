@@ -29,10 +29,7 @@ gene_name = "APP"
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
                                        target_gene=gene_name, transcript_id_column="transcript_id",
-                                       order_by_expression=False)
-
-print(annotation.head())
-print(counts.head())
+                                       order_by_expression=True)
 
 
 #MIR99AHG
@@ -42,31 +39,35 @@ print(counts.head())
 ## Shorten gaps
 rescaled_annotation = pt.shorten_gaps(annotation=annotation, transcript_id_column="transcript_id")
 
-print(rescaled_annotation.head())
-print(rescaled_annotation.columns)
 
+rescaled_annotation = rescaled_annotation.sort(by="transcript_biotype")
 
 
 ## Create traces
-traces = pt.make_transcript_structure_traces(
+traces = pt.make_traces(
     annotation=rescaled_annotation,
+    expression_matrix = counts,
+    order_transcripts_by_expression_matrix=False,
     y='transcript_id', 
+    expression_columns=["counts", "relative_abundance"],
     x_start="rescaled_start",
     x_end="rescaled_end",
-    fill_color="grey",
+    annotation_fill_color="grey",
+    expression_fill_color="grey",
     exon_height=0.3,
     cds_height=0.5,
-    hue="transcript_biotype",
+    annotation_hue="transcript_biotype",
+    expression_hue="AD status",
     arrow_height=0.2,
     arrow_length=1.6,
     
 )
 
-## Set expression traces
-expression_traces = pt.make_transcript_expression_traces(counts, hue="AD status", expression_columns=["counts", "relative_abundance"])
+print(len(traces))
 
-fig = pt.make_plot(transcript_structure_traces = traces, expression_traces=expression_traces,
-                   annotation=rescaled_annotation, 
+rescaled_annotation = rescaled_annotation.sort(by="transcript_id")
+
+fig = pt.make_plot(traces = traces,
                     subplot_titles = ["Transcript Structure", "Counts", "Relative Abundance"],
                     showlegend = True,
                     height = 900,
