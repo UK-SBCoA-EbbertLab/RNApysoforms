@@ -35,7 +35,7 @@ def make_plot(
         subplot_titles=subplot_titles,
         horizontal_spacing=horizontal_spacing,
         vertical_spacing=vertical_spacing,
-        shared_yaxes=False,  # Share y-axes across all subplots
+        shared_yaxes=True,  # Share y-axes across all subplots
     )
 
     transcript_traces = []
@@ -43,14 +43,14 @@ def make_plot(
 
 
     for trace in full_trace_list:
-
-
-        if trace.get('type', '').lower() == "scatter":
-            transcript_traces.extend(trace)
-            
-        else:
-            expression_traces.append(trace)
-
+        
+        if hasattr(trace[0], 'type'):
+            expression_traces.extend(trace)
+        elif isinstance(trace[0], dict):
+            transcript_traces.append(trace)
+    print()
+    print(len(transcript_traces))
+    print(len(expression_traces))
 
     # Add all traces to their respective subplots
     for i, subplot_traces in enumerate(full_trace_list, start=1):
@@ -69,7 +69,7 @@ def make_plot(
         title="",  # Optional
         row=1,
         col=1,
-        range=[-0.8, (len(unique_transcripts) - 0.2)]
+        range=[-0.8, ( len(y_dict) - 0.2)]
     )
 
     # Customize x-axes
@@ -82,28 +82,25 @@ def make_plot(
     )
 
     
-
-    # Additional subplots (Expression Traces)
-    if expression_traces:
-        for i in range(2, len(full_trace_list) + 1):
-            fig.update_xaxes(
-                showticklabels=True,  # Show x-axis labels for expression plots
-                title=f"",  # Customize as needed
-                row=1,
-                col=i,
-                showgrid=True
-            )
-            # Hide y-axis labels for additional subplots
-            fig.update_yaxes(
-                tickvals=list(y_dict.values()),
-                ticktext=list(y_dict.keys()),
-                showticklabels=True,
-                ticks='',
-                row=1,
-                col=i,
-                range=[-0.8, (len(unique_transcripts) - 0.2)],
-                showgrid=True
-            )
+    for i in range(2, (len(expression_traces) + 2)):
+        fig.update_xaxes(
+            showticklabels=True,  # Show x-axis labels for expression plots
+            title=f"",  # Customize as needed
+            row=1,
+            col=i,
+            showgrid=True
+        )
+        # Hide y-axis labels for additional subplots
+        fig.update_yaxes(
+            tickvals=list(y_dict.values()),
+            ticktext=list(y_dict.keys()),
+            showticklabels=False,
+            ticks='',
+            row=1,
+            col=i,
+            range=[-0.8, (len(y_dict) - 0.2)],
+            showgrid=True
+        )
 
 
     # Update overall layout

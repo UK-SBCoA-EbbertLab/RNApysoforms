@@ -389,6 +389,6 @@ def make_traces(
     if expression_matrix is not None:
         traces.extend(expression_traces)
 
-    traces.append([y_dict])
+    traces.append(y_dict)
 
     return traces

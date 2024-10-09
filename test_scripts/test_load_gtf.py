@@ -40,14 +40,11 @@ annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=
 rescaled_annotation = pt.shorten_gaps(annotation=annotation, transcript_id_column="transcript_id")
 
 
-rescaled_annotation = rescaled_annotation.sort(by="transcript_biotype")
-
-
 ## Create traces
 traces = pt.make_traces(
     annotation=rescaled_annotation,
     expression_matrix = counts,
-    order_transcripts_by_expression_matrix=False,
+    order_transcripts_by_expression_matrix=True,
     y='transcript_id', 
     expression_columns=["counts", "relative_abundance"],
     x_start="rescaled_start",
@@ -63,9 +60,6 @@ traces = pt.make_traces(
     
 )
 
-print(len(traces))
-
-rescaled_annotation = rescaled_annotation.sort(by="transcript_id")
 
 fig = pt.make_plot(traces = traces,
                     subplot_titles = ["Transcript Structure", "Counts", "Relative Abundance"],
