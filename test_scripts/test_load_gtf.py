@@ -32,10 +32,6 @@ annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=
                                        order_by_expression=True, keep_top_expressed_transcripts=5,
                                        order_by_expression_column="counts")
 
-#MIR99AHG
-#SOD1
-#RUNX1
-
 ## Shorten gaps
 rescaled_annotation = pt.shorten_gaps(annotation=annotation, transcript_id_column="transcript_id")
 
