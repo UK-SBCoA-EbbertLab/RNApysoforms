@@ -14,21 +14,22 @@ def gene_filtering(
     keep_top_expressed_transcripts: Union[str, int] = "all"
 ) -> Union[pl.DataFrame, tuple]:
     """
-    Filters a genomic annotation DataFrame and, optionally, an expression matrix based on a specific gene identifier,
+    Filters genomic annotations and, optionally, an expression matrix based on a specific gene identifier,
     with options to order and select top expressed transcripts.
 
-    This function filters the provided annotation DataFrame to include only the specified gene, identified by `target_gene`.
-    The gene is identified using the column specified by `gene_id_column`. If an expression matrix is provided, it filters
-    the expression matrix to retain only the entries corresponding to the filtered gene based on the `transcript_id_column`.
-    Additionally, it provides options to order transcripts by their expression levels and to keep only the top expressed transcripts.
+    This function filters the provided annotation DataFrame to include only entries corresponding to the specified
+    `target_gene`, identified using the column specified by `gene_id_column`. If an expression matrix is provided,
+    it will also be filtered to retain only the entries corresponding to the filtered transcripts based on the
+    `transcript_id_column`. Additionally, it provides options to order transcripts by their total expression levels
+    and to keep only the top expressed transcripts, specified by `keep_top_expressed_transcripts`.
 
-    **Required Columns in `annotation`:**
-    - `gene_id_column`: Column containing gene identifiers (default `"gene_name"`).
-    - `transcript_id_column`: Column containing transcript identifiers (default `"transcript_id"`).
+    **Required Columns in `annotation` DataFrame:**
+    - `gene_id_column` (default `"gene_name"`): Column containing gene identifiers used for filtering.
+    - `transcript_id_column` (default `"transcript_id"`): Column containing transcript identifiers.
 
-    **Required Columns in `expression_matrix` (if provided):**
-    - `transcript_id_column`: Column containing transcript identifiers matching those in `annotation`.
-    - `expression_column`: Column containing expression values (default `"counts"`).
+    **Required Columns in `expression_matrix` DataFrame (if provided):**
+    - `transcript_id_column` (same as in `annotation`): Column containing transcript identifiers matching those in `annotation`.
+    - `expression_column` (default `"counts"`): Column containing expression values used for ordering and filtering.
 
     Parameters
     ----------
@@ -47,15 +48,14 @@ def gene_filtering(
         The column name in the annotation DataFrame that contains gene identifiers used for filtering.
         Default is 'gene_name'.
     expression_column : str, optional
-        The column name in the expression matrix that contains expression values.
+        The column name in the expression matrix that contains expression values used for ordering and filtering.
         Default is 'counts'.
     order_by_expression : bool, optional
-        If True, transcripts will be ordered by their total expression levels.
+        If True, transcripts will be ordered by their total expression levels in descending order.
         Default is True.
     keep_top_expressed_transcripts : Union[str, int], optional
-        Determines the number of top expressed transcripts to keep after ordering by expression.
-        Can be 'all' to keep all transcripts or an integer to keep the top N transcripts.
-        Default is 'all'.
+        Determines the number of top expressed transcripts to keep after ordering by expression levels.
+        Can be 'all' to keep all transcripts or an integer to keep the top N transcripts. Default is 'all'.
 
     Returns
     -------
@@ -74,7 +74,7 @@ def gene_filtering(
     ValueError
         If `keep_top_expressed_transcripts` is not 'all' or a positive integer.
     Warning
-        If there are discrepancies between transcripts in the annotation and expression matrix.
+        If there are transcripts present in the annotation but missing in the expression matrix.
 
     Examples
     --------
@@ -95,27 +95,31 @@ def gene_filtering(
     >>> expression_matrix_df = pl.DataFrame({
     ...     "transcript_id": ["tx1", "tx2", "tx4"],
     ...     "counts": [100, 200, 300],
-    ...     "sample2": [150, 250, 350]
+    ...     "sample_id": ["sample1", "sample2", "sample3"]
     ... })
     >>> filtered_annotation, filtered_expression_matrix = gene_filtering(
-    ...     "BRCA1", annotation_df, expression_matrix=expression_matrix_df,
-    ...     expression_column="counts", order_by_expression=True, keep_top_expressed_transcripts=1
+    ...     "BRCA1",
+    ...     annotation_df,
+    ...     expression_matrix=expression_matrix_df,
+    ...     expression_column="counts",
+    ...     order_by_expression=True,
+    ...     keep_top_expressed_transcripts=1
     ... )
     >>> print(filtered_annotation)
     >>> print(filtered_expression_matrix)
 
     Notes
     -----
-    - The function assumes the `annotation` DataFrame contains the columns specified by `gene_id_column` and `transcript_id_column`.
-    - If an `expression_matrix` is provided, the function checks for discrepancies between transcripts in the annotation and
-      expression matrix and issues warnings if there are differences.
-    - If `order_by_expression` is True, transcripts are ordered by their total expression levels.
-    - If `keep_top_expressed_transcripts` is an integer, only the top N expressed transcripts are kept.
-    - The function handles discrepancies by only keeping transcripts present in both the annotation and expression matrix.
+    - The function filters the `annotation` DataFrame to include only entries where `gene_id_column` matches `target_gene`.
+    - If an `expression_matrix` is provided, the function filters it to include only transcripts present in the filtered annotation.
+    - The function checks for transcripts present in the annotation but missing in the expression matrix and issues a warning for such discrepancies.
+    - If `order_by_expression` is True, transcripts are ordered by their total expression levels computed from the `expression_column` in the expression matrix.
+    - If `keep_top_expressed_transcripts` is an integer, only the top N expressed transcripts are kept after ordering.
+    - If `keep_top_expressed_transcripts` is 'all', all transcripts are kept.
+    - If transcripts are present in the expression matrix but not in the annotation, they are silently ignored, and only overlapping transcripts are returned without a warning.
 
     """
-
-    # Check if annotation is a Polars DataFrame
+    # Check if 'annotation' is a Polars DataFrame
     if not isinstance(annotation, pl.DataFrame):
         raise TypeError(
             f"Expected 'annotation' to be of type pl.DataFrame, got {type(annotation)}."
@@ -133,7 +137,7 @@ def gene_filtering(
         raise ValueError(f"No annotation found for gene: {target_gene} in the '{gene_id_column}' column")
 
     if expression_matrix is not None:
-        # Check if expression_matrix is a Polars DataFrame
+        # Check if 'expression_matrix' is a Polars DataFrame
         if not isinstance(expression_matrix, pl.DataFrame):
             raise TypeError(
                 f"Expected 'expression_matrix' to be of type pl.DataFrame, got {type(expression_matrix)}."
@@ -151,33 +155,24 @@ def gene_filtering(
         # If filtered expression matrix is empty, raise an error
         if filtered_expression_matrix.is_empty():
             raise ValueError(
-                f"Expression matrix is empty after filtering. No matching '{transcript_id_column}' entries"
+                f"Expression matrix is empty after filtering. No matching '{transcript_id_column}' entries "
                 f"between expression matrix and annotation found for gene '{target_gene}'."
             )
 
-        # Check for discrepancies between transcripts in annotation and expression_matrix
+        # Get sets of transcripts in annotation and expression matrix
         annotation_transcripts = set(filtered_annotation[transcript_id_column].unique())
         expression_transcripts = set(filtered_expression_matrix[transcript_id_column].unique())
 
-        # Transcripts in annotation but not in expression matrix
+        # Identify transcripts present in annotation but missing in expression matrix
         missing_in_expression = annotation_transcripts - expression_transcripts
 
-        # Transcripts in expression matrix but not in annotation
-        missing_in_annotation = expression_transcripts - annotation_transcripts
+        # Transcripts in expression matrix but not in annotation are silently ignored
 
         # Warn about transcripts missing in the expression matrix
         if missing_in_expression:
             warnings.warn(
                 f"{len(missing_in_expression)} transcript(s) are present in the annotation but missing in the expression matrix. "
                 f"Missing transcripts: {', '.join(sorted(missing_in_expression))}. "
-                "Only transcripts present in both will be returned."
-            )
-
-        # Warn about transcripts missing in the annotation
-        if missing_in_annotation:
-            warnings.warn(
-                f"{len(missing_in_annotation)} transcript(s) are present in the expression matrix but missing in the annotation. "
-                f"Missing transcripts: {', '.join(sorted(missing_in_annotation))}. "
                 "Only transcripts present in both will be returned."
             )
 
@@ -215,6 +210,7 @@ def gene_filtering(
                 # Keep all transcripts
                 transcripts_to_keep = sorted_transcripts[transcript_id_column]
             else:
+                # Raise error if 'keep_top_expressed_transcripts' is invalid
                 raise ValueError(
                     f"'keep_top_expressed_transcripts' must be 'all' or a positive integer, got {keep_top_expressed_transcripts}."
                 )

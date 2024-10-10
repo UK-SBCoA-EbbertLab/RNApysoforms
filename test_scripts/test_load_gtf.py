@@ -12,7 +12,7 @@ annotation = pt.read_gtf("./raw_data/Homo_sapiens.GRCh38.110.gtf")
 
 counts = pt.read_expression_matrix(expression_matrix_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
                                metadata_path="./test_data/sample_metadata.tsv",
-                               cpm_normalization=False, relative_abundance=True)
+                               cpm_normalization=True, relative_abundance=True)
 
 
 # Define a mapping from transcript_biotype to colors
@@ -39,12 +39,14 @@ annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=
 rescaled_annotation = pt.shorten_gaps(annotation=annotation, transcript_id_column="transcript_id")
 
 
+
+
 ## Create traces
 traces = pt.make_traces(annotation=rescaled_annotation,
     expression_matrix = counts,
     order_transcripts_by_expression_matrix=True,
     y='transcript_id', 
-    expression_columns=["counts", "relative_abundance"],
+    expression_columns=["counts", "relative_abundance", "CPM"],
     x_start="rescaled_start",
     x_end="rescaled_end",
     annotation_fill_color="blue",

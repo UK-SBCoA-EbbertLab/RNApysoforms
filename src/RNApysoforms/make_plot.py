@@ -25,7 +25,8 @@ def make_plot(
     yaxis_font_size: int = 12,
     subplot_title_font_size: int = 16,
     legend_title_font_size: int = 14,
-    hover_font_size: int = 12
+    hover_font_size: int = 12,
+    hovermode="closest"
 ) -> go.Figure:
     """
     Creates a multi-panel Plotly figure combining transcript structure plots and expression data plots.
@@ -132,9 +133,6 @@ def make_plot(
     # Extract the list of trace groups, excluding the y_dict
     full_trace_list = traces[:-1]
 
-    # Debugging print statement to check the number of trace groups
-    print(len(full_trace_list))
-
     # Initialize the subplot figure with shared y-axes
     fig = make_subplots(
         rows=1,
@@ -239,6 +237,7 @@ def make_plot(
         showlegend=showlegend,
         height=height,
         width=width,
+        hovermode=hovermode,
         hoverlabel=dict(font=dict(size=hover_font_size)),
         margin=dict(l=100, r=50, t=100, b=50),  # Adjust margins as needed
         boxmode='group',
