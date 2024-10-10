@@ -24,12 +24,12 @@ biotype_colors = {
 
 
 ## Define gene name to filter
-gene_name = "RUNX1"
+gene_name = "APP"
 
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
                                        target_gene=gene_name, transcript_id_column="transcript_id",
-                                       order_by_expression=True, keep_top_expressed_transcripts=5)
+                                       order_by_expression=True, keep_top_expressed_transcripts=6)
 
 #MIR99AHG
 #SOD1
@@ -64,8 +64,6 @@ traces = pt.make_traces(annotation=rescaled_annotation,
 fig = pt.make_plot(traces = traces,
                     subplot_titles = ["Counts", "Relative Abundance"],
                     showlegend = True,
-                    height = 900,
-                    width = 1800,
                     boxgap=0.2,
                     boxgroupgap=0,
                     horz_grid_expression_plot=False)

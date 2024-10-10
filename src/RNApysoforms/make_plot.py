@@ -3,7 +3,6 @@ from plotly.subplots import make_subplots
 import polars as pl
 from typing import List, Optional
 from RNApysoforms.utils import check_df  # Ensure this is correctly imported
-from RNApysoforms import set_axis
 
 def make_plot(
     traces: List[go.Trace],
@@ -11,7 +10,7 @@ def make_plot(
     horizontal_spacing: float = 0.02,
     vertical_spacing: float = 0.02,
     showlegend: bool = True,
-    height: int = 800,
+    height: int = 900,
     width: int = 1800,
     template: str = "plotly_white",
     boxgroupgap: float = 0.8,
@@ -26,7 +25,7 @@ def make_plot(
     subplot_title_font_size: int = 16,
     legend_title_font_size: int = 14,
     hover_font_size: int = 12,
-    hovermode="closest"
+    hovermode: str = "closest"
 ) -> go.Figure:
     """
     Creates a multi-panel Plotly figure combining transcript structure plots and expression data plots.
@@ -83,6 +82,8 @@ def make_plot(
         Font size for the legend title. Default is 14.
     hover_font_size : int, optional
         Font size for hover text labels. Default is 12.
+    hovermode : str, optional
+        Hover mode for the figure. Options include "closest", "x", "y", "x unified", "y unified", etc. Default is "closest".
 
     Returns
     -------
@@ -125,12 +126,10 @@ def make_plot(
         - Expression traces are expected to be Plotly trace objects with a 'type' attribute (e.g., `go.Box`, `go.Violin`).
     - The function dynamically assigns traces to subplots and customizes axes and layout based on the type of data.
     - The y-axis is shared across subplots to align transcript structures with their corresponding expression data.
+    - Hover settings can be customized using the `hovermode` parameter.
 
     """
-    # Extract y-axis mapping dictionary from the last element of traces
     y_dict = traces[-1]
-
-    # Extract the list of trace groups, excluding the y_dict
     full_trace_list = traces[:-1]
 
     # Initialize the subplot figure with shared y-axes
@@ -140,16 +139,12 @@ def make_plot(
         subplot_titles=subplot_titles,
         horizontal_spacing=horizontal_spacing,
         vertical_spacing=vertical_spacing,
-        shared_yaxes=True,  # Share y-axes across all subplots to align data
+        shared_yaxes=True,  # Share y-axes across all subplots
     )
 
-    # Update the layout to change the font size of the subplot titles
+    # Update the layout to change the font size of the subplot titles and apply the template
     fig.update_layout(
-        annotations=[dict(font=dict(size=subplot_title_font_size)) for annotation in fig['layout']['annotations']]
-    )
-
-    # Apply the specified template for styling
-    fig.update_layout(
+        annotations=[dict(font=dict(size=subplot_title_font_size)) for annotation in fig['layout']['annotations']],
         template=template
     )
 
@@ -253,7 +248,8 @@ def make_plot(
         ),
         legend=dict(font=dict(size=legend_font_size)),
         xaxis=dict(tickfont=dict(size=xaxis_font_size)),
-        legend_title=dict(font=dict(size=legend_title_font_size))
+        legend_title=dict(font=dict(size=legend_title_font_size)),
+
     )
 
     return fig  # Return the assembled figure

@@ -228,13 +228,13 @@ def gene_filtering(
                 sorted_transcripts.select([transcript_id_column, "total_expression"]),
                 on=transcript_id_column,
                 how="inner"
-            ).sort("total_expression", descending=True).drop("total_expression")
+            ).sort("total_expression", descending=False).drop("total_expression")
 
             filtered_expression_matrix = filtered_expression_matrix.join(
                 sorted_transcripts.select([transcript_id_column, "total_expression"]),
                 on=transcript_id_column,
                 how="inner"
-            ).sort("total_expression", descending=True).drop("total_expression")
+            ).sort("total_expression", descending=False).drop("total_expression")
 
         return filtered_annotation, filtered_expression_matrix
 

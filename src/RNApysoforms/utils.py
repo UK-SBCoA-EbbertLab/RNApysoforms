@@ -3,26 +3,58 @@ from typing import List
 
 def check_df(df: pl.DataFrame, required_cols: List[str]):
     """
-    Check if the Polars DataFrame contains all the required columns.
+    Validates that the input Polars DataFrame contains all the required columns.
 
-    Parameters:
-    -----------
+    This utility function checks whether the provided Polars DataFrame includes all columns specified in the
+    `required_cols` list. It is commonly used to ensure that DataFrames meet the necessary schema requirements
+    before processing.
+
+    Parameters
+    ----------
     df : pl.DataFrame
-        The Polars DataFrame to check.
+        The Polars DataFrame to validate.
     required_cols : List[str]
         A list of required column names that the DataFrame must contain.
 
-    Raises:
-    -------
+    Raises
+    ------
+    TypeError
+        If `df` is not a Polars DataFrame.
     ValueError
-        If the input is not a Polars DataFrame, or if any of the required columns are missing.
+        If any of the required columns are missing from the DataFrame.
+
+    Examples
+    --------
+    Validate a DataFrame for required columns:
+
+    >>> import polars as pl
+    >>> from RNApysoforms.utils import check_df
+    >>> df = pl.DataFrame({
+    ...     "col1": [1, 2, 3],
+    ...     "col2": ["a", "b", "c"]
+    ... })
+    >>> check_df(df, required_cols=["col1", "col2"])
+    # No exception is raised; all required columns are present.
+
+    >>> check_df(df, required_cols=["col1", "col3"])
+    Traceback (most recent call last):
+    ValueError: The DataFrame is missing the following required columns: col3
+
+    Notes
+    -----
+    - The function first checks if `df` is an instance of `pl.DataFrame`.
+    - It then compares the columns in `df` against the `required_cols` list.
+    - If any required columns are missing, it raises a `ValueError` listing the missing columns.
+    - This function is useful for input validation in data processing pipelines.
+    - No return value is provided; the function raises exceptions if validation fails.
+
     """
     
     # Ensure the input is a Polars DataFrame
     if not isinstance(df, pl.DataFrame):
-        raise ValueError(
-            "Input must be a Polars DataFrame. "
-            "If you're using a Pandas DataFrame, convert it to Polars."
+        raise TypeError(
+            f"Expected 'df' to be of type pl.DataFrame, got {type(df)}."
+            "\nYou can convert a pandas DataFrame to Polars using: polars_df = pl.from_pandas(pandas_df)"
         )
 
     # Identify any missing columns by comparing against the DataFrame's columns

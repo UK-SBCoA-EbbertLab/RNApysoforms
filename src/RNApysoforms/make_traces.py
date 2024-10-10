@@ -17,7 +17,7 @@ def make_traces(
     cds: str = "CDS",
     exon: str = "exon",
     intron: str = "intron",
-    expression_columns: List[str] = ["counts"],
+    expression_columns: Union[str, List[str]] = ["counts"],
     sample_id_column: str = "sample_id",
     annotation_fill_color: str = "grey",
     expression_fill_color: str = "grey",
@@ -39,8 +39,8 @@ def make_traces(
     transcript_plot_opacity: float = 1,
     exon_height: float = 0.3,
     cds_height: float = 0.5,
-    arrow_height: float = 0.5,
-    arrow_length: float = 1,
+    arrow_height: float = 0.5,  # Note: Not currently used in the function
+    arrow_length: float = 1,    # Note: Not currently used in the function
     arrow_size: float = 10,
     hover_start: str = "start",
     hover_end: str = "end",
@@ -70,8 +70,8 @@ def make_traces(
     **Required Columns in `expression_matrix` DataFrame:**
     - `y` (default `"transcript_id"`): Identifier for each transcript.
     - `sample_id_column` (default `"sample_id"`): Identifier for each sample.
-    - `expression_columns` (default `["counts"]`): Columns containing expression values 
-       that you want to plot in the order you want to plot them.
+    - `expression_columns` (default `["counts"]`): Column name or list of column names containing expression values
+      that you want to plot in the order you want to plot them.
     - If `expression_hue` is specified, it must also be a column in `expression_matrix`.
 
     Parameters
@@ -100,8 +100,9 @@ def make_traces(
         Value in the `type` column of `annotation` representing exon features. Default is "exon".
     intron : str, optional
         Value in the `type` column of `annotation` representing intron features. Default is "intron".
-    expression_columns : List[str], optional
-        List of column names in `expression_matrix` containing expression values. Default is ["counts"].
+    expression_columns : Union[str, List[str]], optional
+        Column name or list of column names in `expression_matrix` containing expression values. If a string is provided,
+        it is converted to a list containing that string. Default is ["counts"].
     sample_id_column : str, optional
         Column name in `expression_matrix` representing sample identifiers. Default is "sample_id".
     annotation_fill_color : str, optional
@@ -145,9 +146,9 @@ def make_traces(
     cds_height : float, optional
         Height of CDS rectangles in the plot. Default is 0.5.
     arrow_height : float, optional
-        Height of the arrow markers for introns. Default is 0.5.
+        Height of the arrow markers for introns. **Note:** Currently not used in the function. Default is 0.5.
     arrow_length : float, optional
-        Length of the arrow markers for introns. Default is 1.
+        Length of the arrow markers for introns. **Note:** Currently not used in the function. Default is 1.
     arrow_size : float, optional
         Size of the arrow markers for introns. Default is 10.
     hover_start : str, optional
@@ -166,10 +167,11 @@ def make_traces(
     Returns
     -------
     List[Union[go.Box, go.Violin, dict, Dict[str, int]]]
-        A list containing Plotly traces for plotting. The list includes:
-        - Traces for transcript features (exons, CDS, introns) as dictionaries.
-        - Traces for expression data as `go.Box` or `go.Violin` objects.
-        - A mapping (`y_dict`) of transcript identifiers to y-axis positions.
+        A list containing the generated Plotly traces and a mapping of transcript identifiers to y-axis positions.
+        The list includes:
+        - Transcript feature traces (exons, CDS, introns) as dictionaries.
+        - Expression plot traces as `go.Box` or `go.Violin` objects.
+        - The `y_dict` mapping, which maps transcript identifiers to their corresponding y-axis positions.
 
     Raises
     ------
@@ -213,15 +215,17 @@ def make_traces(
     -----
     - The function ensures that both `annotation` and `expression_matrix` contain common transcripts.
       It filters out any transcripts not present in both DataFrames.
+    - Warnings are issued if transcripts are present in one DataFrame but missing in the other.
     - Traces are generated for exons, CDS, and introns with customizable aesthetics.
     - Expression data can be visualized using box plots or violin plots, with options for coloring by categories.
     - The `y_dict` mapping is used to align transcripts across different plots by assigning consistent y-axis positions.
     - The function handles strand direction when plotting intron arrows.
     - Custom legends and hover information can be configured via parameters.
+    - **Note:** The parameters `arrow_height` and `arrow_length` are currently not utilized in the function.
 
     """
 
-    ## Ensure that expression_columns is a list
+    # Ensure that expression_columns is a list
     if isinstance(expression_columns, str):
         expression_columns = [expression_columns]
 
@@ -243,7 +247,8 @@ def make_traces(
             required_columns.append(annotation_hue)
         check_df(annotation, required_columns)
     else:
-        order_transcripts_by_expression_matrix = True  # If 'annotation' is None, order by 'expression_matrix'
+        # If 'annotation' is None, transcripts will be ordered by 'expression_matrix'
+        order_transcripts_by_expression_matrix = True
 
     # Validate and process the 'expression_matrix' DataFrame
     if expression_matrix is not None:
@@ -259,7 +264,8 @@ def make_traces(
             required_columns.append(expression_hue)
         check_df(expression_matrix, required_columns)
     else:
-        order_transcripts_by_expression_matrix = False  # If 'expression_matrix' is None, order by 'annotation'
+        # If 'expression_matrix' is None, transcripts will be ordered by 'annotation'
+        order_transcripts_by_expression_matrix = False
 
     # If both 'annotation' and 'expression_matrix' are provided, ensure they have common transcripts
     if annotation is not None and expression_matrix is not None:
@@ -338,12 +344,14 @@ def make_traces(
         values_to_colormap = annotation[annotation_hue].unique(maintain_order=True).to_list()
         annotation_color_map = {value: color for value, color in zip(values_to_colormap, annotation_color_palette)}
     elif annotation_hue is None and annotation_color_map is None:
+        # Use default fill color if no hue or color map is specified
         annotation_color_map = annotation_fill_color
 
     if expression_color_map is None and expression_matrix is not None and expression_hue is not None:
         values_to_colormap = expression_matrix[expression_hue].unique(maintain_order=True).to_list()
         expression_color_map = {value: color for value, color in zip(values_to_colormap, expression_color_palette)}
     elif expression_hue is None and expression_color_map is None:
+        # Use default fill color if no hue or color map is specified
         expression_color_map = expression_fill_color
 
     transcript_traces = []
@@ -471,7 +479,7 @@ def make_traces(
                 x_intron = [row[x_start], row[x_end]]
                 y_intron = [y_pos, y_pos]
 
-                # Add an arrow marker before the intron if it's sufficiently long
+                # Add an arrow marker if the intron is sufficiently long
                 if abs(row[x_start] - row[x_end]) > size / 15:
                     if row["strand"] == "-":
                         # Arrow pointing left, placed before the intron start
@@ -659,4 +667,4 @@ def make_traces(
     # Append the y_dict mapping to the traces list
     traces.append(y_dict)
 
-    return traces  # Return the list of traces
+    return traces  # Return the list of traces and y-axis mapping
