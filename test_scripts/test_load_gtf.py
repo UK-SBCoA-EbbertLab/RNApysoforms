@@ -40,7 +40,7 @@ rescaled_annotation = pt.shorten_gaps(annotation=annotation, transcript_id_colum
 
 
 ## Create traces
-traces = pt.make_traces(
+traces = pt.make_traces(annotation=rescaled_annotation,
     expression_matrix = counts,
     order_transcripts_by_expression_matrix=True,
     y='transcript_id', 
@@ -60,7 +60,7 @@ traces = pt.make_traces(
 
 
 fig = pt.make_plot(traces = traces,
-                    subplot_titles = ["Transcript Structure", "Counts"],
+                    subplot_titles = ["Counts", "Relative Abundance"],
                     showlegend = True,
                     height = 900,
                     width = 1800,

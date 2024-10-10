@@ -40,6 +40,7 @@ def make_traces(
     cds_height: float = 0.5,
     arrow_height: float = 0.5,
     arrow_length: float = 1,
+    arrow_size: float = 1,
     hover_start: str = "start",
     hover_end: str = "end",
     show_box_mean=True,
@@ -262,56 +263,49 @@ def make_traces(
                     displayed_hue_names.append(hue_name)
 
             elif row["type"] == intron:
+
+                
                 x_intron = [row[x_start], row[x_end]]
                 y_intron = [y_pos, y_pos]
-        
-                # Add directional arrows for introns if they are sufficiently long
-                if abs(row[x_start] - row[x_end]) > size / 15:
-                    arrow_x = (row[x_start] + row[x_end]) / 2
-                    arrow_length_px = size / (150 / arrow_length) if arrow_length != 0 else 0  
-        
-                    if row["strand"] == "+":  # Positive strand (arrow pointing left)
-                        x_arrow = [
-                            None,
-                            arrow_x, arrow_x - arrow_length_px, None,
-                            arrow_x, arrow_x - arrow_length_px, None
-                        ]
-                        y_arrow = [
-                            None,
-                            y_pos, y_pos + arrow_height / 2, None,
-                            y_pos, y_pos - arrow_height / 2, None
-                        ]
-                    
-                    elif row["strand"] == "-":  # Negative strand (arrow pointing right)
-                        x_arrow = [
-                            None,
-                            arrow_x, arrow_x + arrow_length_px, None,
-                            arrow_x, arrow_x + arrow_length_px, None
-                        ]
-                        y_arrow = [
-                            None,
-                            y_pos, y_pos + arrow_height / 2, None,
-                            y_pos, y_pos - arrow_height / 2, None
-                        ]
-        
-                    x_combined = x_intron + x_arrow
-                    y_combined = y_intron + y_arrow
-                else:
-                    x_combined = x_intron
-                    y_combined = y_intron
 
-                # Create the scatter trace for the intron with optional arrows
-                trace = dict(
+                # Add an arrow marker before the intron if it's sufficiently long
+                if abs(row[x_start] - row[x_end]) > size / 15:
+                    
+                    if row["strand"] == "+":
+                        # Arrow pointing left, placed before the intron start
+                        marker_symbol = 'arrow-left'
+                    else:
+                        # Arrow pointing right, placed before the intron end
+                        marker_symbol = 'arrow-right'
+
+                    arrow_y = y_pos
+                    arrow_x = abs(row[x_start] - row[x_end])
+
+                    # Create the scatter trace for the arrow marker
+                    trace_arrow = dict(
+                        type='scatter',
+                        mode='markers',
+                        x=arrow_x,
+                        y=arrow_y,
+                        marker=dict(symbol=marker_symbol, size=arrow_size, color=line_color),
+                        opacity=1,
+                        hoverinfo='skip',  # Skip hover info for the arrow
+                        showlegend=False
+                    )
+                    intron_traces.append(trace_arrow)
+
+                # Create the scatter trace for the intron line
+                trace_intron = dict(
                     type='scatter',
                     mode='lines',
-                    x=x_combined,
-                    y=y_combined,
+                    x=x_intron,
+                    y=y_intron,
                     line=dict(color=line_color, width=intron_line_width),
                     opacity=1,
                     hovertemplate=hovertemplate_text,
                     showlegend=False
                 )
-                intron_traces.append(trace)
+                intron_traces.append(trace_intron)
 
         # Combine all traces (exons, CDS, introns)
         transcript_traces.extend(exon_traces + cds_traces + intron_traces)
