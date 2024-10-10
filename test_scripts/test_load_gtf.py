@@ -52,17 +52,21 @@ traces = pt.make_traces(
     expression_fill_color="grey",
     exon_height=0.3,
     cds_height=0.5,
-    annotation_hue=None,
+    annotation_hue="transcript_biotype",
     expression_hue=None,
     arrow_height=0.2,
-    arrow_length=1.6)
+    arrow_length=1.6,
+    expression_plot_style="violin", 
+    spanmode="hard")
 
 
 fig = pt.make_plot(traces = traces,
                     subplot_titles = ["Transcript Structure", "Counts"],
                     showlegend = True,
                     height = 900,
-                    width = 1800)
+                    width = 1800,
+                    boxgap=0,
+                    boxgroupgap=0)
 
 
 

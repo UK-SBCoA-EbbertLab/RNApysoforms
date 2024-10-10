@@ -28,8 +28,8 @@ def make_traces(
     exon_line_width: float = 0.25,
     expression_line_width: float = 0.5,
     line_color: str = "black",
-    show_expression_points = True,
     expression_plot_style = "boxplot",
+    spanmode="hard",
     marker_color = "black",
     marker_opacity = 1,
     marker_size = 5,
@@ -45,7 +45,7 @@ def make_traces(
     show_box_mean=True,
     box_points="all",
     expression_plot_legend_title="<b><u>Expression Plot Hue<u><b>",
-    transcript_plot_legend_title="<b><u>Transcript Structure Hue<u><b>"
+    transcript_plot_legend_title="<b><u>Transcript Structure Hue<u><b>",
 ) -> List[go.Box]:
     
     ## Make sure expression columns is in list form
@@ -341,25 +341,50 @@ def make_traces(
                 for hue_val in unique_hues:
                     hue_filtered_df = expression_matrix.filter(pl.col(expression_hue) == hue_val)
 
-                    box_trace = go.Box(
-                        y=hue_filtered_df["y_pos"].to_list(),
-                        x=hue_filtered_df[x].to_list(),
-                        text=hue_filtered_df[sample_id_column].to_list(),
-                        name=str(hue_val),
-                        boxpoints=box_points,
-                        jitter=marker_jitter,
-                        pointpos=0,
-                        line=dict(width=expression_line_width),
-                        fillcolor=expression_color_map[hue_val],
-                        boxmean=show_box_mean,
-                        orientation='h',
-                        legendgroup=str(hue_val),
-                        showlegend=show_legend,
-                        offsetgroup=offset_dict[hue_val],
-                        opacity=expression_plot_opacity,
-                        marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
-                        legendgrouptitle_text=expression_plot_legend_title,
-                    )
+                    if expression_plot_style == "boxplot":
+                        box_trace = go.Box(
+                            y=hue_filtered_df["y_pos"].to_list(),
+                            x=hue_filtered_df[x].to_list(),
+                            text=hue_filtered_df[sample_id_column].to_list(),
+                            name=str(hue_val),
+                            boxpoints=box_points,
+                            jitter=marker_jitter,
+                            pointpos=0,
+                            line=dict(width=expression_line_width),
+                            fillcolor=expression_color_map[hue_val],
+                            boxmean=show_box_mean,
+                            orientation='h',
+                            legendgroup=str(hue_val),
+                            showlegend=show_legend,
+                            offsetgroup=offset_dict[hue_val],
+                            opacity=expression_plot_opacity,
+                            marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
+                            legendgrouptitle_text=expression_plot_legend_title,
+                        )
+                    elif expression_plot_style == "violin":
+                        box_trace = go.Violin(
+                            y=hue_filtered_df["y_pos"].to_list(),
+                            x=hue_filtered_df[x].to_list(),
+                            text=hue_filtered_df[sample_id_column].to_list(),
+                            name=str(hue_val),
+                            points=box_points,
+                            jitter=marker_jitter,
+                            pointpos=0,
+                            line=dict(width=expression_line_width),
+                            fillcolor=expression_color_map[hue_val],
+                            meanline_visible=show_box_mean,
+                            orientation='h',
+                            legendgroup=str(hue_val),
+                            showlegend=show_legend,
+                            offsetgroup=offset_dict[hue_val],
+                            opacity=expression_plot_opacity,
+                            marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
+                            legendgrouptitle_text=expression_plot_legend_title,
+                            spanmode=spanmode
+                        )
+                    else:
+                        print("error")
+
                     x_traces_list.append(box_trace)
                     expression_plot_legend_title = ""
 
@@ -383,24 +408,49 @@ def make_traces(
                     sample_id = transcript_df[sample_id_column].to_list()
                     y_pos = y_dict[transcript]
                     
-                    box_trace = go.Box(
-                        y=[y_pos]*len(expression),
-                        x=expression,
-                        text=sample_id,
-                        name="Boxplots",
-                        pointpos=0,
-                        offsetgroup=0,
-                        boxmean=show_box_mean,
-                        jitter=marker_jitter,
-                        boxpoints=box_points,
-                        line=dict(width=expression_line_width),
-                        fillcolor=expression_fill_color,
-                        orientation='h',
-                        showlegend=show_legend,
-                        opacity=expression_plot_opacity,
-                        marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
-                        legendgrouptitle_text=expression_plot_legend_title,
-                        legendgroup="expression")
+                    if expression_plot_style == "boxplot":
+                        box_trace = go.Box(
+                            y=[y_pos]*len(expression),
+                            x=expression,
+                            text=sample_id,
+                            name="Box Plots",
+                            pointpos=0,
+                            offsetgroup=0,
+                            boxmean=show_box_mean,
+                            jitter=marker_jitter,
+                            boxpoints=box_points,
+                            line=dict(width=expression_line_width),
+                            fillcolor=expression_fill_color,
+                            orientation='h',
+                            showlegend=show_legend,
+                            opacity=expression_plot_opacity,
+                            marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
+                            legendgrouptitle_text=expression_plot_legend_title,
+                            legendgroup="expression")
+                    
+                    elif expression_plot_style == "violin":
+                        box_trace = go.Violin(
+                            y=[y_pos]*len(expression),
+                            x=expression,
+                            text=sample_id,
+                            name="Violin Plots",
+                            pointpos=0,
+                            offsetgroup=0,
+                            meanline_visible=show_box_mean,
+                            jitter=marker_jitter,
+                            points=box_points,
+                            line=dict(width=expression_line_width),
+                            fillcolor=expression_fill_color,
+                            orientation='h',
+                            showlegend=show_legend,
+                            opacity=expression_plot_opacity,
+                            marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
+                            legendgrouptitle_text=expression_plot_legend_title,
+                            legendgroup="expression",
+                            spanmode=spanmode)
+                    else:
+                        print("error")    
+                    
                     x_traces_list.append(box_trace)
                     expression_plot_legend_title=""
                     show_legend = False

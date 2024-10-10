@@ -15,6 +15,8 @@ def make_plot(
     height: int = 800,
     width: int = 1800,
     template: str = "plotly_white",
+    boxgroupgap=0.8,
+    boxgap=0.2,
 ) -> go.Figure:
     """
     Create a Plotly figure with multiple aligned subplots.
@@ -113,7 +115,12 @@ def make_plot(
         hoverlabel=dict(font=dict(size=12)),
         margin=dict(l=100, r=50, t=100, b=50),  # Adjust margins as needed
         boxmode='group',
-        legend_tracegroupgap=7
+        legend_tracegroupgap=7,
+        boxgroupgap=boxgroupgap, 
+        boxgap=boxgap,
+        violinmode='group',
+        violingroupgap=boxgroupgap,
+        violingap=boxgap
     )
 
     return fig
