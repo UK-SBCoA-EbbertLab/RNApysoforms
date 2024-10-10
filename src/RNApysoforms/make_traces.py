@@ -43,7 +43,9 @@ def make_traces(
     hover_start: str = "start",
     hover_end: str = "end",
     show_box_mean=True,
-    box_points="all"
+    box_points="all",
+    expression_plot_legend_title="<b><u>Expression Plot Hue<u><b>",
+    transcript_plot_legend_title="<b><u>Transcript Structure Hue<u><b>"
 ) -> List[go.Box]:
     
     ## Make sure expression columns is in list form
@@ -118,17 +120,17 @@ def make_traces(
         ).sort("sort_key").drop("sort_key")
         
     # Generate a color map if not provided and 'hue' is specified
-    if (annotation_color_map is None) and (annotation is not None):
+    if (annotation_color_map is None) and (annotation is not None) and (annotation_hue is not None):
         values_to_colormap = annotation[annotation_hue].unique(maintain_order=True).to_list()
         annotation_color_map = {value: color for value, color in zip(values_to_colormap, annotation_color_palette)}
-    elif annotation_hue is None:
+    elif ((annotation_hue is None) and (annotation_color_map is None)):
         annotation_color_map = annotation_fill_color
 
     # Generate a color map if not provided and 'hue' is specified
-    if (expression_color_map is None) and (expression_matrix is not None):
+    if (expression_color_map is None) and (expression_matrix is not None) and (expression_hue is not None):
         values_to_colormap = expression_matrix[expression_hue].unique(maintain_order=True).to_list()
         expression_color_map = {value: color for value, color in zip(values_to_colormap, expression_color_palette)}
-    elif expression_hue is None:
+    elif ((expression_hue is None) and (expression_color_map is None)):
         expression_color_map = expression_fill_color
 
     transcript_traces = []
@@ -173,7 +175,7 @@ def make_traces(
                 hue_name = row[annotation_hue]
         
             # Determine whether to display the legend entry for this hue value
-            if (hue_name in displayed_hue_names) or (annotation_hue is None):
+            if (hue_name in displayed_hue_names):
                 display_legend = False
             else: 
                 display_legend = True
@@ -216,8 +218,9 @@ def make_traces(
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
                     hoveron='fills+points',
-                    legendgrouptitle_text="Transcript Structure"
+                    legendgrouptitle_text=transcript_plot_legend_title
                 )
+                transcript_plot_legend_title=""
                 exon_traces.append(trace)
 
                 if hue_name not in displayed_hue_names:
@@ -246,10 +249,12 @@ def make_traces(
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
                     hoveron='fills+points',
-                    legendgrouptitle_text="Transcript Structure"
+                    legendgrouptitle_text=transcript_plot_legend_title
                 )
+                
                 cds_traces.append(trace)
-        
+                transcript_plot_legend_title=""
+
                 if hue_name not in displayed_hue_names:
                     displayed_hue_names.append(hue_name)
 
@@ -353,9 +358,10 @@ def make_traces(
                         offsetgroup=offset_dict[hue_val],
                         opacity=expression_plot_opacity,
                         marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
-                        legendgrouptitle_text="Transcript Expression",
+                        legendgrouptitle_text=expression_plot_legend_title,
                     )
                     x_traces_list.append(box_trace)
+                    expression_plot_legend_title = ""
 
                 show_legend = False
                 expression_traces.append(x_traces_list)
@@ -381,8 +387,9 @@ def make_traces(
                         y=[y_pos]*len(expression),
                         x=expression,
                         text=sample_id,
-                        name=transcript,
+                        name="Boxplots",
                         pointpos=0,
+                        offsetgroup=0,
                         boxmean=show_box_mean,
                         jitter=marker_jitter,
                         boxpoints=box_points,
@@ -392,12 +399,12 @@ def make_traces(
                         showlegend=show_legend,
                         opacity=expression_plot_opacity,
                         marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
-                        legendgrouptitle_text="Transcript Expression",
-                        legendgroup="expression"
-                    )
-                    x_traces_list.extend(box_trace)
+                        legendgrouptitle_text=expression_plot_legend_title,
+                        legendgroup="expression")
+                    x_traces_list.append(box_trace)
+                    expression_plot_legend_title=""
+                    show_legend = False
 
-                show_legend = False
                 expression_traces.append(x_traces_list)
     traces = []
 

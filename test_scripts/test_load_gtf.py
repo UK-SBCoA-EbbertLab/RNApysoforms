@@ -48,16 +48,14 @@ traces = pt.make_traces(
     expression_columns=["counts", "relative_abundance"],
     x_start="rescaled_start",
     x_end="rescaled_end",
-    annotation_fill_color="grey",
+    annotation_fill_color="blue",
     expression_fill_color="grey",
     exon_height=0.3,
     cds_height=0.5,
-    annotation_hue="transcript_biotype",
-    expression_hue="AD status and sex",
+    annotation_hue=None,
+    expression_hue=None,
     arrow_height=0.2,
-    arrow_length=1.6,
-    
-)
+    arrow_length=1.6)
 
 
 fig = pt.make_plot(traces = traces,
