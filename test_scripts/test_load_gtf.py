@@ -29,7 +29,8 @@ gene_name = "APP"
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
                                        target_gene=gene_name, transcript_id_column="transcript_id",
-                                       order_by_expression=True, keep_top_expressed_transcripts=6)
+                                       order_by_expression=True, keep_top_expressed_transcripts=5,
+                                       order_by_expression_column="counts")
 
 #MIR99AHG
 #SOD1
@@ -54,7 +55,7 @@ traces = pt.make_traces(annotation=rescaled_annotation,
     exon_height=0.3,
     cds_height=0.5,
     annotation_hue="transcript_biotype",
-    expression_hue=None,
+    expression_hue="AD status and sex",
     arrow_height=0.2,
     arrow_length=1.6,
     expression_plot_style="boxplot", 
@@ -62,7 +63,7 @@ traces = pt.make_traces(annotation=rescaled_annotation,
 
 
 fig = pt.make_plot(traces = traces,
-                    subplot_titles = ["Counts", "Relative Abundance"],
+                    subplot_titles = ["Transcript Structure", "Counts", "Relative Abundance", "CPM"],
                     showlegend = True,
                     boxgap=0.2,
                     boxgroupgap=0,
