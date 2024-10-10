@@ -3,6 +3,7 @@ import polars as pl
 from typing import List, Optional, Dict
 from RNApysoforms.utils import check_df
 import plotly.express as px
+import warnings
 
 def make_traces(
     annotation: pl.DataFrame = None,
@@ -89,8 +90,58 @@ def make_traces(
         order_transcripts_by_expression_matrix = False
         
     if ((expression_matrix is not None) and (annotation is not None)):
-        if not (sorted(expression_matrix["transcript_id"].unique().to_list()) == sorted(annotation["transcript_id"].unique().to_list())):
-            raise ValueError("Expression matrix and annotation must contain the same transcript ids")
+        
+        # Filter expression_matrix to include only transcripts present in filtered_annotation
+        filtered_expression_matrix = expression_matrix.filter(
+            pl.col(y).is_in(annotation[y])
+        )
+
+        # Filter expression_matrix to include only transcripts present in filtered_annotation
+        filtered_annotation = annotation.filter(
+            pl.col(y).is_in(expression_matrix[y])
+        )
+
+        # If filtered expression matrix is empty, raise an error
+        if (filtered_expression_matrix.is_empty()) or (filtered_annotation.is_empty()):
+            raise ValueError(
+                f"No matching '{y}' entries between annotation and expression matrix."
+            )
+
+        # Check for discrepancies between transcripts in annotation and expression_matrix
+        annotation_transcripts = set(filtered_annotation[y].unique())
+        expression_transcripts = set(filtered_expression_matrix[y].unique())
+
+        # Transcripts in annotation but not in expression matrix
+        missing_in_expression = annotation_transcripts - expression_transcripts
+
+        # Transcripts in expression matrix but not in annotation
+        missing_in_annotation = expression_transcripts - annotation_transcripts
+
+        # Warn about transcripts missing in the expression matrix
+        if missing_in_expression:
+            warnings.warn(
+                f"{len(missing_in_expression)} transcript(s) are present in the annotation but missing in the expression matrix. "
+                f"Missing transcripts: {', '.join(sorted(missing_in_expression))}. "
+                "Only transcripts present in both will be used for making traces"
+            )
+
+        # Warn about transcripts missing in the annotation
+        if missing_in_annotation:
+            warnings.warn(
+                f"{len(missing_in_annotation)} transcript(s) are present in the expression matrix but missing in the annotation. "
+                f"Missing transcripts: {', '.join(sorted(missing_in_annotation))}. "
+                "Only transcripts present in both will be used for making traces"
+            )
+
+        # Ensure both filtered_annotation and filtered_expression_matrix contain only common transcripts
+        common_transcripts = annotation_transcripts & expression_transcripts
+        annotation = annotation.filter(
+            pl.col(y).is_in(common_transcripts)
+        )
+        expression_matrix = expression_matrix.filter(
+            pl.col(y).is_in(common_transcripts)
+        )
+        
         
 
     ## Get ordering right:
