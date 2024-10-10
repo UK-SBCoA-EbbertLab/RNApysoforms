@@ -29,8 +29,7 @@ gene_name = "APP"
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
                                        target_gene=gene_name, transcript_id_column="transcript_id",
-                                       order_by_expression=True)
-
+                                       order_by_expression=True, keep_top_expressed_transcripts=5)
 
 #MIR99AHG
 #SOD1
@@ -54,7 +53,7 @@ traces = pt.make_traces(
     exon_height=0.3,
     cds_height=0.5,
     annotation_hue="transcript_biotype",
-    expression_hue="AD status",
+    expression_hue="AD status and sex",
     arrow_height=0.2,
     arrow_length=1.6,
     
@@ -62,64 +61,14 @@ traces = pt.make_traces(
 
 
 fig = pt.make_plot(traces = traces,
-                    subplot_titles = ["Transcript Structure", "Counts", "Relative Abundance"],
+                    subplot_titles = ["Transcript Structure", "Counts"],
                     showlegend = True,
                     height = 900,
                     width = 1800)
 
 
-# Update layout and show the plot
-# fig.update_layout(
-#     row=1,
-#     col=1,
-#     title={'text': f"{gene_name} Transcript Structure", 'x': 0.5, 'y': 0.9, 'xanchor': 'center', 'yanchor': 'top',
-#            'font': dict(family='DejaVu Sans', size=14)},
-#     xaxis_title="",
-#     yaxis_title="",
-#     height=400,
-#     width=800,
-#     showlegend=True,
-#     yaxis=dict(
-#         tickvals=list(range(counts.n_unique(subset="transcript_id"))),               # Positions of the ticks
-#         ticktext=counts.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
-#         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
-#     xaxis=dict(showticklabels=False),
-#     legend=dict(traceorder="reversed"),
-#     hoverlabel=dict(
-#     font=dict(
-#         size=8  # Set the desired hover font size here
-#     )
-#     )
-#     )
 
-
-
-# Update layout and show the plot
-# fig.update_layout(
-#     row=1,
-#     col=2,
-#     title={'text': f"{gene_name} Counts", 'x': 0.5, 'y': 0.9, 'xanchor': 'center', 'yanchor': 'top',
-#            'font': dict(family='DejaVu Sans', size=14)},
-#     xaxis_title="",
-#     yaxis_title="",
-#     height=400,
-#     width=800,
-#     showlegend=True,
-#     yaxis=dict(
-#         tickvals=list(range(rescaled_annotation.n_unique(subset="transcript_id"))),               # Positions of the ticks
-#         ticktext=rescaled_annotation.select("transcript_id").unique(maintain_order=True).to_series().to_list(),  # Custom labels for the ticks
-#         tickfont=dict(size=10, family='DejaVu Sans', color='black')),
-#     xaxis=dict(showticklabels=False),
-#     legend=dict(traceorder="reversed"),
-#     hoverlabel=dict(
-#     font=dict(
-#         size=8  # Set the desired hover font size here
-#     )
-#     )
-#     )
 
 
 # Show or save the plot
 fig.show()
-
-#fig.write_html(("transcript_structure.html"))

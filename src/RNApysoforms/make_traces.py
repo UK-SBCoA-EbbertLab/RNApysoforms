@@ -26,18 +26,24 @@ def make_traces(
     expression_color_map: dict = None,  # Optional color map for hues    
     intron_line_width: float = 0.5,
     exon_line_width: float = 0.25,
-    expression_line_width: float = 0.25,
+    expression_line_width: float = 0.5,
     line_color: str = "black",
     show_expression_points = True,
     expression_plot_style = "boxplot",
-    expression_plot_opacity = 0.7,
+    marker_color = "black",
+    marker_opacity = 1,
+    marker_size = 5,
+    marker_jitter = 0.3,
+    expression_plot_opacity = 1,
     transcript_plot_opacity: float = 1,
     exon_height: float = 0.3,
     cds_height: float = 0.5,
     arrow_height: float = 0.5,
     arrow_length: float = 1,
     hover_start: str = "start",
-    hover_end: str = "end"
+    hover_end: str = "end",
+    show_box_mean=True,
+    box_points="all"
 ) -> List[go.Box]:
     
     ## Make sure expression columns is in list form
@@ -209,7 +215,8 @@ def make_traces(
                     showlegend=display_legend,
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
-                    hoveron='fills+points'
+                    hoveron='fills+points',
+                    legendgrouptitle_text="Transcript Structure"
                 )
                 exon_traces.append(trace)
 
@@ -238,7 +245,8 @@ def make_traces(
                     showlegend=display_legend,
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
-                    hoveron='fills+points'
+                    hoveron='fills+points',
+                    legendgrouptitle_text="Transcript Structure"
                 )
                 cds_traces.append(trace)
         
@@ -317,6 +325,8 @@ def make_traces(
 
             # List all unique hue values
             unique_hues = expression_matrix[expression_hue].unique(maintain_order=True).to_list()
+            # Create y_dict mapping transcript IDs to y positions
+            offset_dict = {val: i for i, val in enumerate(unique_hues)} 
                     
             # Iterate over expression columns
             for x in expression_columns:
@@ -331,16 +341,19 @@ def make_traces(
                         x=hue_filtered_df[x].to_list(),
                         text=hue_filtered_df[sample_id_column].to_list(),
                         name=str(hue_val),
-                        boxpoints='all',
-                        jitter=0.3,
+                        boxpoints=box_points,
+                        jitter=marker_jitter,
                         pointpos=0,
-                        marker=dict(color=expression_color_map[hue_val]),
                         line=dict(width=expression_line_width),
                         fillcolor=expression_color_map[hue_val],
-                        boxmean=False,
+                        boxmean=show_box_mean,
                         orientation='h',
                         legendgroup=str(hue_val),
-                        showlegend=show_legend
+                        showlegend=show_legend,
+                        offsetgroup=offset_dict[hue_val],
+                        opacity=expression_plot_opacity,
+                        marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
+                        legendgrouptitle_text="Transcript Expression",
                     )
                     x_traces_list.append(box_trace)
 
@@ -370,13 +383,17 @@ def make_traces(
                         text=sample_id,
                         name=transcript,
                         pointpos=0,
-                        boxmean=False,
-                        boxpoints='all',
-                        marker_color="black",
+                        boxmean=show_box_mean,
+                        jitter=marker_jitter,
+                        boxpoints=box_points,
                         line=dict(width=expression_line_width),
                         fillcolor=expression_fill_color,
                         orientation='h',
-                        showlegend=show_legend
+                        showlegend=show_legend,
+                        opacity=expression_plot_opacity,
+                        marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
+                        legendgrouptitle_text="Transcript Expression",
+                        legendgroup="expression"
                     )
                     x_traces_list.extend(box_trace)
 

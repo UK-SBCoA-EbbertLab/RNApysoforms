@@ -176,6 +176,7 @@ def gene_filtering(
             
             ## Only keep transcripts to keep
             filtered_expression_matrix = filtered_expression_matrix.filter(pl.col(transcript_id_column).is_in(transcript_to_keep))
+            filtered_annotation = filtered_annotation.filter(pl.col(transcript_id_column).is_in(transcript_to_keep))
 
             ## Order transcripts and annotation by total counts
             filtered_expression_matrix = filtered_expression_matrix.join(aggregated_df, on=transcript_id_column, how="inner")

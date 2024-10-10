@@ -110,12 +110,14 @@ def make_plot(
         height=height,
         width=width,
         template=template,
-        legend=dict(traceorder="reversed"),
+        legend1=dict(traceorder="reversed", y=0, title=dict(text="text")),
+        legend2=dict(traceorder="reversed", y=100, title=dict(text="TESTING")),
         hoverlabel=dict(font=dict(size=12)),
         margin=dict(l=100, r=50, t=100, b=50),  # Adjust margins as needed
         boxmode='group',
         yaxis=dict(showgrid=True),
-        xaxis=dict(showgrid=True)
+        xaxis=dict(showgrid=True),
+        #legend_tracegroupgap=10000
     )
 
     return fig
