@@ -24,7 +24,7 @@ biotype_colors = {
 
 
 ## Define gene name to filter
-gene_name = "APP"
+gene_name = "RUNX1"
 
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 

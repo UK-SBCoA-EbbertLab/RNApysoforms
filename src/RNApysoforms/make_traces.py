@@ -40,7 +40,7 @@ def make_traces(
     cds_height: float = 0.5,
     arrow_height: float = 0.5,
     arrow_length: float = 1,
-    arrow_size: float = 1,
+    arrow_size: float = 10,
     hover_start: str = "start",
     hover_end: str = "end",
     show_box_mean=True,
@@ -271,22 +271,23 @@ def make_traces(
                 # Add an arrow marker before the intron if it's sufficiently long
                 if abs(row[x_start] - row[x_end]) > size / 15:
                     
-                    if row["strand"] == "+":
+                    if row["strand"] == "-":
                         # Arrow pointing left, placed before the intron start
                         marker_symbol = 'arrow-left'
-                    else:
+                        arrow_x = ((row[x_start] + row[x_end])/2) - abs((row[x_end] - row[x_start])/7)
+                    elif row["strand"] == "+":
                         # Arrow pointing right, placed before the intron end
                         marker_symbol = 'arrow-right'
+                        arrow_x = ((row[x_start] + row[x_end])/2) + abs((row[x_end] - row[x_start])/7)
 
                     arrow_y = y_pos
-                    arrow_x = abs(row[x_start] - row[x_end])
 
                     # Create the scatter trace for the arrow marker
                     trace_arrow = dict(
                         type='scatter',
                         mode='markers',
-                        x=arrow_x,
-                        y=arrow_y,
+                        x=[arrow_x],
+                        y=[arrow_y],
                         marker=dict(symbol=marker_symbol, size=arrow_size, color=line_color),
                         opacity=1,
                         hoverinfo='skip',  # Skip hover info for the arrow
