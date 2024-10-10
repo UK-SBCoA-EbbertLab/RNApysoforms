@@ -41,7 +41,6 @@ rescaled_annotation = pt.shorten_gaps(annotation=annotation, transcript_id_colum
 
 ## Create traces
 traces = pt.make_traces(
-    annotation=rescaled_annotation,
     expression_matrix = counts,
     order_transcripts_by_expression_matrix=True,
     y='transcript_id', 
@@ -56,7 +55,7 @@ traces = pt.make_traces(
     expression_hue=None,
     arrow_height=0.2,
     arrow_length=1.6,
-    expression_plot_style="violin", 
+    expression_plot_style="boxplot", 
     spanmode="hard")
 
 
@@ -65,8 +64,9 @@ fig = pt.make_plot(traces = traces,
                     showlegend = True,
                     height = 900,
                     width = 1800,
-                    boxgap=0,
-                    boxgroupgap=0)
+                    boxgap=0.2,
+                    boxgroupgap=0,
+                    horz_grid_expression_plot=False)
 
 
 

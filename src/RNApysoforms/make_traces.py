@@ -5,8 +5,8 @@ from RNApysoforms.utils import check_df
 import plotly.express as px
 
 def make_traces(
-    annotation: pl.DataFrame,
-    expression_matrix: pl.DataFrame,
+    annotation: pl.DataFrame = None,
+    expression_matrix: pl.DataFrame = None,
     order_transcripts_by_expression_matrix: bool = True,
     y: str = "transcript_id",
     x_start: str = "start",
@@ -98,27 +98,30 @@ def make_traces(
         unique_transcripts = expression_matrix[y].unique(maintain_order=True).to_list()
         # Create y_dict mapping transcript IDs to y positions
         y_dict = {val: i for i, val in enumerate(unique_transcripts)}
-        # Create the sorting expression using match_literal
-        annotation = annotation.with_columns(
-            pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace(
-                {k: i for i, k in enumerate(unique_transcripts)},
-                default=len(unique_transcripts)  # Items not in custom_order will be placed at the end
-            ).alias("sort_key")
-        ).sort("sort_key").drop("sort_key")
+        
+        if annotation is not None:
+            # Create the sorting expression using match_literal
+            annotation = annotation.with_columns(
+                pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace(
+                    {k: i for i, k in enumerate(unique_transcripts)},
+                    default=len(unique_transcripts)  # Items not in custom_order will be placed at the end
+                ).alias("sort_key")
+            ).sort("sort_key").drop("sort_key")
 
     else:
         # Combine transcripts
         unique_transcripts = annotation[y].unique(maintain_order=True).to_list()
         # Create y_dict mapping transcript IDs to y positions
         y_dict = {val: i for i, val in enumerate(unique_transcripts)}
-        # Create the sorting expression using match_literal
-        expression_matrix = expression_matrix.with_columns(
-            pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace(
-                {k: i for i, k in enumerate(unique_transcripts)},
-                default=len(unique_transcripts)  # Items not in custom_order will be placed at the end
-            ).alias("sort_key")
-        ).sort("sort_key").drop("sort_key")
-        
+        if expression_matrix is not None:
+            # Create the sorting expression using match_literal
+            expression_matrix = expression_matrix.with_columns(
+                pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace(
+                    {k: i for i, k in enumerate(unique_transcripts)},
+                    default=len(unique_transcripts)  # Items not in custom_order will be placed at the end
+                ).alias("sort_key")
+            ).sort("sort_key").drop("sort_key")
+            
     # Generate a color map if not provided and 'hue' is specified
     if (annotation_color_map is None) and (annotation is not None) and (annotation_hue is not None):
         values_to_colormap = annotation[annotation_hue].unique(maintain_order=True).to_list()
