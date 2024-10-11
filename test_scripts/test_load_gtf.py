@@ -52,8 +52,6 @@ traces = pt.make_traces(annotation=rescaled_annotation,
     cds_height=0.5,
     annotation_hue="transcript_biotype",
     expression_hue="AD status and sex",
-    arrow_height=0.2,
-    arrow_length=1.6,
     expression_plot_style="boxplot", 
     spanmode="hard")
 
@@ -63,10 +61,7 @@ fig = pt.make_plot(traces = traces,
                     showlegend = True,
                     boxgap=0.2,
                     boxgroupgap=0,
-                    horz_grid_expression_plot=False)
-
-
-
+                    vert_grid_transcript_structure_plot=False)
 
 
 # Show or save the plot
