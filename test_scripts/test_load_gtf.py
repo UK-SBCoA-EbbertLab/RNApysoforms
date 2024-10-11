@@ -29,7 +29,7 @@ gene_name = "APP"
 ## Filter gene name in annotation and counts matrix
 annotation, counts = pt.gene_filtering(annotation=annotation, expression_matrix=counts, 
                                        target_gene=gene_name, transcript_id_column="transcript_id",
-                                       order_by_expression=True, keep_top_expressed_transcripts=5,
+                                       order_by_expression=True, keep_top_expressed_transcripts="all",
                                        order_by_expression_column="counts")
 
 ## Shorten gaps
