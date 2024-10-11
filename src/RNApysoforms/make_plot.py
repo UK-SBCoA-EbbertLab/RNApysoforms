@@ -183,7 +183,7 @@ def make_plot(
             title="",
             row=1,
             col=i,
-            showgrid=horz_grid_transcript_structure_plot
+            showgrid=vert_grid_transcript_structure_plot
         )
         # Customize y-axes for transcript structure plots (show transcript labels)
         fig.update_yaxes(
@@ -194,7 +194,7 @@ def make_plot(
             title="",  # Optional title for y-axis
             row=1,
             col=i,
-            showgrid=vert_grid_transcript_structure_plot
+            showgrid=horz_grid_transcript_structure_plot
         )
 
     # Customize axes and layout for expression data subplots
@@ -205,7 +205,7 @@ def make_plot(
             title="",  # Optional title for x-axis
             row=1,
             col=i,
-            showgrid=horz_grid_expression_plot
+            showgrid=vert_grid_expression_plot
         )
         # Customize y-axes for expression plots (hide tick labels)
         fig.update_yaxes(
@@ -216,7 +216,7 @@ def make_plot(
             row=1,
             col=i,
             range=[-0.8, (len(y_dict) - 0.2)],  # Adjust y-axis range to align with transcript plots
-            showgrid=vert_grid_expression_plot
+            showgrid=horz_grid_expression_plot
         )
 
     # Ensure the first subplot's y-axis shows tick labels (transcript identifiers)

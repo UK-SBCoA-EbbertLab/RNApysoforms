@@ -39,8 +39,6 @@ def make_traces(
     transcript_plot_opacity: float = 1,
     exon_height: float = 0.3,
     cds_height: float = 0.5,
-    arrow_height: float = 0.5,  # Note: Not currently used in the function
-    arrow_length: float = 1,    # Note: Not currently used in the function
     arrow_size: float = 10,
     hover_start: str = "start",
     hover_end: str = "end",
@@ -145,10 +143,6 @@ def make_traces(
         Height of exon rectangles in the plot. Default is 0.3.
     cds_height : float, optional
         Height of CDS rectangles in the plot. Default is 0.5.
-    arrow_height : float, optional
-        Height of the arrow markers for introns. **Note:** Currently not used in the function. Default is 0.5.
-    arrow_length : float, optional
-        Length of the arrow markers for introns. **Note:** Currently not used in the function. Default is 1.
     arrow_size : float, optional
         Size of the arrow markers for introns. Default is 10.
     hover_start : str, optional
