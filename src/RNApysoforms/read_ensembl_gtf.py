@@ -156,8 +156,8 @@ def read_ensembl_gtf(path: str) -> pl.DataFrame:
     # Check for any null values in the DataFrame
     if result_lazy.null_count().select(pl.all().sum()).row(0)[0] > 0:
         raise ValueError(
-            "This GTF file is not consistent with the ENSEMBL GTF format. "
-            "Please see the package vignette on how to format other GTF files or GFF files.")
+            "This GTF file is not consistent with the 2024 ENSEMBL GTF format. "
+            "You can see this vignette with an example on how to handle other GTF formats: <Add link later>")
 
     # Cast 'exon_number' to Int64, handling possible nulls without strict type enforcement
     result_lazy = result_lazy.with_columns([
