@@ -153,18 +153,18 @@ def read_ensembl_gtf(path: str) -> pl.DataFrame:
         "exon_number"
     ])
 
+    results_df = result_lazy.collect()
+
     # Check for any null values in the DataFrame
-    if result_lazy.null_count().select(pl.all().sum()).row(0)[0] > 0:
+    if results_df.null_count().select(pl.all().sum()).row(0)[0] > 0:
         raise ValueError(
             "This GTF file is not consistent with the 2024 ENSEMBL GTF format. "
-            "You can see this vignette with an example on how to handle other GTF formats: <Add link later>")
+            "You can see this vignette with an example on how to handle other GTF formats: <Add link later>"
+        )
 
     # Cast 'exon_number' to Int64, handling possible nulls without strict type enforcement
-    result_lazy = result_lazy.with_columns([
+    results_df = results_df.with_columns([
         pl.col("exon_number").cast(pl.Int64, strict=False)
     ])
 
-    # Collect the DataFrame to execute all lazy operations and get the final result
-    result_df = result_lazy.collect()
-
-    return result_df  # Return the processed Polars DataFrame
+    return results_df  # Return the processed Polars DataFrame
