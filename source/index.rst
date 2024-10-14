@@ -16,6 +16,6 @@ Functions Overview
    RNApysoforms.make_plot
    RNApysoforms.make_traces
    RNApysoforms.read_expression_matrix
-   RNApysoforms.read_gtf
+   RNApysoforms.read_ensembl_gtf
    RNApysoforms.shorten_gaps
    RNApysoforms.to_intron

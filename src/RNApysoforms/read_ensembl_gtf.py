@@ -1,11 +1,11 @@
 import polars as pl
 import os
 
-def read_gtf(path: str) -> pl.DataFrame:
+def read_ensembl_gtf(path: str) -> pl.DataFrame:
     """
     Reads a GTF (Gene Transfer Format) file and returns the data as a Polars DataFrame.
 
-    This function parses a GTF file to extract genomic features, specifically focusing on
+    This function parses an ENSEMBL GTF file to extract genomic features, specifically focusing on
     'exon' and 'CDS' (Coding DNA Sequence) feature types. It extracts key attributes from the
     'attributes' column, such as `gene_id`, `gene_name`, `transcript_id`, `transcript_name`,
     `transcript_biotype`, and `exon_number`. The function performs several validation checks
@@ -14,7 +14,7 @@ def read_gtf(path: str) -> pl.DataFrame:
     feature, suitable for downstream genomic analyses.
 
     **Expected Columns in GTF File:**
-    The GTF file is expected to have no header and the following tab-separated columns:
+    The GTF file is expected to be an ENSEMBL GTF file, have no header and the following tab-separated columns:
         1. `seqnames` (chromosome or sequence name)
         2. `source` (annotation source)
         3. `type` (feature type, e.g., 'exon', 'CDS')
@@ -28,7 +28,7 @@ def read_gtf(path: str) -> pl.DataFrame:
     Parameters
     ----------
     path : str
-        The file path to the GTF file to be read. The file must have a '.gtf' extension.
+        The file path to the ENSEMBL GTF file to be read. The file must have a '.gtf' extension.
 
     Returns
     -------
@@ -152,6 +152,12 @@ def read_gtf(path: str) -> pl.DataFrame:
         "end",
         "exon_number"
     ])
+
+    # Check for any null values in the DataFrame
+    if result_lazy.null_count().select(pl.all().sum()).row(0)[0] > 0:
+        raise ValueError(
+            "This GTF file is not consistent with the ENSEMBL GTF format. "
+            "Please see the package vignette on how to format other GTF files or GFF files.")
 
     # Cast 'exon_number' to Int64, handling possible nulls without strict type enforcement
     result_lazy = result_lazy.with_columns([
