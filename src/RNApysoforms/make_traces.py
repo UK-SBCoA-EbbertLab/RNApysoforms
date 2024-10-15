@@ -314,7 +314,7 @@ def make_traces(
         if annotation is not None:
             # Sort 'annotation' DataFrame based on transcript order
             annotation = annotation.with_columns(
-                pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace(
+                pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace_strict(
                     {k: i for i, k in enumerate(unique_transcripts)},
                     default=len(unique_transcripts)  # Items not in custom_order will be placed at the end
                 ).alias("sort_key")
@@ -327,7 +327,7 @@ def make_traces(
         if expression_matrix is not None:
             # Sort 'expression_matrix' DataFrame based on transcript order
             expression_matrix = expression_matrix.with_columns(
-                pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace(
+                pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace_strict(
                     {k: i for i, k in enumerate(unique_transcripts)},
                     default=len(unique_transcripts)  # Items not in custom_order will be placed at the end
                 ).alias("sort_key")

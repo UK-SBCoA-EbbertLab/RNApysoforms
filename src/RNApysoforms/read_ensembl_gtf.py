@@ -116,7 +116,7 @@ def read_ensembl_gtf(path: str) -> pl.DataFrame:
         has_header=False,
         comment_prefix="#",       # Skip comment lines starting with '#'
         new_columns=column_names, # Assign column names since GTF files have no header
-        dtypes=dtypes             # Specify data types for each column
+        schema_overrides=dtypes             # Specify data types for each column
     )
 
     # Filter for features of interest: 'exon' and 'CDS'
