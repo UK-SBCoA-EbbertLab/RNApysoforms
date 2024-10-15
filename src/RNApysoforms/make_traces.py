@@ -352,6 +352,14 @@ def make_traces(
 
     # Process 'annotation' to create transcript structure traces
     if annotation is not None:
+        
+        ## Check if there are any exons
+        exons_exist = True
+        if annotation.filter(pl.col("type") == "exon").is_empty():
+            exons_exist = False
+        
+        print(str(exons_exist))
+
         # Initialize lists to store traces for different feature types
         cds_traces = []      # Stores traces for CDS (coding sequences)
         intron_traces = []   # Stores traces for introns
@@ -374,6 +382,7 @@ def make_traces(
 
         # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
         for row in annotation.iter_rows(named=True):
+
             y_pos = y_dict[row[y]]  # Get the corresponding y-position for the current transcript
 
             # Determine the fill color and legend name based on 'annotation_hue'
@@ -405,6 +414,7 @@ def make_traces(
 
             # Create trace based on the feature type
             if row["type"] == exon:
+
                 # Define coordinates for the exon rectangle
                 x0 = row[x_start]
                 x1 = row[x_end]
@@ -434,9 +444,16 @@ def make_traces(
                 # Prevent duplicate legend entries
                 if hue_name not in displayed_hue_names:
                     displayed_hue_names.append(hue_name)
-                transcript_plot_legend_title = ""  # Reset legend title after first use
+                if display_legend:
+                    transcript_plot_legend_title = ""  # Reset legend title after first use
 
             elif row["type"] == cds:
+
+                if exons_exist:
+                    cds_legend_title = ""
+                else: 
+                    cds_legend_title = transcript_plot_legend_title
+
                 # Define coordinates for the CDS rectangle
                 x0 = row[x_start]
                 x1 = row[x_end]
@@ -460,13 +477,15 @@ def make_traces(
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
                     hoveron='fills+points',
-                    legendgrouptitle_text=transcript_plot_legend_title
+                    legendgrouptitle_text=cds_legend_title
                 )
                 cds_traces.append(trace)
                 # Prevent duplicate legend entries
                 if hue_name not in displayed_hue_names:
                     displayed_hue_names.append(hue_name)
-                transcript_plot_legend_title = ""  # Reset legend title after first use
+                
+                if not exons_exist:
+                    transcript_plot_legend_title = ""  # Reset legend title after first use
 
             elif row["type"] == intron:
                 # Define coordinates for the intron line

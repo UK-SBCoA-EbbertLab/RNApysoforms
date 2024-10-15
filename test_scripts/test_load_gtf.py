@@ -52,7 +52,7 @@ traces = pt.make_traces(annotation=rescaled_annotation,
     cds_height=0.5,
     arrow_size=9,
     annotation_hue="transcript_biotype",
-    expression_hue="AD status and sex",
+    expression_hue="AD status",
     expression_plot_style="boxplot", 
     spanmode="hard")
 
