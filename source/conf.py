@@ -16,6 +16,7 @@ release = '0.1.0-dev'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    'nbsphinx',                    # Jupyter notebooks vignettes
     'sphinx.ext.autodoc',          # Automatically document your code
     'sphinx.ext.napoleon',         # Support for NumPy and Google style docstrings
     'sphinx.ext.viewcode',         # Add links to highlighted source code
@@ -27,11 +28,17 @@ extensions = [
 templates_path = ['_templates']
 
 # Patterns to exclude when looking for source files
-exclude_patterns = []
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # Automatically generate autosummary pages
 autosummary_generate = True
 add_module_names = True  # Display only function names without the module prefix
+
+# Don't re-run notebooks when building
+nbsphinx_execute = 'never'
+
+# Add Markdown support
+extensions.append('myst_parser')
 
 
 # -- Options for HTML output -------------------------------------------------

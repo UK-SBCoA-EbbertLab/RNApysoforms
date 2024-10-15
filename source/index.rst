@@ -19,3 +19,14 @@ Functions Overview
    RNApysoforms.read_ensembl_gtf
    RNApysoforms.shorten_gaps
    RNApysoforms.to_intron
+
+
+Example Vignettes
+================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples:
+
+   examples/vignette1.ipynb
+   examples/vignette2.ipynb
