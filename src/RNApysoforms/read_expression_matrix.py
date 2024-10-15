@@ -170,7 +170,7 @@ def read_expression_matrix(
     # Transform the expression DataFrame into long format for expression_measure_name
     expression_long = expression_df.unpivot(
         index=feature_id_columns,
-        value_vars=expression_columns,
+        on=expression_columns,
         variable_name=metadata_sample_id_column,
         value_name=expression_measure_name
     )
@@ -184,7 +184,7 @@ def read_expression_matrix(
 
         cpm_long = expression_df.unpivot(
             index=feature_id_columns,
-            value_vars=cpm_columns,
+            on=cpm_columns,
             variable_name=metadata_sample_id_column,
             value_name="CPM"
         ).with_columns(
@@ -205,7 +205,7 @@ def read_expression_matrix(
 
         relative_abundance_long = expression_df.unpivot(
             index=feature_id_columns,
-            value_vars=relative_abundance_columns,
+            on=relative_abundance_columns,
             variable_name=metadata_sample_id_column,
             value_name="relative_abundance"
         ).with_columns(
