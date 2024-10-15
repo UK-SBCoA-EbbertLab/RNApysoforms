@@ -84,5 +84,8 @@ venv.bak/
 raw_data/
 figures/
 
+# Local tests
+local_tests/
+
 ## Don't export html files
 *.html
