@@ -7,11 +7,11 @@ import plotly.express as px
 
 
 ## Read gtf
-annotation = pt.read_ensembl_gtf("./raw_data/Homo_sapiens.GRCh38.110.gtf")
+annotation = pt.read_ensembl_gtf("../../test_data/Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
 
 
-counts = pt.read_expression_matrix(expression_matrix_path="./test_data/counts_matrix_chr21_and_Y.tsv", 
-                               metadata_path="./test_data/sample_metadata.tsv",
+counts = pt.read_expression_matrix(expression_matrix_path="../../test_data/counts_matrix_chr21_and_Y.tsv", 
+                               metadata_path="../../test_data/sample_metadata.tsv",
                                cpm_normalization=True, relative_abundance=True)
 
 
