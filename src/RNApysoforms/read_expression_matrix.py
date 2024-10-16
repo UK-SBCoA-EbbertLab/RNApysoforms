@@ -247,9 +247,11 @@ def read_expression_matrix(
 
         warning_message = ""
         if metadata_sample_ids_not_in_expression:
-            warning_message += f"The following sample IDs are present in metadata but not in expression data: {list(metadata_sample_ids_not_in_expression)}. "
+            warning_message += (f"The following sample IDs are present in metadata but not in expression data: {list(metadata_sample_ids_not_in_expression)}. "
+                                "Only returning sample IDs that are present in both.")
         if expression_sample_ids_not_in_metadata:
-            warning_message += f"The following sample IDs are present in expression data but not in metadata: {list(expression_sample_ids_not_in_metadata)}."
+            warning_message += (f"The following sample IDs are present in expression data but not in metadata: {list(expression_sample_ids_not_in_metadata)}. "
+                                "Only returning sample IDs that are present in both.")
         if warning_message:
             warnings.warn(warning_message)
 
@@ -257,7 +259,7 @@ def read_expression_matrix(
         long_expression_df = long_expression_df.join(
             metadata_df,
             on=metadata_sample_id_column,
-            how="left"
+            how="inner"
         )
 
     # Return the final long-format DataFrame
