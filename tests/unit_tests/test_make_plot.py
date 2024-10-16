@@ -254,828 +254,579 @@ def test_make_plot_custom_parameters():
         assert fig.layout.annotations[i].font.size == 16  # Default subplot_title_font_size
 
 
-# def test_make_plot_invalid_traces_format():
-#     """
-#     Test that ValueError is raised when traces are not in the expected format.
-#     """
-#     # Traces not as list of lists
-#     traces = "invalid_traces_format"
-
-#     with pytest.raises(AttributeError):
-#         make_plot(traces=traces)
-
-
-# def test_make_plot_hovermode_setting():
-#     """
-#     Test that hovermode is set correctly in the figure.
-#     """
-#     traces = create_sample_traces()
-
-#     fig = make_plot(
-#         traces=traces,
-#         hovermode="x"
-#     )
-
-#     assert fig.layout.hovermode == "x"
-
-
-# def test_make_plot_non_go_traces():
-#     """
-#     Test that dictionary traces (e.g., shapes or annotations) are handled correctly.
-#     """
-#     # Create transcript traces as dictionaries (e.g., shapes)
-#     transcript_traces = [
-#         dict(
-#             type='scatter',
-#             x=[1, 2, 3],
-#             y=[0, 1, 0],
-#             mode='lines',
-#             name='Transcript1'
-#         ),
-#         dict(
-#             type='scatter',
-#             x=[2, 3, 4],
-#             y=[1, 2, 1],
-#             mode='lines',
-#             name='Transcript2'
-#         )
-#     ]
-
-#     # Expression data traces as go.Box
-#     expression_traces = [
-#         go.Box(
-#             y=[10, 15, 13, 17],
-#             name='Expression1'
-#         )
-#     ]
-
-#     y_dict = {'Transcript1': 0, 'Transcript2': 1}
-
-#     traces = [[transcript_traces], [expression_traces], y_dict]
-
-#     fig = make_plot(traces=traces)
-
-#     # Verify the number of traces
-#     assert len(fig.data) == 3  # 2 transcript traces (as dicts converted to Scatter) + 1 expression trace
-
-#     # Verify that all traces are present
-#     trace_names = [trace.name for trace in fig.data]
-#     assert 'Transcript1' in trace_names
-#     assert 'Transcript2' in trace_names
-#     assert 'Expression1' in trace_names
-
-
-# def test_make_plot_keep_top_expressed_transcripts():
-#     """
-#     Test that only the top N expressed transcripts are kept when specified.
-#     """
-#     # This function does not have a parameter for keeping top N transcripts.
-#     # It seems the 'make_plot' function does not handle filtering transcripts.
-#     # Therefore, this test might not be applicable.
-#     # If 'make_plot' had such functionality, implement accordingly.
-#     pass  # Placeholder for future implementation if applicable
-
-
-# def test_make_plot_keep_top_expressed_transcripts_exceeds_available():
-#     """
-#     Test that no error occurs when the number of transcripts exceeds available transcripts.
-#     """
-#     # Similar to the previous test, 'make_plot' does not handle keeping top N transcripts.
-#     pass  # Placeholder for future implementation if applicable
-
-
-# def test_make_plot_transcript_labels_visibility():
-#     """
-#     Test that transcript labels are correctly shown or hidden based on parameters.
-#     """
-#     traces = create_sample_traces()
-
-#     # Create plot with default settings (labels shown)
-#     fig = make_plot(traces=traces)
-
-#     # Verify that y-axis tick labels are present
-#     yaxis = fig.layout.yaxis
-#     assert yaxis.showticklabels == True
-#     assert yaxis.ticktext == ['Transcript1', 'Transcript2']
-#     assert yaxis.tickvals == [0, 1]
-
-#     # Create plot with hidden y-axis tick labels
-#     fig_hidden = make_plot(
-#         traces=traces,
-#         vert_grid_transcript_structure_plot=False,
-#         horz_grid_transcript_structure_plot=False
-#     )
-
-#     # Verify that y-axis tick labels are still present (since function logic keeps them)
-#     yaxis_hidden = fig_hidden.layout.yaxis
-#     assert yaxis_hidden.showticklabels == True
-#     assert yaxis_hidden.ticktext == ['Transcript1', 'Transcript2']
-#     assert yaxis_hidden.tickvals == [0, 1]
-
-
-# def test_make_plot_custom_column_names():
-#     """
-#     Test creating a plot with custom transcript and expression identifiers.
-#     """
-#     traces = create_custom_traces()
-
-#     subplot_titles = ["Custom Transcript Structure", "Custom Expression Levels"]
-
-#     fig = make_plot(
-#         traces=traces,
-#         subplot_titles=subplot_titles,
-#         height=700,
-#         width=1400,
-#         hovermode="y unified"
-#     )
-
-#     # Verify subplot titles
-#     for i, title in enumerate(subplot_titles):
-#         assert fig.layout.annotations[i].text == title
-#         assert fig.layout.annotations[i].font.size == 16  # Default subplot_title_font_size
-
-#     # Verify hovermode
-#     assert fig.layout.hovermode == "y unified"
-
-#     # Verify trace names
-#     trace_names = [trace.name for trace in fig.data]
-#     assert 'CustomTranscript1' in trace_names
-#     assert 'CustomTranscript2' in trace_names
-#     assert 'CustomExpression1' in trace_names
-#     assert 'CustomExpression2' in trace_names
-
-
-# def test_make_plot_missing_expression_column():
-#     """
-#     Since the 'make_plot' function does not directly handle DataFrames or columns,
-#     this test is not applicable. It would be relevant if 'make_plot' processed
-#     DataFrame inputs.
-#     """
-#     pass  # Placeholder for future implementation if applicable
-
-
-# def test_make_plot_shapes_and_annotations():
-#     """
-#     Test that shapes and annotations passed as dicts are correctly added to the figure.
-#     """
-#     # Create shapes as dictionaries
-#     shapes = [
-#         dict(
-#             type='rect',
-#             x0=1, y0=0,
-#             x1=3, y1=1,
-#             line=dict(color='RoyalBlue'),
-#             fillcolor='LightSkyBlue',
-#             opacity=0.5
-#         ),
-#         dict(
-#             type='rect',
-#             x0=2, y0=1,
-#             x1=4, y1=2,
-#             line=dict(color='Red'),
-#             fillcolor='Salmon',
-#             opacity=0.5
-#         )
-#     ]
-
-#     # Expression data traces as go.Box
-#     expression_traces = [
-#         go.Box(
-#             y=[10, 15, 13, 17],
-#             name='Expression1'
-#         )
-#     ]
-
-#     y_dict = {'Transcript1': 0, 'Transcript2': 1}
-
-#     traces = [[shapes], [expression_traces], y_dict]
-
-#     fig = make_plot(traces=traces)
-
-#     # Verify that shapes are added to the figure layout
-#     assert len(fig.layout.shapes) == 2
-#     assert fig.layout.shapes[0]['type'] == 'rect'
-#     assert fig.layout.shapes[1]['type'] == 'rect'
-
-
-# def test_make_plot_invalid_hovermode():
-#     """
-#     Test that the function handles invalid hovermode values gracefully.
-#     """
-#     traces = create_sample_traces()
-
-#     with pytest.warns(UserWarning):
-#         fig = make_plot(
-#             traces=traces,
-#             hovermode="invalid_hovermode"
-#         )
-#         # Plotly may default to 'closest' or issue a warning
-#         assert fig.layout.hovermode == "invalid_hovermode"  # Plotly may accept it without error
-
-
-# def test_make_plot_large_number_of_transcripts():
-#     """
-#     Test plotting with a large number of transcripts to ensure scalability.
-#     """
-#     # Create a large number of transcript traces
-#     transcript_traces = []
-#     expression_traces = []
-#     y_dict = {}
-#     num_transcripts = 50
-
-#     for i in range(num_transcripts):
-#         transcript = go.Scatter(
-#             x=[1, 2, 3],
-#             y=[i, i + 1, i],
-#             mode='lines',
-#             name=f'Transcript{i}'
-#         )
-#         transcript_traces.append(transcript)
-
-#         expression = go.Box(
-#             y=[10 + i, 15 + i, 13 + i, 17 + i],
-#             name=f'Expression{i}'
-#         )
-#         expression_traces.append(expression)
-
-#         y_dict[f'Transcript{i}'] = i
-
-#     traces = [[transcript_traces], [expression_traces], y_dict]
-
-#     fig = make_plot(
-#         traces=traces,
-#         subplot_titles=["Transcript Structures", "Expression Levels"] * 25,  # Example for multiple subplots
-#         height=2000,
-#         width=4000
-#     )
-
-#     # Verify the number of traces
-#     assert len(fig.data) == 100  # 50 transcript + 50 expression traces
-
-#     # Verify y_dict entries
-#     for i in range(num_transcripts):
-#         assert f'Transcript{i}' in y_dict
-#         assert y_dict[f'Transcript{i}'] == i
-
-
-# def test_make_plot_empty_y_dict():
-#     """
-#     Test that a ValueError is raised when y_dict is empty.
-#     """
-#     transcript_traces = [
-#         go.Scatter(
-#             x=[1, 2, 3],
-#             y=[0, 1, 0],
-#             mode='lines',
-#             name='Transcript1'
-#         )
-#     ]
-
-#     expression_traces = [
-#         go.Box(
-#             y=[10, 15, 13, 17],
-#             name='Expression1'
-#         )
-#     ]
-
-#     y_dict = {}  # Empty y_dict
-
-#     traces = [[transcript_traces], [expression_traces], y_dict]
-
-#     fig = make_plot(traces=traces)
-
-#     # Verify that yaxis tickvals and ticktext are empty
-#     yaxis = fig.layout.yaxis
-#     assert yaxis.tickvals == []
-#     assert yaxis.ticktext == []
-
-
-# def test_make_plot_inconsistent_y_dict():
-#     """
-#     Test that the function handles inconsistencies between traces and y_dict.
-#     For example, a transcript trace not present in y_dict.
-#     """
-#     # Create transcript traces
-#     transcript_traces = [
-#         go.Scatter(
-#             x=[1, 2, 3],
-#             y=[0, 1, 0],
-#             mode='lines',
-#             name='Transcript1'
-#         ),
-#         go.Scatter(
-#             x=[2, 3, 4],
-#             y=[1, 2, 1],
-#             mode='lines',
-#             name='Transcript2'
-#         )
-#     ]
-
-#     # Expression data traces
-#     expression_traces = [
-#         go.Box(
-#             y=[10, 15, 13, 17],
-#             name='Expression1'
-#         )
-#     ]
-
-#     # y_dict missing 'Transcript2'
-#     y_dict = {'Transcript1': 0}
-
-#     traces = [[transcript_traces], [expression_traces], y_dict]
-
-#     fig = make_plot(traces=traces)
-
-#     # Verify that 'Transcript2' y-axis is not mapped, which might cause it to default
-#     # Depending on implementation, Plotly may assign default y-axis values
-#     # Here, we can check that yaxis.ticktext only includes 'Transcript1'
-#     yaxis = fig.layout.yaxis
-#     assert yaxis.ticktext == ['Transcript1']
-#     assert yaxis.tickvals == [0]
-
-
-# def test_make_plot_shapes_only():
-#     """
-#     Test creating a plot with only shapes (no actual data traces).
-#     """
-#     # Create shapes as dictionaries
-#     shapes = [
-#         dict(
-#             type='line',
-#             x0=0, y0=0,
-#             x1=1, y1=1,
-#             line=dict(color='Blue', width=2)
-#         )
-#     ]
-
-#     # Empty expression traces
-#     expression_traces = []
-
-#     y_dict = {'Transcript1': 0}
-
-#     traces = [[shapes], [expression_traces], y_dict]
-
-#     fig = make_plot(traces=traces)
-
-#     # Verify that shapes are added
-#     assert len(fig.layout.shapes) == 1
-
-#     # Verify that no expression traces are present
-#     assert len(fig.data) == 0
-
-
-# def test_make_plot_annotations_only():
-#     """
-#     Test creating a plot with only annotations (no actual data traces).
-#     """
-#     # Create annotations as dictionaries
-#     annotations = [
-#         dict(
-#             x=2,
-#             y=1,
-#             xref='x',
-#             yref='y',
-#             text='Annotation1',
-#             showarrow=True,
-#             arrowhead=7
-#         )
-#     ]
-
-#     # Empty expression traces
-#     expression_traces = []
-
-#     y_dict = {'Transcript1': 0}
-
-#     traces = [[annotations], [expression_traces], y_dict]
-
-#     fig = make_plot(traces=traces)
-
-#     # Verify that annotations are added
-#     assert len(fig.layout.annotations) >= 2  # subplot_titles + custom annotations
-
-#     # Verify that no expression traces are present
-#     assert len(fig.data) == 0
-
-
-# def test_make_plot_invalid_trace_type():
-#     """
-#     Test that the function handles invalid trace types gracefully.
-#     """
-#     # Create invalid trace (e.g., integer instead of go.Trace or dict)
-#     transcript_traces = [123]
-
-#     expression_traces = [
-#         go.Box(
-#             y=[10, 15, 13, 17],
-#             name='Expression1'
-#         )
-#     ]
-
-#     y_dict = {'Transcript1': 0}
-
-#     traces = [[transcript_traces], [expression_traces], y_dict]
-
-#     with pytest.raises(AttributeError):
-#         make_plot(traces=traces)
-
-
-# def test_make_plot_no_expression_traces():
-#     """
-#     Test creating a plot with only transcript traces and no expression traces.
-#     """
-#     transcript_traces = [
-#         go.Scatter(
-#             x=[1, 2, 3],
-#             y=[0, 1, 0],
-#             mode='lines',
-#             name='Transcript1'
-#         )
-#     ]
-
-#     expression_traces = []  # No expression traces
-
-#     y_dict = {'Transcript1': 0}
-
-#     traces = [[transcript_traces], [expression_traces], y_dict]
-
-#     fig = make_plot(traces=traces)
-
-#     # Verify the number of traces
-#     assert len(fig.data) == 1  # Only transcript trace
-
-#     # Verify that y_dict is correctly applied
-#     yaxis = fig.layout.yaxis
-#     assert yaxis.ticktext == ['Transcript1']
-#     assert yaxis.tickvals == [0]
-
-
-# def test_make_plot_invalid_hover_font_size():
-#     """
-#     Test that the function handles invalid hover_font_size values.
-#     """
-#     traces = create_sample_traces()
-
-#     # Pass a negative font size
-#     with pytest.raises(ValueError):
-#         make_plot(
-#             traces=traces,
-#             hover_font_size=-5
-#         )
-
-
-# def test_make_plot_invalid_template():
-#     """
-#     Test that the function handles invalid template values gracefully.
-#     """
-#     traces = create_sample_traces()
-
-#     fig = make_plot(
-#         traces=traces,
-#         template="non_existent_template"
-#     )
-
-#     # Plotly may default to a standard template if the specified one doesn't exist
-#     assert fig.layout.template == "non_existent_template"  # Plotly accepts it without error
-
-
-# def test_make_plot_invalid_boxgap_values():
-#     """
-#     Test that the function handles invalid boxgap and boxgroupgap values.
-#     """
-#     traces = create_sample_traces()
-
-#     fig = make_plot(
-#         traces=traces,
-#         boxgap=-0.5,  # Invalid negative gap
-#         boxgroupgap=-0.5
-#     )
-
-#     # Verify that boxgap and boxgroupgap are set as provided
-#     assert fig.layout.boxgap == -0.5
-#     assert fig.layout.boxgroupgap == -0.5
-
-
-# def test_make_plot_large_dimensions():
-#     """
-#     Test creating a plot with extremely large dimensions.
-#     """
-#     traces = create_sample_traces()
-
-#     fig = make_plot(
-#         traces=traces,
-#         height=10000,
-#         width=20000
-#     )
-
-#     assert fig.layout.height == 10000
-#     assert fig.layout.width == 20000
-
-
-# def test_make_plot_minimum_dimensions():
-#     """
-#     Test creating a plot with minimum acceptable dimensions.
-#     """
-#     traces = create_sample_traces()
-
-#     fig = make_plot(
-#         traces=traces,
-#         height=100,
-#         width=100
-#     )
-
-#     assert fig.layout.height == 100
-#     assert fig.layout.width == 100
-
-
-# def test_make_plot_shared_yaxes():
-#     """
-#     Test that y-axes are shared across subplots.
-#     """
-#     traces = create_sample_traces()
-
-#     fig = make_plot(
-#         traces=traces
-#     )
-
-#     # Verify that y-axes are shared
-#     # In Plotly, shared y-axes are handled internally; we can verify that tickvals and ticktext are consistent
-#     yaxis1 = fig.layout.yaxis
-#     yaxis2 = fig.layout.yaxis2
-
-#     assert yaxis1.tickvals == yaxis2.tickvals
-#     assert yaxis1.ticktext == yaxis2.ticktext
-
-
-# def test_make_plot_default_template():
-#     """
-#     Test that the default template is applied when none is specified.
-#     """
-#     traces = create_sample_traces()
-
-#     fig = make_plot(
-#         traces=traces
-#     )
-
-
-# def test_make_plot_custom_template():
-#     """
-#     Test that a custom template is applied correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_template = "ggplot2"
-
-#     fig = make_plot(
-#         traces=traces,
-#         template=custom_template
-#     )
-
-
-# def test_make_plot_legend_visibility():
-#     """
-#     Test that the legend visibility is controlled by the 'showlegend' parameter.
-#     """
-#     traces = create_sample_traces()
-
-#     # Create plot with legend shown
-#     fig_with_legend = make_plot(
-#         traces=traces,
-#         showlegend=True
-#     )
-
-#     # Create plot with legend hidden
-#     fig_without_legend = make_plot(
-#         traces=traces,
-#         showlegend=False
-#     )
-
-#     assert fig_with_legend.layout.showlegend == True
-#     assert fig_without_legend.layout.showlegend == False
-
-
-# def test_make_plot_hover_label_font_size():
-#     """
-#     Test that the hover label font size is set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_hover_font_size = 20
-
-#     fig = make_plot(
-#         traces=traces,
-#         hover_font_size=custom_hover_font_size
-#     )
-
-#     assert fig.layout.hoverlabel.font.size == custom_hover_font_size
-
-
-# def test_make_plot_boxmode_group():
-#     """
-#     Test that the boxmode is set to 'group'.
-#     """
-#     traces = create_sample_traces()
-
-#     fig = make_plot(
-#         traces=traces
-#     )
-
-#     assert fig.layout.boxmode == 'group'
-
-
-# def test_make_plot_violinmode_group():
-#     """
-#     Test that the violinmode is set to 'group'.
-#     """
-#     # Create violin traces
-#     transcript_traces = [
-#         go.Scatter(
-#             x=[1, 2, 3],
-#             y=[0, 1, 0],
-#             mode='lines',
-#             name='Transcript1'
-#         )
-#     ]
-
-#     violin_traces = [
-#         go.Violin(
-#             y=[10, 15, 13, 17],
-#             name='Violin1'
-#         )
-#     ]
-
-#     y_dict = {'Transcript1': 0}
-
-#     traces = [[transcript_traces], [violin_traces], y_dict]
-
-#     fig = make_plot(
-#         traces=traces
-#     )
-
-#     assert fig.layout.violinmode == 'group'
-
-
-# def test_make_plot_margins():
-#     """
-#     Test that the plot margins are set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_margins = dict(l=150, r=100, t=150, b=100)
-
-#     fig = make_plot(
-#         traces=traces,
-#         margin=custom_margins
-#     )
-
-#     assert fig.layout.margin == custom_margins
-
-
-# def test_make_plot_title_presence():
-#     """
-#     Test that the overall title is set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     # Default title is empty
-#     fig_default = make_plot(traces=traces)
-#     assert fig_default.layout.title.text == ""
-
-#     # Set a custom title
-#     custom_title = "Custom Overall Title"
-#     fig_custom = make_plot(
-#         traces=traces,
-#         title_text=custom_title
-#     )
-#     assert fig_custom.layout.title.text == custom_title
-
-
-# def test_make_plot_invalid_trace_content():
-#     """
-#     Test that invalid content within traces raises appropriate errors.
-#     """
-#     # Create a trace with invalid content (e.g., missing 'y' attribute)
-#     invalid_transcript_traces = [
-#         go.Scatter(
-#             x=[1, 2, 3],
-#             mode='lines',
-#             name='Transcript1'
-#         )
-#     ]
-
-#     expression_traces = [
-#         go.Box(
-#             y=[10, 15, 13, 17],
-#             name='Expression1'
-#         )
-#     ]
-
-#     y_dict = {'Transcript1': 0}
-
-#     traces = [[invalid_transcript_traces], [expression_traces], y_dict]
-
-#     with pytest.raises(KeyError):
-#         make_plot(traces=traces)
-
-
-# def test_make_plot_legend_font_size():
-#     """
-#     Test that the legend font size is set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_legend_font_size = 18
-
-#     fig = make_plot(
-#         traces=traces,
-#         legend_font_size=custom_legend_font_size
-#     )
-
-#     assert fig.layout.legend.font.size == custom_legend_font_size
-
-
-# def test_make_plot_xaxis_font_size():
-#     """
-#     Test that the x-axis font size is set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_xaxis_font_size = 14
-
-#     fig = make_plot(
-#         traces=traces,
-#         xaxis_font_size=custom_xaxis_font_size
-#     )
-
-#     # Verify x-axis font size for all x-axes
-#     for axis in ['xaxis', 'xaxis2']:
-#         if axis in fig.layout:
-#             assert fig.layout[axis].tickfont.size == custom_xaxis_font_size
-
-
-# def test_make_plot_yaxis_font_size():
-#     """
-#     Test that the y-axis font size is set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_yaxis_font_size = 14
-
-#     fig = make_plot(
-#         traces=traces,
-#         yaxis_font_size=custom_yaxis_font_size
-#     )
-
-#     # Verify y-axis font size for all y-axes
-#     for axis in ['yaxis', 'yaxis2']:
-#         if axis in fig.layout:
-#             assert fig.layout[axis].tickfont.size == custom_yaxis_font_size
-
-
-# def test_make_plot_subtitle_font_size():
-#     """
-#     Test that the subplot title font size is set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_subtitle_font_size = 20
-
-#     fig = make_plot(
-#         traces=traces,
-#         subplot_title_font_size=custom_subtitle_font_size
-#     )
-
-#     for annotation in fig.layout.annotations:
-#         assert annotation.font.size == custom_subtitle_font_size
-
-
-# def test_make_plot_legend_title_font_size():
-#     """
-#     Test that the legend title font size is set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_legend_title_font_size = 20
-
-#     fig = make_plot(
-#         traces=traces,
-#         legend_title_font_size=custom_legend_title_font_size
-#     )
-
-#     if fig.layout.legend_title:
-#         assert fig.layout.legend_title.font.size == custom_legend_title_font_size
-
-
-# def test_make_plot_hover_font_size():
-#     """
-#     Test that the hover label font size is set correctly.
-#     """
-#     traces = create_sample_traces()
-
-#     custom_hover_font_size = 18
-
-#     fig = make_plot(
-#         traces=traces,
-#         hover_font_size=custom_hover_font_size
-#     )
-
-#     assert fig.layout.hoverlabel.font.size == custom_hover_font_size
+def test_make_plot_invalid_traces_format():
+    """
+    Test that ValueError is raised when traces are not in the expected format.
+    """
+    # Traces not as list of lists
+    traces = "invalid_traces_format"
+
+    with pytest.raises(ValueError):
+        make_plot(traces=traces)
+
+
+def test_make_plot_hovermode_setting():
+    """
+    Test that hovermode is set correctly in the figure.
+    """
+    traces = create_sample_traces()
+
+    fig = make_plot(
+        traces=traces,
+        hovermode="x"
+    )
+
+    assert fig.layout.hovermode == "x"
+
+
+def test_make_plot_non_go_traces():
+    """
+    Test that dictionary traces (e.g., shapes or annotations) are handled correctly.
+    """
+    # Create transcript traces as dictionaries (e.g., shapes)
+    transcript_traces = [
+        dict(
+            x=[1, 200, 200, 1, 1],
+            y=[-0.4, -0.4, 0.4, 0.4, -0.4],
+            mode='lines',
+            name='Transcript1',
+            type='scatter'
+        ),
+        dict(
+            x=[300, 500, 500, 300, 300],
+            y=[0.6, 0.6, 1.4, 1.4, 0.6],
+            mode='lines',
+            name='Transcript2',
+            type='scatter'
+        )
+    ]
+
+    # Expression data traces (e.g., Box plots)
+    expression_traces = [
+        go.Box(
+            y=[0, 0, 0, 0],
+            x=[10, 15, 13, 17],
+            name='Transcript1'
+        )
+    ]
+
+
+
+    y_dict = {'Transcript1': 0, 'Transcript2': 1}
+
+    traces = [transcript_traces, expression_traces, y_dict]
+
+    fig = make_plot(traces=traces)
+
+    # Verify the number of traces
+    assert len(fig.data) == 3  # 2 transcript traces (as dicts converted to Scatter) + 1 expression trace
+
+    # Verify that all traces are present
+    trace_names = [trace.name for trace in fig.data]
+    assert 'Transcript1' in trace_names
+    assert 'Transcript2' in trace_names
+    assert 'Transcript1' in trace_names
+
+
+def test_make_plot_keep_top_expressed_transcripts():
+    """
+    Test that only the top N expressed transcripts are kept when specified.
+    """
+    # This function does not have a parameter for keeping top N transcripts.
+    # It seems the 'make_plot' function does not handle filtering transcripts.
+    # Therefore, this test might not be applicable.
+    # If 'make_plot' had such functionality, implement accordingly.
+    pass  # Placeholder for future implementation if applicable
+
+
+def test_make_plot_keep_top_expressed_transcripts_exceeds_available():
+    """
+    Test that no error occurs when the number of transcripts exceeds available transcripts.
+    """
+    # Similar to the previous test, 'make_plot' does not handle keeping top N transcripts.
+    pass  # Placeholder for future implementation if applicable
+
+
+def test_make_plot_transcript_labels_visibility():
+    """
+    Test that transcript labels are correctly shown or hidden based on parameters.
+    """
+    traces = create_sample_traces()
+
+    # Create plot with default settings (labels shown)
+    fig = make_plot(traces=traces)
+
+    # Verify that y-axis tick labels are present
+    yaxis = fig.layout.yaxis
+    assert yaxis.showticklabels == True
+    print(yaxis.ticktext)
+    assert yaxis.ticktext == ('Transcript1', 'Transcript2')
+    assert yaxis.tickvals == (0, 1)
+
+    # Create plot with hidden y-axis tick labels
+    fig_hidden = make_plot(
+        traces=traces,
+        vert_grid_transcript_structure_plot=False,
+        horz_grid_transcript_structure_plot=False
+    )
+
+    # Verify that y-axis tick labels are still present (since function logic keeps them)
+    yaxis_hidden = fig_hidden.layout.yaxis
+    assert yaxis_hidden.showticklabels == True
+    assert yaxis_hidden.ticktext == ('Transcript1', 'Transcript2')
+    assert yaxis_hidden.tickvals == (0, 1)
+
+
+def test_make_plot_custom_column_names():
+    """
+    Test creating a plot with custom transcript and expression identifiers.
+    """
+    traces = create_custom_traces()
+
+    subplot_titles = ["Custom Transcript Structure", "Custom Expression Levels"]
+
+    fig = make_plot(
+        traces=traces,
+        subplot_titles=subplot_titles,
+        height=700,
+        width=1400,
+        hovermode="y unified"
+    )
+
+    # Verify subplot titles
+    for i, title in enumerate(subplot_titles):
+        assert fig.layout.annotations[i].text == title
+        assert fig.layout.annotations[i].font.size == 16  # Default subplot_title_font_size
+
+    # Verify hovermode
+    assert fig.layout.hovermode == "y unified"
+
+    # Verify trace names
+    trace_names = [trace.name for trace in fig.data]
+    assert 'CustomTranscript1' in trace_names
+    assert 'CustomTranscript2' in trace_names
+    assert 'CustomTranscript1' in trace_names
+    assert 'CustomTranscript2' in trace_names
+
+
+def test_make_plot_missing_expression_column():
+    """
+    Since the 'make_plot' function does not directly handle DataFrames or columns,
+    this test is not applicable. It would be relevant if 'make_plot' processed
+    DataFrame inputs.
+    """
+    pass  # Placeholder for future implementation if applicable
+
+
+def test_make_plot_invalid_hovermode():
+    """
+    Test that the function handles invalid hovermode values gracefully.
+    """
+    traces = create_sample_traces()
+
+    with pytest.raises(ValueError):
+        fig = make_plot(
+            traces=traces,
+            hovermode="invalid_hovermode"
+        )
+
+
+def test_make_plot_large_number_of_transcripts():
+    """
+    Test plotting with a large number of transcripts to ensure scalability.
+    """
+    # Create a large number of transcript traces
+    transcript_traces = []
+    expression_traces = []
+    y_dict = {}
+    num_transcripts = 50
+
+    for i in range(num_transcripts):
+        transcript = go.Scatter(
+            x=[1, 2, 3],
+            y=[i, i + 1, i],
+            mode='lines',
+            name=f'Transcript{i}'
+        )
+        transcript_traces.append(transcript)
+
+        expression = go.Box(
+            y=[10 + i, 15 + i, 13 + i, 17 + i],
+            name=f'Expression{i}'
+        )
+        expression_traces.append(expression)
+
+        y_dict[f'Transcript{i}'] = i
+
+    traces = [transcript_traces, expression_traces, y_dict]
+
+    fig = make_plot(
+        traces=traces,
+        subplot_titles=["Transcript Structures", "Expression Levels"] * 25,  # Example for multiple subplots
+        height=2000,
+        width=4000
+    )
+
+    # Verify the number of traces
+    assert len(fig.data) == 100  # 50 transcript + 50 expression traces
+
+    # Verify y_dict entries
+    for i in range(num_transcripts):
+        assert f'Transcript{i}' in y_dict
+        assert y_dict[f'Transcript{i}'] == i
+
+
+def test_make_plot_empty_y_dict():
+    """
+    Test that a ValueError is raised when y_dict is empty.
+    """
+    transcript_traces = [
+        go.Scatter(
+            x=[1, 2, 3],
+            y=[0, 1, 0],
+            mode='lines',
+            name='Transcript1'
+        )
+    ]
+
+    expression_traces = [
+        go.Box(
+            y=[10, 15, 13, 17],
+            name='Expression1'
+        )
+    ]
+
+    y_dict = {}  # Empty y_dict
+
+    traces = [transcript_traces, expression_traces, y_dict]
+
+    fig = make_plot(traces=traces)
+
+    # Verify that yaxis tickvals and ticktext are empty
+    yaxis = fig.layout.yaxis
+    assert yaxis.tickvals == ()
+    assert yaxis.ticktext == ()
+
+
+def test_make_plot_inconsistent_y_dict():
+    """
+    Test that the function handles inconsistencies between traces and y_dict.
+    For example, a transcript trace not present in y_dict.
+    """
+    # Create transcript traces
+    transcript_traces = [
+        go.Scatter(
+            x=[1, 2, 3],
+            y=[0, 1, 0],
+            mode='lines',
+            name='Transcript1'
+        ),
+        go.Scatter(
+            x=[2, 3, 4],
+            y=[1, 2, 1],
+            mode='lines',
+            name='Transcript2'
+        )
+    ]
+
+    # Expression data traces
+    expression_traces = [
+        go.Box(
+            y=[10, 15, 13, 17],
+            name='Expression1'
+        )
+    ]
+
+    # y_dict missing 'Transcript2'
+    y_dict = {'Transcript1': 0}
+
+    traces = [transcript_traces, expression_traces, y_dict]
+
+    fig = make_plot(traces=traces)
+
+    # Verify that 'Transcript2' y-axis is not mapped, which might cause it to default
+    # Depending on implementation, Plotly may assign default y-axis values
+    # Here, we can check that yaxis.ticktext only includes 'Transcript1'
+    yaxis = fig.layout.yaxis
+    assert yaxis.ticktext == ('Transcript1',)
+    assert yaxis.tickvals == (0,)
+
+
+def test_make_plot_invalid_trace_type():
+    """
+    Test that the function handles invalid trace types gracefully.
+    """
+    # Create invalid trace (e.g., integer instead of go.Trace or dict)
+    transcript_traces = [123]
+
+    expression_traces = [
+        go.Box(
+            y=[10, 15, 13, 17],
+            name='Expression1'
+        )
+    ]
+
+    y_dict = {'Transcript1': 0}
+
+    traces = [transcript_traces, expression_traces, y_dict]
+
+    with pytest.raises(ValueError):
+        make_plot(traces=traces)
+
+
+def test_make_plot_no_expression_traces():
+    """
+    Test creating a plot with only transcript traces and no expression traces.
+    """
+    transcript_traces = [
+        go.Scatter(
+            x=[1, 2, 3],
+            y=[0, 1, 0],
+            mode='lines',
+            name='Transcript1'
+        )
+    ]
+
+    y_dict = {'Transcript1': 0}
+
+    traces = [transcript_traces, y_dict]
+
+    fig = make_plot(traces=traces)
+
+    # Verify the number of traces
+    assert len(fig.data) == 1  # Only transcript trace
+
+    # Verify that y_dict is correctly applied
+    yaxis = fig.layout.yaxis
+    assert yaxis.ticktext == ('Transcript1',)
+    assert yaxis.tickvals == (0,)
+
+
+def test_make_plot_invalid_hover_font_size():
+    """
+    Test that the function handles invalid hover_font_size values.
+    """
+    traces = create_sample_traces()
+
+    # Pass a negative font size
+    with pytest.raises(ValueError):
+        make_plot(
+            traces=traces,
+            hover_font_size=-5
+        )
+
+
+def test_make_plot_large_dimensions():
+    """
+    Test creating a plot with extremely large dimensions.
+    """
+    traces = create_sample_traces()
+
+    fig = make_plot(
+        traces=traces,
+        height=10000,
+        width=20000
+    )
+
+    assert fig.layout.height == 10000
+    assert fig.layout.width == 20000
+
+
+def test_make_plot_minimum_dimensions():
+    """
+    Test creating a plot with minimum acceptable dimensions.
+    """
+    traces = create_sample_traces()
+
+    fig = make_plot(
+        traces=traces,
+        height=100,
+        width=100
+    )
+
+    assert fig.layout.height == 100
+    assert fig.layout.width == 100
+
+
+def test_make_plot_shared_yaxes():
+    """
+    Test that y-axes are shared across subplots.
+    """
+    traces = create_sample_traces()
+
+    fig = make_plot(
+        traces=traces
+    )
+
+    # Verify that y-axes are shared
+    # In Plotly, shared y-axes are handled internally; we can verify that tickvals and ticktext are consistent
+    yaxis1 = fig.layout.yaxis
+    yaxis2 = fig.layout.yaxis2
+
+    assert yaxis1.tickvals == yaxis2.tickvals
+    assert yaxis1.ticktext == yaxis2.ticktext
+
+def test_make_plot_legend_visibility():
+    """
+    Test that the legend visibility is controlled by the 'showlegend' parameter.
+    """
+    traces = create_sample_traces()
+
+    # Create plot with legend shown
+    fig_with_legend = make_plot(
+        traces=traces,
+        showlegend=True
+    )
+
+    # Create plot with legend hidden
+    fig_without_legend = make_plot(
+        traces=traces,
+        showlegend=False
+    )
+
+    assert fig_with_legend.layout.showlegend == True
+    assert fig_without_legend.layout.showlegend == False
+
+
+def test_make_plot_hover_label_font_size():
+    """
+    Test that the hover label font size is set correctly.
+    """
+    traces = create_sample_traces()
+
+    custom_hover_font_size = 20
+
+    fig = make_plot(
+        traces=traces,
+        hover_font_size=custom_hover_font_size
+    )
+
+    assert fig.layout.hoverlabel.font.size == custom_hover_font_size
+
+
+def test_make_plot_boxmode_group():
+    """
+    Test that the boxmode is set to 'group'.
+    """
+    traces = create_sample_traces()
+
+    fig = make_plot(
+        traces=traces
+    )
+
+    assert fig.layout.boxmode == 'group'
+
+
+def test_make_plot_violinmode_group():
+    """
+    Test that the violinmode is set to 'group'.
+    """
+    # Create violin traces
+    transcript_traces = [
+        go.Scatter(
+            x=[1, 2, 3],
+            y=[0, 1, 0],
+            mode='lines',
+            name='Transcript1'
+        )
+    ]
+
+    violin_traces = [
+        go.Violin(
+            y=[10, 15, 13, 17],
+            name='Violin1'
+        )
+    ]
+
+    y_dict = {'Transcript1': 0}
+
+    traces = [transcript_traces, violin_traces, y_dict]
+
+    fig = make_plot(
+        traces=traces
+    )
+
+    assert fig.layout.violinmode == 'group'
+
+
+def test_make_plot_legend_font_size():
+    """
+    Test that the legend font size is set correctly.
+    """
+    traces = create_sample_traces()
+
+    custom_legend_font_size = 18
+
+    fig = make_plot(
+        traces=traces,
+        legend_font_size=custom_legend_font_size
+    )
+
+    assert fig.layout.legend.font.size == custom_legend_font_size
+
+
+def test_make_plot_xaxis_font_size():
+    """
+    Test that the x-axis font size is set correctly.
+    """
+    traces = create_sample_traces()
+
+    custom_xaxis_font_size = 14
+
+    fig = make_plot(
+        traces=traces,
+        xaxis_font_size=custom_xaxis_font_size
+    )
+
+    # Verify x-axis font size for all x-axes
+    assert fig.layout['xaxis']["tickfont"]["size"] == custom_xaxis_font_size
+
+
+def test_make_plot_yaxis_font_size():
+    """
+    Test that the y-axis font size is set correctly.
+    """
+    traces = create_sample_traces()
+
+    custom_yaxis_font_size = 14
+
+    fig = make_plot(
+        traces=traces,
+        yaxis_font_size=custom_yaxis_font_size
+    )
+
+    # Verify y-axis font size for all y-axes
+    assert fig.layout["yaxis"].tickfont.size == custom_yaxis_font_size
+
+
+def test_make_plot_subtitle_font_size():
+    """
+    Test that the subplot title font size is set correctly.
+    """
+    traces = create_sample_traces()
+
+    custom_subtitle_font_size = 20
+
+    fig = make_plot(
+        traces=traces,
+        subplot_title_font_size=custom_subtitle_font_size
+    )
+
+    for annotation in fig.layout.annotations:
+        assert annotation.font.size == custom_subtitle_font_size
+
+
+def test_make_plot_hover_font_size():
+    """
+    Test that the hover label font size is set correctly.
+    """
+    traces = create_sample_traces()
+
+    custom_hover_font_size = 18
+
+    fig = make_plot(
+        traces=traces,
+        hover_font_size=custom_hover_font_size
+    )
+
+    assert fig.layout.hoverlabel.font.size == custom_hover_font_size
