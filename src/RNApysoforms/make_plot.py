@@ -142,12 +142,6 @@ def make_plot(
         shared_yaxes=True,  # Share y-axes across all subplots
     )
 
-    # Update the layout to change the font size of the subplot titles and apply the template
-    fig.update_layout(
-        annotations=[dict(font=dict(size=subplot_title_font_size)) for annotation in fig['layout']['annotations']],
-        template=template
-    )
-
     # Initialize lists to separate transcript and expression traces and their subplot indexes
     transcript_traces = []
     expression_traces = []
@@ -249,7 +243,7 @@ def make_plot(
         legend=dict(font=dict(size=legend_font_size)),
         xaxis=dict(tickfont=dict(size=xaxis_font_size)),
         legend_title=dict(font=dict(size=legend_title_font_size)),
-
-    )
+        template=template,
+        annotations=[dict(font=dict(size=subplot_title_font_size)) for annotation in fig['layout']['annotations']])
 
     return fig  # Return the assembled figure
