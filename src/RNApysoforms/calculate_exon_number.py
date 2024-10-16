@@ -15,7 +15,7 @@ def calculate_exon_number(annotation: pl.DataFrame, transcript_id_column: str = 
     - `start`: Start position of the feature.
     - `end`: End position of the feature.
     - `strand`: Strand direction of the feature (`"+"` or `"-"`).
-    - `type`: Type of the feature (expected to include `"exon"`, `"CDS"`, or `"intron"`).
+    - `type`: Type of the feature (must include `"exon"`. Can also include `"CDS"`, and/or `"intron"`).
     - `transcript_id_column` (default `"transcript_id"`): Identifier for grouping features into transcripts.
 
     Parameters
@@ -66,12 +66,11 @@ def calculate_exon_number(annotation: pl.DataFrame, transcript_id_column: str = 
         - For transcripts on the positive strand (`"+"`), exons are numbered in ascending order based on their start positions.
         - For transcripts on the negative strand (`"-"`), exons are numbered in descending order based on their end positions.
     - **CDS Assignment:**
-        - CDS regions inherit the exon number of overlapping exons. If a CDS overlaps multiple exons, it is assigned
-          the smallest exon number among the overlapping exons.
+        - CDS regions inherit the exon number of the overlapping exon. CDS regions must be within the boundaries of a 
+        single exon, otherwise the function might return erroneous results.
     - **Intron Assignment:**
-        - Introns are assigned the exon number of the adjacent exon based on strand direction:
-            - Positive strand (`"+"`): Introns inherit the exon number of the preceding exon.
-            - Negative strand (`"-"`): Introns inherit the exon number of the following exon.
+        - Introns are assigned the exon number based on the order the introns show up in the transcript.
+        the first intron will be assigned exon_number 1, so forth and so on.
     - **Data Integrity:**
         - The function ensures that all required columns are present and correctly formatted before processing.
         - If no CDS or introns are present in the data, the function handles these cases gracefully without errors.
