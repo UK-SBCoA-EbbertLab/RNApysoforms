@@ -1,6 +1,8 @@
 import polars as pl
 import pytest
 from RNApysoforms import calculate_exon_number
+from RNApysoforms import read_ensembl_gtf
+import os
 
 
 def test_basic_functionality():
@@ -87,6 +89,23 @@ def test_non_polars_dataframe():
 
 
 def test_complex_transcript_structure():
+
+    # Get the directory of the current file
+    current_dir = os.path.dirname(__file__)
+    # Construct the path to the test_data directory
+    test_data_dir = os.path.abspath(os.path.join(current_dir, '../../', 'test_data'))
+    # Define file paths
+    gtf_path = os.path.join(test_data_dir, "Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
+    # Read gtf
+    annotation = pt.read_ensembl_gtf("./test_data/Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
+    # Add introns
+    annotation = pt.to_intron(annotation)
+    # Drop exon number
+    annotation_2 = annotation.drop("exon_number")
+    # Recalculate exon number
+    annotation_2 = pt.calculate_exon_number(annotation_2)
+
+
     # Annotations with multiple transcripts, exons, introns, and CDS regions
     df = pl.DataFrame({
         "transcript_id": [

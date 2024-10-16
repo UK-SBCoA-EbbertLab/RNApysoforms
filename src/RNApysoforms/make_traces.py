@@ -357,8 +357,6 @@ def make_traces(
         exons_exist = True
         if annotation.filter(pl.col("type") == "exon").is_empty():
             exons_exist = False
-        
-        print(str(exons_exist))
 
         # Initialize lists to store traces for different feature types
         cds_traces = []      # Stores traces for CDS (coding sequences)
