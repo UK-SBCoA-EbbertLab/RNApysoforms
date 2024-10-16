@@ -88,8 +88,12 @@ def calculate_exon_number(annotation: pl.DataFrame, transcript_id_column: str = 
         )
 
     # Ensure required columns are present in the DataFrame
-    required_columns = ["start", "end", transcript_id_column, "type", "strand"]
+    required_columns = [transcript_id_column, "start", "end", "type", "strand"]
     check_df(annotation, required_columns)
+
+    # Get original column order
+    column_order = annotation.columns
+    column_order = column_order + ["exon_number"]
 
     # Step 1: Extract exons and assign exon numbers based on strand direction
     # Filter the annotation DataFrame to include only 'exon' type features
@@ -173,7 +177,7 @@ def calculate_exon_number(annotation: pl.DataFrame, transcript_id_column: str = 
             # Add the processed intron annotations to the list
             intron_exon_annotation_list.append(intron_exon_annotation)
 
-    if intron_exon_annotation_list:
+    if not intron_annotation.is_empty():
         # Concatenate all intron annotations with assigned exon numbers
         intron_exon_annotation = pl.concat(intron_exon_annotation_list)
     else:
@@ -187,6 +191,14 @@ def calculate_exon_number(annotation: pl.DataFrame, transcript_id_column: str = 
         exon_annotation.select([transcript_id_column, 'start', 'end', 'strand', 'type', 'exon_number']),
         cds_exon_annotation.select([transcript_id_column, 'start', 'end', 'strand', 'type', 'exon_number']),
         intron_exon_annotation.select([transcript_id_column, 'start', 'end', 'strand', 'type', 'exon_number'])
-    ]).sort([transcript_id_column, 'start'])
+    ])
+
+    ## Only do this part if annotation is not empty
+    if not result_annotation.is_empty():
+
+        ## Return all the original columns
+        result_annotation = result_annotation.join(annotation, on=required_columns, how="inner")
+        result_annotation = result_annotation[column_order]
+        result_annotation = result_annotation.sort([transcript_id_column, 'start'])
 
     return result_annotation  # Return the final DataFrame with assigned exon numbers

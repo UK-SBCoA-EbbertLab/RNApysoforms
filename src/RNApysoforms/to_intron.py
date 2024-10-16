@@ -93,6 +93,7 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
     exons_with_introns = exons_sorted.with_columns([
         pl.col('end').shift(1).over(transcript_id_column).alias('intron_start'),  # Intron start = end of previous exon
         pl.col('start').alias('intron_end'),                                      # Intron end = start of current exon
+        pl.col("exon_number").shift(1).over(transcript_id_column).alias('intron_number'), ## Get intron number
         pl.lit('intron').alias('type')                                            # Set feature type as 'intron'
     ])
 
@@ -110,10 +111,19 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
     introns = exons_with_introns.select([
         pl.col('intron_start').alias('start'),  # Intron start position
         pl.col('intron_end').alias('end'),      # Intron end position
-        pl.col("exon_number"),                  # Retain exon_number column for reference
+        pl.col("intron_number").alias("exon_number"),                  # Retain exon_number column for reference
         pl.col('type'),                         # Type of feature ('intron')
         *other_cols_expr                        # Include additional columns as necessary
     ])
+
+    # Fix exon number for negative strand introns
+    introns = introns.with_columns(
+    pl.when(pl.col("strand") == "-")
+    .then(pl.col("exon_number") - 1)
+    .otherwise(pl.col("exon_number"))
+    .alias("exon_number")
+    )
+
 
     # Remove rows where either 'start' or 'end' is null (invalid introns)
     introns = introns.drop_nulls(subset=['start', 'end'])
