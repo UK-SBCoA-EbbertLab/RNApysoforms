@@ -317,8 +317,8 @@ def make_traces(
                 pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace_strict(
                     {k: i for i, k in enumerate(unique_transcripts)},
                     default=len(unique_transcripts)  # Items not in custom_order will be placed at the end
-                ).alias("sort_key", descending=True)
-            ).sort("sort_key").drop("sort_key")
+                ).alias("sort_key")
+            ).sort("sort_key", descending=True).drop("sort_key")
     else:
         # Order transcripts based on 'annotation'
         unique_transcripts = annotation[y].unique(maintain_order=True).to_list()
@@ -330,8 +330,8 @@ def make_traces(
                 pl.col(y).cast(pl.Categorical).cast(pl.Utf8).replace_strict(
                     {k: i for i, k in enumerate(unique_transcripts)},
                     default=len(unique_transcripts)  # Items not in custom_order will be placed at the end
-                ).alias("sort_key", descensing=True)
-            ).sort("sort_key").drop("sort_key")
+                ).alias("sort_key")
+            ).sort("sort_key", descending=True).drop("sort_key")
 
     # Generate color maps if not provided and 'hue' is specified
     if annotation_color_map is None and annotation is not None and annotation_hue is not None:
