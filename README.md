@@ -17,18 +17,28 @@
 
 ## Features
 
-- `geom_range`: Visualize exons or other range-based genomic features
-- `geom_intron`: Draw introns with strand arrows
-- `shorten_gaps`: Improve transcript structure visualization by shortening gaps
-- `to_intron`: Convert exon coordinates to intron coordinates
+- `calculate_exon_number()`: Assigns exon numbers to exons, CDS, and introns within a genomic annotation dataset based on transcript structure and strand direction.
 
+- `gene_filtering()`: Filters genomic annotations and optionally an expression matrix for a specific gene, with options to order and select top expressed transcripts.
+
+- `make_plot()`: Creates a multi-panel Plotly figure combining transcript structure plots and expression data plots.
+
+- `make_traces()`: Generates Plotly traces for visualizing transcript structures and expression data.
+
+- `read_expression_matrix()`: Loads and processes an expression matrix, optionally merging with metadata, performing CPM normalization, and calculating relative transcript abundance.
+
+- `read_ensembl_gtf()`: Reads a GTF (Gene Transfer Format) file and returns the data as a Polars DataFrame.
+
+- `shorten_gaps()`: Shortens intron and transcript start gaps between exons in genomic annotations to enhance visualization.
+
+- `to_intron()`: Converts exon coordinates into corresponding intron coordinates within a genomic annotation dataset.
 
 ## Installation
 
-You can install `RNApysoforms` directly from the source:
+You can install `RNApysoforms` using pip:
 
 ```bash
-pip install -e /path/to/RNApysoforms
+pip install RNApysoforms
 ```
 
 ## Usage
@@ -36,35 +46,7 @@ pip install -e /path/to/RNApysoforms
 Here's a basic example of how to use `RNApysoforms`:
 
 ```python
-import pandas as pd
-from RNApysoforms import geom_range, geom_intron, to_intron
 
-# Prepare your data
-exons = pd.DataFrame({
-    'start': [100, 300, 600],
-    'end': [200, 400, 700],
-    'transcript_name': ['tx1', 'tx1', 'tx1'],
-    'strand': ['+', '+', '+']
-})
-
-# Convert exons to introns
-introns = to_intron(exons, group_var='transcript_name')
-
-# Create a plot
-fig = go.Figure()
-
-# Add exons
-exon_traces = geom_range(exons, x_start='start', x_end='end', y='transcript_name')
-for trace in exon_traces:
-    fig.add_trace(trace)
-
-# Add introns
-intron_traces = geom_intron(introns, x_start='start', x_end='end', y='transcript_name', strand='strand')
-for trace in intron_traces:
-    fig.add_trace(trace)
-
-# Show the plot
-fig.show()
 ```
 
 ## Contributing
