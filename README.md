@@ -1,6 +1,17 @@
-# RNApysoforms
+# RNApysoforms <img src="./assets/RNA-pysoforms-logo.svg" align="right" height="80" />
 
-![Tests](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/blob/main/.github/workflows/main.yml/badge.svg)
+
+<!-- badges: start -->
+[![Run Tests](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/actions/workflows/main.yml/badge.svg)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/actions/workflows/main.yml)
+[![Codecov test coverage](https://codecov.io/gh/UK-SBCoA-EbbertLab/RNApysoforms/branch/main/graph/badge.svg)](https://app.codecov.io/gh/UK-SBCoA-EbbertLab/RNApysoforms?branch=main)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![GitHub issues](https://img.shields.io/github/issues/UK-SBCoA-EbbertLab/RNApysoforms)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/issues)
+[![GitHub pulls](https://img.shields.io/github/issues-pr/UK-SBCoA-EbbertLab/RNApysoforms)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/pulls)
+[![R-CMD-check-bioc](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/actions/workflows/R-CMD-check-bioc.yml/badge.svg)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/actions)
+
+<!-- badges: end -->
+
+
 
 `RNApysoforms` is a Python package that provides Plotly-based implementations of functionality similar to the R package `ggtranscript`. It's designed to help visualize genomic transcript structures using Plotly.
 
