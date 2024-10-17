@@ -1,5 +1,5 @@
 # RNApysoforms
-<img src="./assets/RNA-pysoforms-logo.svg" alt="Logo" width="0" height="200" />
+<img src="./assets/RNA-pysoforms-logo.svg" alt="Logo" width="400" height="200" />
 ![Tests](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/blob/main/.github/workflows/main.yml/badge.svg)
 
 `RNApysoforms` is a Python package that provides Plotly-based implementations of functionality similar to the R package `ggtranscript`. It's designed to help visualize genomic transcript structures using Plotly.
