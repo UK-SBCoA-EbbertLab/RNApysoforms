@@ -129,15 +129,11 @@ def shorten_gaps(
     # Shorten gaps based on the target gap width
     introns_shortened = _get_shortened_gaps(introns, gaps, gap_map, transcript_id_column, target_gap_width)
 
-    # Handle gaps at the start of transcripts if a grouping variable is provided
-    if transcript_id_column:
-        tx_start_gaps = _get_tx_start_gaps(exons, transcript_id_column)  # Gaps at the start of transcripts
-        gap_map_tx_start = _get_gap_map(tx_start_gaps, gaps)
-        tx_start_gaps_shortened = _get_shortened_gaps(tx_start_gaps, gaps, gap_map_tx_start, transcript_id_column, target_gap_width)
-        # Remove unnecessary columns from the transcript start gaps DataFrame
-        tx_start_gaps_shortened = tx_start_gaps_shortened.drop(['start', 'end', 'strand', 'seqnames'])
-    else:
-        tx_start_gaps_shortened = None  # No gaps at transcript start if no transcript_id_column provided
+    ## Only handle start gaps 
+    tx_start_gaps = _get_tx_start_gaps(exons, transcript_id_column)  # Gaps at the start of transcripts
+    gap_map_tx_start = _get_gap_map(tx_start_gaps, gaps)
+    tx_start_gaps_shortened = _get_shortened_gaps(tx_start_gaps, gaps, gap_map_tx_start, transcript_id_column, target_gap_width)
+    tx_start_gaps_shortened = tx_start_gaps_shortened.drop(['start', 'end', 'strand', 'seqnames'])
 
     # Rescale the coordinates of exons and introns after shortening the gaps
     rescaled_tx = _get_rescaled_txs(exons, introns_shortened, tx_start_gaps_shortened, transcript_id_column)
@@ -509,10 +505,10 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
             )
 
             # Clean up unnecessary columns
-            df = df.drop(['sum_shortened_gap_diff', 'shorten_type', 'width'])
-            df = df.rename({'shortened_width': 'width'})
-
-        df = df.drop('df_index')
+            df = df.drop('sum_shortened_gap_diff')
+    
+    df = df.drop(['shorten_type', 'width', 'df_index'])
+    df = df.rename({'shortened_width': 'width'})
 
     return df  # Return the DataFrame with shortened gaps
 
@@ -548,6 +544,7 @@ def _get_rescaled_txs(
     - It adjusts intron positions to prevent overlap with exons.
     - Transcript start gaps are incorporated to ensure accurate rescaling across different transcripts.
     """
+
     # Clone exons to avoid altering the original DataFrame
     exons = exons.clone()
 
@@ -565,41 +562,23 @@ def _get_rescaled_txs(
     # Concatenate exons and shortened introns into a single DataFrame
     rescaled_tx = pl.concat([exons, introns_shortened], how='vertical')
 
-    # Sort the DataFrame by transcript_id_column and start position
-    if transcript_id_column:
-        if isinstance(transcript_id_column, list):
-            sort_columns = transcript_id_column + ['start', 'end']
-        else:
-            sort_columns = [transcript_id_column, 'start', 'end']
-    else:
-        sort_columns = ['start', 'end']
-    rescaled_tx = rescaled_tx.sort(sort_columns)
+    ## Sort based on transcript_id, start, and end
+    rescaled_tx = rescaled_tx.sort([transcript_id_column, 'start', 'end'])
 
     # Calculate cumulative sum for rescaled end positions
-    if transcript_id_column:
-        rescaled_tx = rescaled_tx.with_columns(
-            pl.col('width').cum_sum().over(transcript_id_column).alias('rescaled_end')
-        )
-    else:
-        rescaled_tx = rescaled_tx.with_columns(
-            pl.col('width').cum_sum().alias('rescaled_end')
-        )
+    rescaled_tx = rescaled_tx.with_columns(
+        pl.col('width').cum_sum().over(transcript_id_column).alias('rescaled_end')
+    )
 
     # Compute the rescaled start positions based on the cumulative end positions
     rescaled_tx = rescaled_tx.with_columns(
         (pl.col('rescaled_end') - pl.col('width') + 1).alias('rescaled_start')
     )
 
-    # If no transcript_id_column, set all transcripts to start at position 1
-    if not transcript_id_column:
-        rescaled_tx = rescaled_tx.with_columns(
-            pl.lit(1).alias('width_tx_start')
-        )
-    else:
-        # Join rescaled transcript start gaps to adjust start positions
-        rescaled_tx = rescaled_tx.join(
-            tx_start_gaps_shortened, on=transcript_id_column, how='left', suffix='_tx_start'
-        )
+    # Join rescaled transcript start gaps to adjust start positions
+    rescaled_tx = rescaled_tx.join(
+        tx_start_gaps_shortened, on=transcript_id_column, how='left', suffix='_tx_start'
+    )
 
     # Adjust the rescaled start and end positions based on transcript start gaps
     rescaled_tx = rescaled_tx.with_columns([
