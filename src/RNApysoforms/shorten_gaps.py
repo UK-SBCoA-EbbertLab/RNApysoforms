@@ -11,11 +11,12 @@ def shorten_gaps(
     target_gap_width: int = 100
 ) -> pl.DataFrame:
     """
-    Shortens intron gaps between exons in genomic annotations to enhance visualization.
+    Shortens intron and transcript start gaps between exons in genomic annotations to enhance visualization.
 
-    This function processes genomic annotations by shortening the widths of intron gaps to a specified target size,
-    while preserving exon and CDS regions. The goal is to improve the clarity of transcript visualizations by reducing
-    the visual space occupied by long intron regions, maintaining the relative structure of the transcripts.
+    This function processes genomic annotations by shortening the widths of intron gaps and gaps at the start of transcripts
+    to a specified target size, while preserving exon and CDS regions. The goal is to improve the clarity of transcript
+    visualizations by reducing the visual space occupied by long intron regions and aligning transcripts for consistent
+    rescaling, maintaining the relative structure of the transcripts.
 
     Parameters
     ----------
@@ -32,14 +33,14 @@ def shorten_gaps(
         The column used to group transcripts, by default "transcript_id". This identifies individual transcripts
         within the annotation data.
     target_gap_width : int, optional
-        The maximum width for intron gaps after shortening. Gaps wider than this will be reduced to this size.
-        Default is 100.
+        The maximum width for intron gaps and transcript start gaps after shortening. Gaps wider than this will be reduced
+        to this size. Default is 100.
 
     Returns
     -------
     pl.DataFrame
-        A Polars DataFrame with shortened intron gaps and rescaled coordinates for exons, introns, and CDS regions.
-        The DataFrame includes:
+        A Polars DataFrame with shortened intron and transcript start gaps and rescaled coordinates for exons,
+        introns, and CDS regions. The DataFrame includes:
         - Original columns from the input DataFrame.
         - 'rescaled_start': The rescaled start position after shortening gaps.
         - 'rescaled_end': The rescaled end position after shortening gaps.
@@ -55,7 +56,7 @@ def shorten_gaps(
 
     Examples
     --------
-    Shorten intron gaps in a genomic annotation DataFrame:
+    Shorten intron and transcript start gaps in a genomic annotation DataFrame:
 
     >>> import polars as pl
     >>> from RNApysoforms.plot import shorten_gaps
@@ -70,16 +71,17 @@ def shorten_gaps(
     >>> shortened_df = shorten_gaps(df, transcript_id_column="transcript_id", target_gap_width=50)
     >>> print(shortened_df.head())
 
-    This will return a DataFrame where the intron gaps have been shortened to a maximum width of 50,
+    This will return a DataFrame where the intron and transcript start gaps have been shortened to a maximum width of 50,
     and includes rescaled coordinates for visualization.
 
     Notes
     -----
-    - The function ensures that exon and CDS regions maintain their original lengths, while intron gaps are shortened.
+    - The function ensures that exon and CDS regions maintain their original lengths, while intron gaps and transcript start
+      gaps are shortened.
     - If intron entries are not present in the input DataFrame, the function generates them using the 'to_intron' function.
     - The input DataFrame must contain the required columns listed above.
-    - The function processes gaps at the start of transcripts to adjust for consistent rescaling.
-    - After shortening gaps, the coordinates are rescaled to maintain the relative positions of features.
+    - The function processes gaps at the start of transcripts to align transcripts for consistent rescaling.
+    - After shortening gaps, the coordinates are rescaled to maintain the relative positions of features within and across transcripts.
     - The function returns the rescaled DataFrame with original columns plus 'rescaled_start' and 'rescaled_end'.
     """
 
@@ -95,7 +97,8 @@ def shorten_gaps(
 
     # Check if there are intron entries in the annotation data
     if "intron" in annotation["type"].unique().to_list():
-        introns = annotation.filter(pl.col("type") == "intron")  # Separate intron data
+        # Separate intron data if present
+        introns = annotation.filter(pl.col("type") == "intron")
     else:
         # Generate intron entries if they are not present
         annotation = to_intron(annotation=annotation, transcript_id_column=transcript_id_column)
@@ -103,11 +106,12 @@ def shorten_gaps(
 
     # Check if there are CDS entries in the annotation data
     if "CDS" in annotation["type"].unique().to_list():
-        cds = annotation.filter(pl.col("type") == "CDS")  # Separate CDS data
+        # Separate CDS data if present
+        cds = annotation.filter(pl.col("type") == "CDS")
     else:
         cds = None  # No CDS entries in the data
 
-    # Separate exons from the rest of the annotation data
+    # Separate exons from the annotation data
     exons = annotation.filter(pl.col("type") == "exon")
 
     # Ensure the 'type' column in exons and introns is set correctly
@@ -120,27 +124,35 @@ def shorten_gaps(
         pl.col("end") - 1
     ])
 
-    # Identify gaps between exons
-    gaps = _get_gaps(exons)  # Gaps between exons within the same chromosome and strand
+    # Identify gaps between exons within the same chromosome and strand
+    gaps = _get_gaps(exons)
 
-    # Map gaps to introns
+    # Map gaps to introns to identify which gaps correspond to which introns
     gap_map = _get_gap_map(introns, gaps)
 
     # Shorten gaps based on the target gap width
-    introns_shortened = _get_shortened_gaps(introns, gaps, gap_map, transcript_id_column, target_gap_width)
+    introns_shortened = _get_shortened_gaps(
+        introns, gaps, gap_map, transcript_id_column, target_gap_width
+    )
 
-    ## Only handle start gaps 
+    # Handle gaps at the start of transcripts to align them
     tx_start_gaps = _get_tx_start_gaps(exons, transcript_id_column)  # Gaps at the start of transcripts
     gap_map_tx_start = _get_gap_map(tx_start_gaps, gaps)
-    tx_start_gaps_shortened = _get_shortened_gaps(tx_start_gaps, gaps, gap_map_tx_start, transcript_id_column, target_gap_width)
+    tx_start_gaps_shortened = _get_shortened_gaps(
+        tx_start_gaps, gaps, gap_map_tx_start, transcript_id_column, target_gap_width
+    )
     tx_start_gaps_shortened = tx_start_gaps_shortened.drop(['start', 'end', 'strand', 'seqnames'])
 
     # Rescale the coordinates of exons and introns after shortening the gaps
-    rescaled_tx = _get_rescaled_txs(exons, introns_shortened, tx_start_gaps_shortened, transcript_id_column)
+    rescaled_tx = _get_rescaled_txs(
+        exons, introns_shortened, tx_start_gaps_shortened, transcript_id_column
+    )
 
     # Process CDS regions if available
     if isinstance(cds, pl.DataFrame):
+        # Calculate differences between exons and CDS regions
         cds_diff = _get_cds_exon_difference(exons, cds)
+        # Rescale CDS regions based on the rescaled exons
         rescaled_cds = _get_rescale_cds(cds_diff, rescaled_tx.filter(pl.col("type") == "exon"))
         rescaled_cds = rescaled_cds[rescaled_tx.columns]
         # Combine the rescaled CDS data into the final DataFrame
@@ -190,6 +202,7 @@ def _get_type(df: pl.DataFrame, df_type: str) -> pl.DataFrame:
     - If the 'type' column does not exist in the input DataFrame, it is added with the specified 'df_type'.
     - If 'df_type' is 'introns', the function filters the DataFrame to include only intron entries.
     """
+
     # Validate 'df_type' parameter
     if df_type not in ["exons", "introns"]:
         raise ValueError("df_type must be either 'exons' or 'introns'")
@@ -230,6 +243,7 @@ def _get_gaps(exons: pl.DataFrame) -> pl.DataFrame:
     - All exons must be from the same chromosome and strand to accurately identify gaps.
     - The function merges overlapping exons and computes the gaps between them.
     """
+
     # Ensure all exons are from a single chromosome and strand
     seqnames_unique = exons["seqnames"].n_unique()
     strand_unique = exons["strand"].n_unique()
@@ -299,17 +313,13 @@ def _get_tx_start_gaps(exons: pl.DataFrame, transcript_id_column: str) -> pl.Dat
     pl.DataFrame
         A DataFrame containing gaps at the start of each transcript.
 
-    Raises
-    ------
-    ValueError
-        If exons do not contain any entries for the specified `transcript_id_column`.
-
     Notes
     -----
     - The function calculates the gap between the overall start of the first exon across all transcripts
       and the start of each individual transcript's first exon.
     - It assumes that all exons are on the same chromosome and strand.
     """
+
     # Get the start of the first exon for each transcript
     tx_starts = exons.group_by(transcript_id_column).agg(pl.col('start').min())
 
@@ -354,6 +364,7 @@ def _get_gap_map(df: pl.DataFrame, gaps: pl.DataFrame) -> dict:
     - The function adds row indices to both df and gaps for mapping.
     - It first identifies exact matches, then finds gaps fully within exons/introns.
     """
+
     # Add an index to each gap and exon/intron row
     gaps = gaps.with_row_index("gap_index")
     df = df.with_row_index("df_index")
@@ -425,6 +436,7 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
     - Gaps classified as 'pure_within' are adjusted based on the target width, ensuring they do not exceed the defined maximum.
     - The function updates the 'width' of each gap accordingly and removes unnecessary columns post-adjustment.
     """
+
     # Calculate the width of exons/introns and initialize a 'shorten_type' column
     df = df.with_columns(
         (pl.col('end') - pl.col('start') + 1).alias('width'),  # Calculate the width
@@ -467,16 +479,13 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
 
         if len(overlapping_gap_indexes) > 0:
             # Calculate the width of overlapping gaps
-            sum_gap_diff = pl.DataFrame({
-                'intron_indexes': gap_map['pure_within']['df_index'],
-                'gap_width': gaps.join(overlapping_gap_indexes.to_frame("gap_index"), on="gap_index", how="inner")
-                                .with_columns((pl.col('end') - pl.col('start') + 1).alias('gap_width'))
-                                .select('gap_width')
-                                .to_series()
-            })
+            overlapping_gaps = gaps.filter(pl.col("gap_index").is_in(overlapping_gap_indexes))
+            overlapping_gaps = overlapping_gaps.with_columns(
+                (pl.col('end') - pl.col('start') + 1).alias('gap_width')
+            )
 
             # Shorten gap width if larger than target_gap_width
-            sum_gap_diff = sum_gap_diff.with_columns(
+            overlapping_gaps = overlapping_gaps.with_columns(
                 pl.when(pl.col('gap_width') > target_gap_width)
                 .then(pl.lit(target_gap_width))
                 .otherwise(pl.col('gap_width'))
@@ -484,17 +493,22 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
             )
 
             # Calculate the gap difference
-            sum_gap_diff = sum_gap_diff.with_columns(
+            overlapping_gaps = overlapping_gaps.with_columns(
                 (pl.col('gap_width') - pl.col('shortened_gap_width')).alias('shortened_gap_diff')
             )
 
-            # Aggregate gap differences by intron indexes
-            sum_gap_diff = sum_gap_diff.group_by('intron_indexes').agg(
+            # Map the gap differences back to df
+            gap_diff_df = gap_map['pure_within'].join(
+                overlapping_gaps.select('gap_index', 'shortened_gap_diff'), on='gap_index', how='left'
+            )
+
+            # Aggregate gap differences by df indexes
+            sum_gap_diff = gap_diff_df.group_by('df_index').agg(
                 pl.sum('shortened_gap_diff').alias('sum_shortened_gap_diff')
             )
 
             # Join the calculated gap differences with the df DataFrame
-            df = df.join(sum_gap_diff, left_on='df_index', right_on='intron_indexes', how='left')
+            df = df.join(sum_gap_diff, on='df_index', how='left')
 
             # Adjust the width based on gap differences
             df = df.with_columns(
@@ -506,7 +520,7 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
 
             # Clean up unnecessary columns
             df = df.drop('sum_shortened_gap_diff')
-    
+
     df = df.drop(['shorten_type', 'width', 'df_index'])
     df = df.rename({'shortened_width': 'width'})
 
@@ -562,7 +576,7 @@ def _get_rescaled_txs(
     # Concatenate exons and shortened introns into a single DataFrame
     rescaled_tx = pl.concat([exons, introns_shortened], how='vertical')
 
-    ## Sort based on transcript_id, start, and end
+    # Sort based on transcript_id, start, and end
     rescaled_tx = rescaled_tx.sort([transcript_id_column, 'start', 'end'])
 
     # Calculate cumulative sum for rescaled end positions
@@ -645,6 +659,7 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
     - The function joins CDS and exon DataFrames on common columns (e.g., 'transcript_id') to align corresponding regions.
     - It calculates the absolute differences between exon and CDS start and end positions to identify discrepancies.
     """
+
     # Rename 'start' and 'end' columns in CDS regions for clarity
     cds_regions = gene_cds_regions.rename({'start': 'cds_start', 'end': 'cds_end'})
 
@@ -706,6 +721,7 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
     - The function adjusts CDS start and end positions based on the rescaled exon positions and the previously calculated differences.
     - It ensures that CDS regions are accurately positioned relative to exons after rescaling.
     """
+
     # Assign a 'type' column with the value "CDS" and drop unnecessary columns
     columns_to_drop = ['exon_start', 'exon_end']
     cds_prepared = (
