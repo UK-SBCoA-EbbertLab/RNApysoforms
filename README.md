@@ -1,4 +1,3 @@
-# RNApysoforms
 <img src="./assets/RNA-pysoforms-logo.svg" alt="Logo" width="400" height="200" />
 ![Tests](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/blob/main/.github/workflows/main.yml/badge.svg)
 
