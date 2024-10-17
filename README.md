@@ -8,6 +8,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/UK-SBCoA-EbbertLab/RNApysoforms)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/issues)
 [![GitHub pulls](https://img.shields.io/github/issues-pr/UK-SBCoA-EbbertLab/RNApysoforms)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/pulls)
 [![R-CMD-check-bioc](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/actions/workflows/R-CMD-check-bioc.yml/badge.svg)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/actions)
+[![Documentation Status](https://readthedocs.org/projects/rna-pysoforms/badge/?version=latest)](https://rna-pysoforms.readthedocs.io/en/latest/?badge=latest)
 
 <!-- badges: end -->
 
