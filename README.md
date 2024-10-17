@@ -1,7 +1,5 @@
 # RNApysoforms <img src="./assets/RNA-pysoforms-logo.svg" align="right" height="100" />
 
-##
-
 
 <!-- badges: start -->
 
