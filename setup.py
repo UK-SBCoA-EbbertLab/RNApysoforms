@@ -16,7 +16,7 @@ setup(
     python_requires='>=3.8',
     author="Bernardo Aguzzoli Heberle",
     author_email="bernardo.aguzzoli@gmail.com",
-    description="A Plotly-and-Polars-based Python implementation of ggtranscript-like functionality for vizualizing RNA isoform structure and expression.",
+    description="a Python package designed for visualizing RNA isoform structures and expression levels by leveraging Plotly for interactive plotting and Polars for efficient data manipulation, enabling the creation of fast-rendering, interactive plots.",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     url="https://github.com/UK-SBCoA-EbbertLab/RNApysoforms",
