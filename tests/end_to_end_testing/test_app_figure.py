@@ -10,7 +10,7 @@ def test_plot_APP_gene():
     # Get the directory of the current file
     current_dir = os.path.dirname(__file__)
     # Construct the path to the test_data directory
-    test_data_dir = os.path.abspath(os.path.join(current_dir, '../data/', 'test_data'))
+    test_data_dir = os.path.abspath(os.path.join(current_dir, '../test_data/'))
 
     # Define file paths
     gtf_path = os.path.join(test_data_dir, "Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
