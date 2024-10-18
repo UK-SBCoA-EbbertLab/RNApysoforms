@@ -1,6 +1,6 @@
 /* Make the content area wider */
 .wy-nav-content {
-    max-width: 80%;  /* Adjust this percentage to make it wider */
+    max-width: 100%;  /* Adjust this percentage to make it wider */
 }
 
 /* Ensure images fit the content area */
