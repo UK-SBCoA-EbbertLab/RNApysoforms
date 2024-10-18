@@ -142,12 +142,12 @@ def make_plot(
 
     ## Define column widths
     if column_widths == None:
-        column_width = (1/full_trace_list)
+        column_width = (1/len(full_trace_list))
         column_widths = [column_width] * len(full_trace_list)
     elif (len(column_widths) != len(full_trace_list)) or (not isinstance(column_widths, list)):
         warnings.warn("The `column_widths` parameter must be a list of the same length as the number of subplots being generated"
                           "\nMaking all subplots have the same size as default option")
-        column_width = (1/full_trace_list)
+        column_width = (1/len(full_trace_list))
         column_widths = [column_width] * len(full_trace_list)
 
 
