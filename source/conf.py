@@ -49,3 +49,7 @@ html_theme = 'sphinx_rtd_theme'
 
 # Path to custom static files, such as CSS or JavaScript
 html_static_path = []
+
+## Allow plotly figures to render
+def setup(app):
+    app.add_js_file('https://cdn.plot.ly/plotly-latest.min.js')
