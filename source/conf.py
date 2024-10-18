@@ -16,7 +16,7 @@ release = '0.1.0-dev'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx_plotly_directive'      # Render plotly figure on RTD
+    'sphinx_plotly_directive',      # Render plotly figure on RTD
     'nbsphinx',                    # Jupyter notebooks vignettes
     'sphinx.ext.autodoc',          # Automatically document your code
     'sphinx.ext.napoleon',         # Support for NumPy and Google style docstrings
