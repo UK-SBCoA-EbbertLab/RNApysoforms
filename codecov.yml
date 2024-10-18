@@ -7,8 +7,12 @@ coverage:
         target: auto
         threshold: 1%
         informational: true
+      paths:
+        - "./src/"
     patch:
       default:
         target: auto
         threshold: 1%
         informational: true
+      paths:
+        - "./src/"
