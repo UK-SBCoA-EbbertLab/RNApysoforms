@@ -242,7 +242,7 @@ def make_plot(
         ),
         legend=dict(font=dict(size=legend_font_size)),
         xaxis=dict(tickfont=dict(size=xaxis_font_size)),
-        legend_title=dict(font=dict(size=legend_title_font_size)),
+        legendgrouptitle=dict(font=dict(size=legend_title_font_size)),
         template=template,
         annotations=[dict(font=dict(size=subplot_title_font_size)) for annotation in fig['layout']['annotations']])
 
