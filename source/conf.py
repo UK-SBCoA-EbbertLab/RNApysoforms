@@ -48,7 +48,7 @@ extensions.append('myst_parser')
 html_theme = 'sphinx_rtd_theme'
 
 # Path to custom static files, such as CSS or JavaScript
-html_static_path = []
+html_static_path = ['_static']
 
 ## Allow plotly figures to render
 def setup(app):
