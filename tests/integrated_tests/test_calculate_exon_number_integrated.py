@@ -1,6 +1,6 @@
 import polars as pl
 import pytest
-import RNApysoforms as pt
+import RNApysoforms as RNApy
 import os
 
 
@@ -16,16 +16,16 @@ def integrated_exon_calculation_test():
     gtf_path = os.path.join(test_data_dir, "Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
 
     # Read gtf
-    annotation = pt.read_ensembl_gtf("./test_data/Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
+    annotation = RNApy.read_ensembl_gtf("./test_data/Homo_sapiens_chr21_and_Y.GRCh38.110.gtf")
 
     # Add introns
-    annotation = pt.to_intron(annotation)
+    annotation = RNApy.to_intron(annotation)
 
     # Drop exon number
-    annotation_2 = pt.annotation.drop("exon_number")
+    annotation_2 = RNApy.annotation.drop("exon_number")
 
     # Recalculate exon number
-    annotation_2 = pt.calculate_exon_number(annotation_2)
+    annotation_2 = RNApy.calculate_exon_number(annotation_2)
 
     ## Check if recalculated exon numbers and coordinates reflect the original.
     assert annotation.sort(["transcript_id", "start"])["exon_number"].to_list() == \

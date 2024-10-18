@@ -1,6 +1,6 @@
 import pytest
 import os
-import RNApysoforms as pt
+import RNApysoforms as RNApy
 import polars as pl
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -18,10 +18,10 @@ def test_plot_APP_gene():
     metadata_path = os.path.join(test_data_dir, "sample_metadata.tsv")
 
     # Read GTF file
-    annotation = pt.read_ensembl_gtf(gtf_path)
+    annotation = RNApy.read_ensembl_gtf(gtf_path)
 
     # Read expression matrix
-    counts = pt.read_expression_matrix(
+    counts = RNApy.read_expression_matrix(
         expression_matrix_path=expression_matrix_path,
         metadata_path=metadata_path,
         cpm_normalization=True,
@@ -39,7 +39,7 @@ def test_plot_APP_gene():
     gene_name = "APP"
 
     # Filter gene name in annotation and counts matrix
-    annotation, counts = pt.gene_filtering(
+    annotation, counts = RNApy.gene_filtering(
         annotation=annotation,
         expression_matrix=counts,
         target_gene=gene_name,
@@ -50,13 +50,13 @@ def test_plot_APP_gene():
     )
 
     # Shorten gaps
-    rescaled_annotation = pt.shorten_gaps(
+    rescaled_annotation = RNApy.shorten_gaps(
         annotation=annotation,
         transcript_id_column="transcript_id"
     )
 
     # Create traces
-    traces = pt.make_traces(
+    traces = RNApy.make_traces(
         annotation=rescaled_annotation,
         expression_matrix=counts,
         order_transcripts_by_expression_matrix=True,
@@ -76,7 +76,7 @@ def test_plot_APP_gene():
     )
 
     # Generate the plot
-    fig = pt.make_plot(
+    fig = RNApy.make_plot(
         traces=traces,
         subplot_titles=["Transcript Structure", "Counts", "Relative Abundance", "CPM"],
         showlegend=True,
