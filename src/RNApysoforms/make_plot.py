@@ -2,7 +2,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import polars as pl
 from typing import List, Optional
-from RNApysoforms.utils import check_df  # Ensure this is correctly imported
+import warnings
 
 def make_plot(
     traces: List[go.Trace],
@@ -25,7 +25,8 @@ def make_plot(
     subplot_title_font_size: int = 16,
     legend_title_font_size: int = 14,
     hover_font_size: int = 12,
-    hovermode: str = "closest"
+    hovermode: str = "closest",
+    column_widths: list = None
 ) -> go.Figure:
     """
     Creates a multi-panel Plotly figure combining transcript structure plots and expression data plots.
@@ -84,6 +85,11 @@ def make_plot(
         Font size for hover text labels. Default is 12.
     hovermode : str, optional
         Hover mode for the figure. Options include "closest", "x", "y", "x unified", "y unified", etc. Default is "closest".
+    columns_widths: list, optional
+        A list of floats containing the same number of items as the number of subplots you are trying to generate.
+        For a figure with three subplots you could pass [0.4, 0.3, 0.3] to make the first subplot take up
+        40% of the horizontal space and the second and third subplot each take 30% of the horizontal space.
+        By default it is set to `None` which will make the subplots have proportional sizes.
 
     Returns
     -------
@@ -129,8 +135,21 @@ def make_plot(
     - Hover settings can be customized using the `hovermode` parameter.
 
     """
+
+    ## Separate traces and dictionary
     y_dict = traces[-1]
     full_trace_list = traces[:-1]
+
+    ## Define column widths
+    if column_widths == None:
+        column_width = (1/full_trace_list)
+        column_widths = [column_width] * len(full_trace_list)
+    elif (len(column_widths) != len(full_trace_list)) or (not isinstance(column_widths, list)):
+        warnings.warn("The `column_widths` parameter must be a list of the same length as the number of subplots being generated"
+                          "\nMaking all subplots have the same size as default option")
+        column_width = (1/full_trace_list)
+        column_widths = [column_width] * len(full_trace_list)
+
 
     # Initialize the subplot figure with shared y-axes
     fig = make_subplots(
@@ -139,6 +158,7 @@ def make_plot(
         subplot_titles=subplot_titles,
         horizontal_spacing=horizontal_spacing,
         vertical_spacing=vertical_spacing,
+        column_widths=column_widths,
         shared_yaxes=True,  # Share y-axes across all subplots
     )
 
