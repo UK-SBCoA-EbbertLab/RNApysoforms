@@ -830,3 +830,93 @@ def test_make_plot_hover_font_size():
     )
 
     assert fig.layout.hoverlabel.font.size == custom_hover_font_size
+
+def test_make_plot_violinmode_group():
+    """
+    Test that the violinmode is set to 'group' and that the column widths are correctly set.
+    """
+    # Create violin traces
+    transcript_traces = [
+        go.Scatter(
+            x=[1, 2, 3],
+            y=[0, 1, 0],
+            mode='lines',
+            name='Transcript1'
+        )
+    ]
+
+    violin_traces = [
+        go.Violin(
+            y=[10, 15, 13, 17],
+            name='Violin1'
+        )
+    ]
+
+    y_dict = {'Transcript1': 0}
+
+    traces = [transcript_traces, violin_traces, y_dict]
+
+    # Expected column widths
+    column_widths = [0.7, 0.3]
+
+    fig = make_plot(
+        traces=traces,
+        column_widths=column_widths
+    )
+
+    # Assert that the violinmode is set to 'group'
+    assert fig.layout.violinmode == 'group', "Violin mode is not set to 'group'"
+
+    # Extract the x-axis domains for each subplot
+    xaxis_domains = []
+    for i in range(1, len(column_widths) + 1):
+        xaxis_name = f'xaxis{i}' if i > 1 else 'xaxis'
+        domain = fig.layout[xaxis_name].domain
+        xaxis_domains.append(domain)
+
+    # Calculate inferred column widths
+    inferred_widths = [domain[1] - domain[0] for domain in xaxis_domains]
+
+    # Normalize inferred widths to sum to 1 (since domains might be adjusted for spacing)
+    total_inferred_width = sum(inferred_widths)
+    normalized_inferred_widths = [width / total_inferred_width for width in inferred_widths]
+
+    # Assert that the normalized inferred widths match the expected widths within a tolerance
+    tolerance = 0.01  # Allowable difference due to floating-point arithmetic
+    for inferred, expected in zip(normalized_inferred_widths, column_widths):
+        assert abs(inferred - expected) < tolerance, (
+            f"Inferred column width {inferred:.2f} does not match expected width {expected:.2f}"
+        )
+
+
+def test_make_plot_violinmode_group():
+    """
+    Test that the violinmode is set to 'group'.
+    """
+    # Create violin traces
+    transcript_traces = [
+        go.Scatter(
+            x=[1, 2, 3],
+            y=[0, 1, 0],
+            mode='lines',
+            name='Transcript1'
+        )
+    ]
+
+    violin_traces = [
+        go.Violin(
+            y=[10, 15, 13, 17],
+            name='Violin1'
+        )
+    ]
+
+    y_dict = {'Transcript1': 0}
+
+    traces = [transcript_traces, violin_traces, y_dict]
+
+    with pytest.warns(UserWarning) as record:
+        fig = make_plot(
+            traces=traces,
+            column_widths=[0.7, 0.3, 0.2])
+    assert len(record) == 1
+    assert "The `column_widths` parameter must be a list of the same" in str(record[0].message)
