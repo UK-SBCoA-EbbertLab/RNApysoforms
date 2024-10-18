@@ -28,5 +28,16 @@ Example Vignettes
    :maxdepth: 2
    :caption: Examples:
 
-   examples/vignette1.ipynb
-   examples/vignette2.ipynb
+   examples/0.basic_usage.html
+   examples/01.rescaled_introns.html
+   examples/02.expression_plot.html
+   examples/03.expression_plot_with_metadata.html
+   examples/04.expression_plot_filtered_and_ordered.html
+   examples/05.plot_specific_transcripts.html
+   examples/06.custom_color_palettes.html
+   examples/07.custom_color_maps.html
+   examples/08.separate_CDS_interactivity.html
+   examples/09.autoscale_plots.html
+   examples/10.dealing_with_different_gtf_files.html
+   examples/11.making_expression_plot_only.html
+   examples/12.making_changes_to_figure_after_rendering.html
