@@ -240,10 +240,14 @@ def make_plot(
             range=[-0.8, (len(y_dict) - 0.2)],
             tickfont=dict(size=yaxis_font_size)
         ),
-        legend=dict(font=dict(size=legend_font_size)),
-        xaxis=dict(tickfont=dict(size=xaxis_font_size)),
-        legendgrouptitle=dict(font=dict(size=legend_title_font_size)),
+        legend=dict(font=dict(size=legend_font_size), grouptitlefont=dict(size=legend_title_font_size)),
         template=template,
         annotations=[dict(font=dict(size=subplot_title_font_size)) for annotation in fig['layout']['annotations']])
+    
+    """
+    There is a bug in plotly and the tickfont for the x-axis has to be updated in this manner,
+    it can't be done using the `update_layout` function. See: https://github.com/plotly/plotly.py/issues/2922
+    """
+    fig.update_xaxes(tickfont_size=(xaxis_font_size))
 
     return fig  # Return the assembled figure
