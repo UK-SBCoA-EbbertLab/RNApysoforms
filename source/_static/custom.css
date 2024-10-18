@@ -8,3 +8,7 @@ img {
     max-width: 100%;
     height: auto;
 }
+
+.toctree-l1 {
+    margin-bottom: 20px; /* Adjust the value to increase/decrease spacing */
+}
