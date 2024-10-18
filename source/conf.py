@@ -36,3 +36,13 @@ html_static_path = ['_static']
 html_js_files = [
     'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js',
 ]
+
+
+# Change the max-width of the content area
+html_theme_options = {
+    'body_max_width': '80%',  # Adjust the width as needed
+}
+
+# Add custom CSS file
+def setup(app):
+    app.add_css_file('custom.css')
