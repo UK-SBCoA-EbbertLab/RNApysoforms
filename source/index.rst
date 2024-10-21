@@ -27,25 +27,8 @@ Example vignettes
 
 .. toctree::
    :maxdepth: 2
-
-   examples/0.basic_usage
-   examples/01.rescaled_introns
-   examples/02.expression_plot
-   examples/03.expression_plot_with_metadata
-   examples/04.expression_plot_filtered_and_ordered
-   examples/05.plot_specific_transcripts
-   examples/06.custom_color_palettes
-   examples/07.custom_color_maps
-   examples/08.separate_CDS_interactivity
-   examples/09.autoscale_plots
-   examples/10.dealing_with_different_gtf_files
-   examples/11.making_expression_plot_only
-   examples/12.making_changes_to_figure_after_rendering
-
-.. toctree::
-   :maxdepth: 2
+   :recursive:
    :caption: Examples:
-   :hidden:
 
    examples/0.basic_usage
    examples/01.rescaled_introns
@@ -60,11 +43,13 @@ Example vignettes
    examples/10.dealing_with_different_gtf_files
    examples/11.making_expression_plot_only
    examples/12.making_changes_to_figure_after_rendering
+
 
 Change log (release notes)
 ============================
 .. toctree::
    :maxdepth: 2
+   :recursive:
    :caption: Change log (release notes):
 
-   ../CHANGELOG
+   CHANGELOG
