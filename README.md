@@ -29,10 +29,14 @@ Here's a basic example of how to use `RNApysoforms`:
 
 [Basic Usage (Quick Start)](https://rna-pysoforms.readthedocs.io/en/latest/examples/0.basic_usage.html)
 
+[Making pretty figures](https://rna-pysoforms.readthedocs.io/en/latest/examples/04.expression_plot_filtered_and_ordered.html)
+
 
 ## Documentation and Test Data
 
+[Click here](https://zenodo.org/records/13961009/files/RNApysoforms_test_data.zip?download=1) to download a small test dataset.
 
+[Click here](https://rna-pysoforms.readthedocs.io/en/latest/index.html) to see thorough vignettes (example usage) and function documentation.
 
 
 ## Contributing
