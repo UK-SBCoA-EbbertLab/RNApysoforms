@@ -23,20 +23,32 @@ You can install `RNApysoforms` using pip:
 pip install RNApysoforms
 ```
 
+
 ## Quick Start
 
-Here's a basic example of how to use `RNApysoforms`:
-
-[Basic Usage (Quick Start)](https://rna-pysoforms.readthedocs.io/en/latest/examples/0.basic_usage.html)
-
-[Making pretty figures](https://rna-pysoforms.readthedocs.io/en/latest/examples/04.expression_plot_filtered_and_ordered.html)
+[Basic usage (quick start)](https://rna-pysoforms.readthedocs.io/en/latest/examples/0.basic_usage.html)
 
 
-## Documentation and Test Data
+## More vignettes (usage examples)
 
-[Click here](https://zenodo.org/records/13961009/files/RNApysoforms_test_data.zip?download=1) to download a small test dataset.
+[Recaling introns for a prettier RNA isoform structure plot](https://rna-pysoforms.readthedocs.io/en/latest/examples/01.rescaled_introns.html)
 
-[Click here](https://rna-pysoforms.readthedocs.io/en/latest/index.html) to see thorough vignettes (example usage) and function documentation.
+[Plotting RNA isoform structure and expression](https://rna-pysoforms.readthedocs.io/en/latest/examples/02.expression_plot.html)
+
+[Plotting RNA isoform structure and normalized expression](https://rna-pysoforms.readthedocs.io/en/latest/examples/04.expression_plot_filtered_and_ordered.html)
+
+
+
+## Test Data and Documentation
+
+[Download small test dataset](https://zenodo.org/records/13961009/files/RNApysoforms_test_data.zip?download=1)
+
+[Documentation](https://rna-pysoforms.readthedocs.io/en/latest/index.html)
+
+
+## Issues
+
+Please go through the [documentation and vignettes](https://rna-pysoforms.readthedocs.io/en/latest/index.html) before submitting an issue.
 
 
 ## Contributing
@@ -44,6 +56,7 @@ Here's a basic example of how to use `RNApysoforms`:
 Contributions to `RNApysoforms` are welcome! Please feel free to submit a Pull Request.
 
 The function implementations are under the `src/RNApysoforms` directory.
+
 
 ## Functions
 
@@ -62,6 +75,7 @@ The function implementations are under the `src/RNApysoforms` directory.
 - `shorten_gaps()`: Shortens intron and transcript start gaps between exons in genomic annotations to enhance visualization.
 
 - `to_intron()`: Converts exon coordinates into corresponding intron coordinates within a genomic annotation dataset.
+
 
 ## License
 
