@@ -1,5 +1,4 @@
 Changelog
 =========
 
-.. include:: ../CHANGELOG
-   :literal:
+.. include:: ../CHANGELOG.md
