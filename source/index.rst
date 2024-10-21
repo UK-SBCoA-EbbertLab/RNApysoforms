@@ -27,7 +27,6 @@ Example vignettes
 
 .. toctree::
    :maxdepth: 2
-   :recursive:
    :caption: Examples:
 
    examples/0.basic_usage
@@ -49,7 +48,6 @@ Change log (release notes)
 ============================
 .. toctree::
    :maxdepth: 2
-   :recursive:
    :caption: Change log (release notes):
 
-   CHANGELOG
+   ../CHANGELOG
