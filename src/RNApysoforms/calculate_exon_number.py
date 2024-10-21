@@ -46,14 +46,15 @@ def calculate_exon_number(annotation: pl.DataFrame, transcript_id_column: str = 
     Assign exon numbers to genomic features:
 
     >>> import polars as pl
-    >>> from RNApysoforms.annotation import calculate_exon_number
+    >>> from RNApysoforms import calculate_exon_number
     >>> df = pl.DataFrame({
-    ...     "transcript_id": ["tx1", "tx1", "tx1", "tx2", "tx2"],
-    ...     "start": [100, 200, 300, 150, 250],
-    ...     "end": [150, 250, 350, 200, 300],
-    ...     "type": ["exon", "intron", "CDS", "exon", "intron"],
-    ...     "strand": ["+", "+", "+", "-", "-"]
-    ... })
+    ...    "transcript_id": ["tx1", "tx1", "tx2", "tx2"],
+    ...    "start": [100, 200, 300, 400],
+    ...    "end": [150, 250, 350, 450],
+    ...    "type": ["exon", "exon", "exon", "exon"],
+    ...    "strand": ["+", "+", "-", "-"]
+    })
+
     >>> result_df = calculate_exon_number(df)
     >>> print(result_df)
 

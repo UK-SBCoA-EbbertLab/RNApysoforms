@@ -59,7 +59,7 @@ def read_ensembl_gtf(path: str) -> pl.DataFrame:
     --------
     Read a GTF file and display the first few rows:
 
-    >>> from RNApysoforms.io import read_gtf
+    >>> from RNApysoforms import read_gtf
     >>> df = read_gtf("/path/to/file.gtf")
     >>> print(df.head())
 

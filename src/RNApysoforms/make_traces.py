@@ -187,20 +187,21 @@ def make_traces(
     >>> import polars as pl
     >>> from RNApysoforms.plotting import make_traces
     >>> # Prepare annotation DataFrame
+    >>> # Create sample annotation DataFrame
     >>> annotation_df = pl.DataFrame({
-    ...     "transcript_id": ["tx1", "tx1", "tx2", "tx2"],
-    ...     "start": [100, 200, 150, 250],
-    ...     "end": [150, 250, 200, 300],
-    ...     "type": ["exon", "CDS", "exon", "CDS"],
-    ...     "strand": ["+", "+", "-", "-"],
-    ...     "seqnames": ["chr1", "chr1", "chr2", "chr2"]
-    ... })
-    >>> # Prepare expression matrix
+    >>>    "transcript_id": ["tx1", "tx1", "tx2", "tx2"],
+    >>>    "start": [100, 200, 150, 250],
+    >>>    "end": [150, 250, 200, 300],
+    >>>    "type": ["exon", "CDS", "exon", "CDS"],
+    >>>    "strand": ["+", "+", "-", "-"],
+    >>>    "seqnames": ["chr1", "chr1", "chr2", "chr2"]
+    >>> })
+    >>> # Create sample expression matrix
     >>> expression_df = pl.DataFrame({
-    ...     "transcript_id": ["tx1", "tx1", "tx2", "tx2"],
-    ...     "sample_id": ["sample1", "sample2", "sample1", "sample2"],
-    ...     "counts": [100, 200, 150, 250]
-    ... })
+    >>>    "transcript_id": ["tx1", "tx1", "tx2", "tx2"],
+    >>>    "sample_id": ["sample1", "sample2", "sample1", "sample2"],
+    >>>    "counts": [100, 200, 150, 250]
+    >>> })
     >>> # Generate traces
     >>> traces = make_traces(annotation=annotation_df, expression_matrix=expression_df)
     >>> # Use traces to create a Plotly figure (not shown here)
@@ -215,8 +216,6 @@ def make_traces(
     - The `y_dict` mapping is used to align transcripts across different plots by assigning consistent y-axis positions.
     - The function handles strand direction when plotting intron arrows.
     - Custom legends and hover information can be configured via parameters.
-    - **Note:** The parameters `arrow_height` and `arrow_length` are currently not utilized in the function.
-
     """
 
     # Ensure that expression_columns is a list

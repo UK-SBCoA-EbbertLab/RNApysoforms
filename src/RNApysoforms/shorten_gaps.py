@@ -59,15 +59,17 @@ def shorten_gaps(
     Shorten intron and transcript start gaps in a genomic annotation DataFrame:
 
     >>> import polars as pl
-    >>> from RNApysoforms.plot import shorten_gaps
+    >>> from RNApysoforms import shorten_gaps
     >>> df = pl.DataFrame({
-    ...     "transcript_id": ["tx1", "tx1", "tx1"],
-    ...     "start": [100, 200, 500],
-    ...     "end": [150, 250, 600],
-    ...     "type": ["exon", "exon", "exon"],
-    ...     "strand": ["+", "+", "+"],
-    ...     "seqnames": ["chr1", "chr1", "chr1"]
+    ...    "transcript_id": ["tx1", "tx1", "tx1"],
+    ...    "start": [100, 200, 500],
+    ...    "end": [150, 250, 600],
+    ...    "type": ["exon", "exon", "exon"],
+    ...    "strand": ["+", "+", "+"],
+    ...    "seqnames": ["chr1", "chr1", "chr1"],
+    ...    "exon_number": [1, 2, 3]
     ... })
+
     >>> shortened_df = shorten_gaps(df, transcript_id_column="transcript_id", target_gap_width=50)
     >>> print(shortened_df.head())
 

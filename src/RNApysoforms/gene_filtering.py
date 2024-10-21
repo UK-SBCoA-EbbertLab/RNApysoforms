@@ -84,30 +84,20 @@ def gene_filtering(
     >>> import polars as pl
     >>> from RNApysoforms.annotation import gene_filtering
     >>> annotation_df = pl.DataFrame({
-    ...     "gene_name": ["BRCA1", "BRCA1", "TP53"],
-    ...     "transcript_id": ["tx1", "tx2", "tx3"],
-    ...     "counts": [100, 200, 150]
+    ...    "gene_name": ["APP", "APP", "APP"],
+    ...    "transcript_id": ["tx1", "tx2", "tx3"]
     ... })
-    >>> filtered_annotation = gene_filtering("BRCA1", annotation_df)
-    >>> print(filtered_annotation)
-
-    Filter an annotation and expression matrix by a specific gene, keeping top 1 expressed transcript:
-
     >>> expression_matrix_df = pl.DataFrame({
-    ...     "transcript_id": ["tx1", "tx2", "tx4"],
-    ...     "counts": [100, 200, 300],
-    ...     "sample_id": ["sample1", "sample2", "sample3"]
+    ...    "transcript_id": ["tx1", "tx2", "tx3"],
+    ...    "counts": [300, 100, 200]
     ... })
+    >>> target_gene = "APP"
     >>> filtered_annotation, filtered_expression_matrix = gene_filtering(
-    ...     "BRCA1",
-    ...     annotation_df,
-    ...     expression_matrix=expression_matrix_df,
-    ...     order_by_expression_column="counts",
-    ...     order_by_expression=True,
-    ...     keep_top_expressed_transcripts=1
+    ...    target_gene,
+    ...    annotation_df,
+    ...    expression_matrix=expression_matrix_df,
+    ...    order_by_expression=True
     ... )
-    >>> print(filtered_annotation)
-    >>> print(filtered_expression_matrix)
 
     Notes
     -----

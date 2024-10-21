@@ -106,16 +106,7 @@ def make_plot(
     Create a figure with transcript structure and expression data:
 
     >>> import plotly.graph_objects as go
-    >>> from RNApysoforms.plotting import make_plot
-    >>> # Prepare transcript structure traces
-    >>> transcript_traces = [...]  # List of dict traces for transcript structures
-    >>> # Prepare expression data traces
-    >>> expression_traces = [...]  # List of go.Box or go.Violin traces
-    >>> # y_dict mapping transcript IDs to y-axis positions
-    >>> y_dict = {'transcript1': 0, 'transcript2': 1, ...}
-    >>> # Combine all traces
-    >>> traces = [transcript_traces, expression_traces, y_dict]
-    >>> # Generate the plot
+    >>> from RNApysoforms import make_plot
     >>> fig = make_plot(
     ...     traces=traces,
     ...     subplot_titles=["Transcript Structure", "Expression Levels"],

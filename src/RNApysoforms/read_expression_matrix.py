@@ -72,7 +72,7 @@ def read_expression_matrix(
     Examples
     --------
     Load an expression matrix, perform CPM normalization, calculate relative transcript abundance, and merge with metadata:
-
+    >>> from RNApysoforms import read_expression_matrix
     >>> df = read_expression_matrix(
     ...     expression_matrix_path="counts.csv",
     ...     metadata_path="metadata.csv",
@@ -82,33 +82,20 @@ def read_expression_matrix(
     ... )
     >>> print(df.head())
 
-    Load an expression matrix without normalization but calculate relative transcript abundance:
-
-    >>> df = read_expression_matrix(
-    ...     expression_matrix_path="counts.csv",
-    ...     expression_measure_name="counts",
-    ...     relative_abundance=True
-    ... )
-    >>> print(df.head())
-
-    Load an expression matrix without calculating relative abundance:
-
-    >>> df = read_expression_matrix(
-    ...     expression_matrix_path="counts.csv",
-    ...     gene_id_column_name=None
-    ... )
-    >>> print(df.head())
-
     Notes
     -----
-    - The `transcript_id_column_name` parameter is required and cannot be None.
+    - The `transcript_id_column_name` is set to "transcript_id" by default. The parameter is required and cannot be None.
     - The function supports multiple file formats (`.csv`, `.tsv`, `.txt`, `.parquet`, `.xlsx`) for both expression and metadata files.
     - If CPM normalization is performed, the expression measures will be scaled to reflect Counts Per Million for each sample.
-    - If `gene_id_column_name` is provided and `relative_abundance` is True, relative transcript abundance is calculated as `(transcript_counts / total_gene_counts) * 100`.
-      If the total gene counts are zero, the relative abundance is set to zero to avoid division by zero errors.
-    - Warnings are raised if there is partial sample overlap between expression data and metadata.
+    - If `gene_id_column_name` is provided and `relative_abundance` is True, relative transcript abundance is calculated as 
+      `(transcript_expression / total_gene_expression) * 100`. If the total gene counts are zero, the relative abundance is set to zero to avoid division by zero errors.
+    - Warnings are raised if there is only partial sample overlap between expression data and metadata.
     - The resulting DataFrame is returned in long format, with expression measures, CPM values, relative abundance for each sample-feature combination.
     - The `expression_measure_name` allows customization of the name of the expression values column in the long-format DataFrame.
+    - If a metadata file is passed, the function expects that the values in the `metadata_sample_id_column` from the metadata file will be found as 
+      column names in the counts matrix file.
+    - Beware of using the `cpm_normalization` and `relative_abundance` options set to `True` when working with a non-raw (i.e., normalized) counts
+      matrix as those results may not be accurate causing misinterpretation.
 
     """
 

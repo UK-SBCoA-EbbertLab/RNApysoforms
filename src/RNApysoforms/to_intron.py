@@ -8,7 +8,8 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
 
     This function identifies introns by calculating the genomic intervals between consecutive exons for each transcript.
     It returns a DataFrame with the calculated intron coordinates and retains relevant grouping based on the specified
-    `transcript_id_column`, typically 'transcript_id'. If intron entries are absent in the input data, the function generates them.
+    `transcript_id_column`, typically 'transcript_id'. If intron entries are already present
+     in the input data, the function exits with an error.
 
     Parameters
     ----------
@@ -41,21 +42,24 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
         If `annotation` is not a Polars DataFrame.
     ValueError
         If the input DataFrame does not contain the required columns (`seqnames`, `start`, `end`, `type`, `exon_number`, and `transcript_id_column`).
+        If the input DataFrame already contains introns.
 
     Examples
     --------
     Convert exons into introns:
 
     >>> import polars as pl
-    >>> from RNApysoforms.utils import check_df
+    >>> from RNApysoforms import to_intron
     >>> df = pl.DataFrame({
-    ...     "seqnames": ["chr1", "chr1", "chr1", "chr1"],
-    ...     "start": [100, 200, 400, 600],
-    ...     "end": [150, 250, 450, 650],
-    ...     "type": ["exon", "exon", "exon", "exon"],
-    ...     "transcript_id": ["tx1", "tx1", "tx1", "tx1"],
-    ...     "exon_number": [1, 2, 3, 4]
+    ...    "seqnames": ["chr1", "chr1", "chr1"],
+    ...    "start": [100, 200, 300],
+    ...    "end": [150, 250, 350],
+    ...    "type": ["exon", "exon", "exon"],
+    ...    "transcript_id": ["tx1", "tx1", "tx1"],
+    ...    "strand": ["+", "+", "+"],
+    ...    "exon_number": [1, 2, 3]
     ... })
+
     >>> df_with_introns = to_intron(df, transcript_id_column="transcript_id")
     >>> print(df_with_introns.head())
 
