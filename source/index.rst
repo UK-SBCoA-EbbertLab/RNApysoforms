@@ -23,7 +23,7 @@ Functions Overview
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Vignettes:
 
    examples/0.basic_usage  
@@ -42,7 +42,7 @@ Functions Overview
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Changelog:
 
    changelog
