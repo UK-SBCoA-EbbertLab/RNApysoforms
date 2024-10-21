@@ -48,7 +48,7 @@ Change log (release notes)
 ============================
 .. toctree::
    :maxdepth: 2
-   :caption: Change log (release notes)
+   :caption: Change log (release notes):
 
-   ../CHANGELOG.md
+   CHANGELOG.md
 
