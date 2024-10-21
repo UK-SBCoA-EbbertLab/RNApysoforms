@@ -21,8 +21,7 @@ Functions Overview
    RNApysoforms.shorten_gaps
    RNApysoforms.to_intron
 
-Vignettes
-======================
+
 .. toctree::
    :maxdepth: 2
    :caption: Vignettes:
@@ -40,11 +39,3 @@ Vignettes
    examples/10.dealing_with_different_gtf_files
    examples/11.making_expression_plot_only
    examples/12.making_changes_to_figure_after_rendering
-
-Change Log
-========================
-.. toctree::
-   :maxdepth: 2
-   :caption: Change log (release notes):
-
-   ../CHANGELOG
