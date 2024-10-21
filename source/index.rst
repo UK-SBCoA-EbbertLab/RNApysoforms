@@ -40,10 +40,3 @@ Functions Overview
    examples/11.making_expression_plot_only
    examples/12.making_changes_to_figure_after_rendering
 
-
-========================
-.. toctree::
-   :maxdepth: 2
-   :caption: Change log (release notes):
-
-   ../CHANGELOG
