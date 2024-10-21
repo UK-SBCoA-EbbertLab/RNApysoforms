@@ -41,7 +41,8 @@ Functions Overview
    examples/12.making_changes_to_figure_after_rendering
 
 
-   Changelog
-================
+.. toctree::
+   :maxdepth: 2
+   :caption: Changelog:
 
-.. include:: ../CHANGELOG.md
+   changelog
