@@ -39,3 +39,9 @@ Functions Overview
    examples/10.dealing_with_different_gtf_files
    examples/11.making_expression_plot_only
    examples/12.making_changes_to_figure_after_rendering
+
+
+   Changelog
+================
+
+.. include:: ../CHANGELOG.md
