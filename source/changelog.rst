@@ -1,2 +1,2 @@
 .. include:: ../CHANGELOG.md
-   :literal:
+   :parser: myst
