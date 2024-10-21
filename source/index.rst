@@ -10,6 +10,7 @@ Functions Overview
 .. autosummary::
    :toctree: _autosummary
    :recursive:
+   :caption: Functions:
 
    RNApysoforms.calculate_exon_number
    RNApysoforms.gene_filtering
