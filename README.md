@@ -1,4 +1,4 @@
-# RNApysoforms <img src="./assets/RNA-pysoforms-logo.svg" align="right" height="80" />
+# RNApysoforms <img src="./assets/RNA-pysoforms-logo.png" align="right" height="80" />
 
 
 <!-- badges: start -->
