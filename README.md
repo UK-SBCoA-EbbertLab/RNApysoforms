@@ -29,7 +29,7 @@ pip install RNApysoforms
 [Basic usage (quick start)](https://rna-pysoforms.readthedocs.io/en/latest/examples/0.basic_usage.html)
 
 
-## More vignettes (usage examples)
+##  More vignettes (usage examples)
 
 [Recaling introns for a prettier RNA isoform structure plot](https://rna-pysoforms.readthedocs.io/en/latest/examples/01.rescaled_introns.html)
 
@@ -39,11 +39,11 @@ pip install RNApysoforms
 
 
 
-## Test Data and Documentation
+## Test data and documentation
 
 [Download small test dataset](https://zenodo.org/records/13961009/files/RNApysoforms_test_data.zip?download=1)
 
-[Documentation](https://rna-pysoforms.readthedocs.io/en/latest/index.html)
+[Function documentation and vignettes](https://rna-pysoforms.readthedocs.io/en/latest/index.html)
 
 
 ## Issues
