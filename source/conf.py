@@ -46,3 +46,9 @@ html_theme_options = {
 # Add custom CSS file
 def setup(app):
     app.add_css_file('custom.css')
+
+# Specify source suffixes
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
