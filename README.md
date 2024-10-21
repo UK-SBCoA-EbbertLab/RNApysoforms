@@ -15,7 +15,33 @@
 `RNApysoforms` is a Python package designed for visualizing RNA isoform structures and expression levels. Leveraging Plotly for interactive plotting and Polars for efficient data manipulation, it enables the creation of fast-rendering, interactive plots suitable for both local and web applications. Inspired by the R package [ggtranscript](https://github.com/dzhang32/ggtranscript), RNApyisoforms brings similar RNA visualization capabilities to the Python ecosystem, facilitating effective exploration and presentation of RNA sequencing data.
 
 
-## Features
+## Installation
+
+You can install `RNApysoforms` using pip:
+
+```bash
+pip install RNApysoforms
+```
+
+## Quick Start
+
+Here's a basic example of how to use `RNApysoforms`:
+
+[Basic Usage (Quick Start)](https://rna-pysoforms.readthedocs.io/en/latest/examples/0.basic_usage.html)
+
+
+## Documentation and Test Data
+
+
+
+
+## Contributing
+
+Contributions to `RNApysoforms` are welcome! Please feel free to submit a Pull Request.
+
+The function implementations are under the `src/RNApysoforms` directory.
+
+## Functions
 
 - `calculate_exon_number()`: Assigns exon numbers to exons, CDS, and introns within a genomic annotation dataset based on transcript structure and strand direction.
 
@@ -32,26 +58,6 @@
 - `shorten_gaps()`: Shortens intron and transcript start gaps between exons in genomic annotations to enhance visualization.
 
 - `to_intron()`: Converts exon coordinates into corresponding intron coordinates within a genomic annotation dataset.
-
-## Installation
-
-You can install `RNApysoforms` using pip:
-
-```bash
-pip install RNApysoforms
-```
-
-## Usage
-
-Here's a basic example of how to use `RNApysoforms`:
-
-```python
-
-```
-
-## Contributing
-
-Contributions to `RNApysoforms` are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
