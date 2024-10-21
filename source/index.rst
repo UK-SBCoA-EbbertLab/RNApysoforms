@@ -50,5 +50,4 @@ Change log (release notes)
    :maxdepth: 2
    :caption: Change log (release notes):
 
-   CHANGELOG
-
+   ../CHANGELOG.md
