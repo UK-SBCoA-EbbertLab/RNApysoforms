@@ -158,8 +158,9 @@ def read_ensembl_gtf(path: str) -> pl.DataFrame:
     # Check for any null values in the DataFrame
     if results_df.null_count().select(pl.all().sum()).row(0)[0] > 0:
         raise ValueError(
-            "This GTF file is not consistent with the 2024 ENSEMBL GTF format. "
-            "You can see this vignette with an example on how to handle other GTF formats: <Add link later>"
+            "This GTF file is not consistent with the 2024 ENSEMBL GTF format. \n"
+            "See this vignette with an example on how to handle other GTF formats: \n"
+            "https://rna-pysoforms.readthedocs.io/en/latest/examples/10.dealing_with_different_gtf_files.html"
         )
 
     # Cast 'exon_number' to Int64, handling possible nulls without strict type enforcement
