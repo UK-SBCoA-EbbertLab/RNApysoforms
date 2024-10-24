@@ -60,21 +60,21 @@ The function implementations are under the `src/RNApysoforms` directory.
 
 ## Functions
 
-- `calculate_exon_number()`: Assigns exon numbers to exons, CDS, and introns within a genomic annotation dataset based on transcript structure and strand direction.
+- [calculate_exon_number()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.calculate_exon_number.html): Assigns exon numbers to exons, CDS, and introns within a genomic annotation dataset based on transcript structure and strand direction.
 
-- `gene_filtering()`: Filters genomic annotations and optionally an expression matrix for a specific gene, with options to order and select top expressed transcripts.
+- [gene_filtering()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.gene_filtering.html): Filters genomic annotations and optionally an expression matrix for a specific gene, with options to order and select top expressed transcripts.
 
-- `make_plot()`: Creates a multi-panel Plotly figure combining transcript structure plots and expression data plots.
+- [make_plot()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.make_plot.html): Creates a Plotly figure panel for transcript structure plots and/or expression data plots.
 
-- `make_traces()`: Generates Plotly traces for visualizing transcript structures and expression data.
+- [make_traces()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.make_traces.html): Generates Plotly traces for visualizing transcript structures and expression data.
 
-- `read_expression_matrix()`: Loads and processes an expression matrix, optionally merging with metadata, performing CPM normalization, and calculating relative transcript abundance.
+- [read_expression_matrix()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.read_expression_matrix.html): Loads and processes an expression matrix, optionally merging with metadata, performing CPM normalization, and calculating relative transcript abundance.
 
-- `read_ensembl_gtf()`: Reads a GTF (Gene Transfer Format) file and returns the data as a Polars DataFrame.
+- [read_ensembl_gtf()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.read_ensembl_gtf.html): Reads a GTF (Gene Transfer Format) file and returns the data as a Polars DataFrame.
 
-- `shorten_gaps()`: Shortens intron and transcript start gaps between exons in genomic annotations to enhance visualization.
+- [shorten_gaps()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.shorten_gaps.html): Shortens intron and transcript start gaps between exons in genomic annotations to enhance visualization.
 
-- `to_intron()`: Converts exon coordinates into corresponding intron coordinates within a genomic annotation dataset.
+- [to_intron()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.to_intron.html): Converts exon coordinates into corresponding intron coordinates within a genomic annotation dataset.
 
 
 ## License
