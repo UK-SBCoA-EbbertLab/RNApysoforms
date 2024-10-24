@@ -90,3 +90,8 @@ local_tests/
 ## Don't export html files
 *.html
 !source/examples/*.html
+
+## Recovery codes
+*Recovery-Codes*
+*recovery-codes*
+*.pypirc
