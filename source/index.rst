@@ -40,7 +40,8 @@ Functions Overview
    examples/11.making_expression_plot_only
    examples/12.making_changes_to_figure_after_rendering
    examples/13.making_violin_expression_plots
-
+   examples/14.using_transcript_name_instead_of_transcript_id
+   examples/15.saving_plots
 
 .. toctree::
    :maxdepth: 1
