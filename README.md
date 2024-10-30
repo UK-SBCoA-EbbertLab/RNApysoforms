@@ -31,7 +31,7 @@ pip install RNApysoforms
 
 ##  More vignettes (usage examples)
 
-[Recaling introns for a prettier RNA isoform structure plot](https://rna-pysoforms.readthedocs.io/en/latest/examples/01.rescaled_introns.html)
+[Rescaling introns for a prettier RNA isoform structure plot](https://rna-pysoforms.readthedocs.io/en/latest/examples/01.rescaled_introns.html)
 
 [Plotting RNA isoform structure and expression](https://rna-pysoforms.readthedocs.io/en/latest/examples/02.expression_plot.html)
 
