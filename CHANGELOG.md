@@ -13,3 +13,8 @@ Now the error message provides the user with the link to the vignette with an ex
 ### Added
 - Initial package release.
 
+## [0.9.1] - 2024-10-30
+### Added
+- Better error message for `read_ensembl_gtf()` function that now points user to vignette for help when trying to read unsuported file types.
+- Added `kaleido` as a dependency to allow users to images as multiple formats without having to install new packages.
+- Improved code documentation, corrected spelling errors on vignettes, added two new vignettes.
