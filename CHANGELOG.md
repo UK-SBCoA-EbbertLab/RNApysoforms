@@ -16,6 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `kaleido` as a dependency to allow users to images as multiple formats without having to install new packages.
 - Improved code documentation, corrected spelling errors on vignettes, added two new vignettes.
 
-## [0.9.2] - 2024-10-30
+## [0.9.2] - 2024-11-04
 ### Added
 - Increased efficiency of to_intron().
