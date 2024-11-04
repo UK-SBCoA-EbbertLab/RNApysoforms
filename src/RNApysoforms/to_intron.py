@@ -94,48 +94,35 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
     if annotation.filter(pl.col("type") == "exon").is_empty():
         raise ValueError("Your annotation must contains exon entries.")
     
-    ## Check if annotation has overlapping exons
-    # Rename columns to prepare for self-join
-    df_left = annotation.rename({
-        "start": "start_left",
-        "end": "end_left",
-        "exon_number": "exon_number_left",
-        transcript_id_column: "transcript_id_left"
-    })
+    # Separate exons from the annotation data
+    exons = annotation.filter(pl.col("type") == "exon").clone()
 
-    df_right = annotation.rename({
-        "start": "start_right",
-        "end": "end_right",
-        "exon_number": "exon_number_right",
-        transcript_id_column: "transcript_id_right"
-    })
+    # Sort exons by transcript ID and start position
+    exons_sorted = exons.sort([transcript_id_column, "start"])
 
-    # Perform a cross join without 'on' parameter
-    overlaps = (
-        df_left.join(df_right, how="cross")
-        .filter(
-            (pl.col("transcript_id_left") == pl.col("transcript_id_right")) &  # Ensure same transcript
-            (pl.col("exon_number_left") != pl.col("exon_number_right")) &      # Exclude self-comparison
-            (pl.col("start_left") <= pl.col("end_right")) &                    # Check for overlap
-            (pl.col("end_left") >= pl.col("start_right"))
-        )
-        .select([
-            "transcript_id_left",
-            "exon_number_left",
-            "start_left",
-            "end_left",
-            "exon_number_right",
-            "start_right",
-            "end_right"
-        ])
-        .unique()  # Remove duplicate rows
-    )
+    # Add the end position of the previous exon within each transcript
+    exons_with_shift = exons_sorted.with_columns([
+        pl.col("end").shift(1).over(transcript_id_column).alias("prev_end"),
+        pl.col("exon_number").shift(1).over(transcript_id_column).alias("prev_exon_number"),
+    ])
 
-    ## If there are any overlaps through Value Error
+    # Check for overlapping exons
+    overlaps = exons_with_shift.filter(
+        (pl.col("start") <= pl.col("prev_end")) &
+        (pl.col("prev_end").is_not_null())
+    ).select([
+        transcript_id_column, "exon_number", "start", "end",
+        pl.col("prev_exon_number"), pl.col("prev_end")
+    ])
+
+    # If overlaps are found, raise an error
     if not overlaps.is_empty():
-        raise ValueError(f"Your annotation has exons with overlapping coordinates for the same {transcript_id_column} value "
-                         "Two exons from the same transcript should cannot be overlapping, your annotation is corrupted. "
-                         "Here are the problematic entries: {overlaps}")
+        raise ValueError(
+            f"Your annotation has exons with overlapping coordinates for the same {transcript_id_column} value. "
+            "Two exons from the same transcript should not overlap; your annotation may be corrupted. "
+            f"Here are the problematic entries:\n{overlaps}"
+        )
+
 
     # Separate exons and other features (e.g., CDS) from the annotation data
     exons = annotation.filter(pl.col("type") == "exon")
