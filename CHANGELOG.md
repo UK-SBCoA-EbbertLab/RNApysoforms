@@ -19,3 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.2] - 2024-11-04
 ### Added
 - Increased efficiency of to_intron().
+
+
+## [0.9.3] - 2024-11-07
+### Added
+- Nothing... Just needed a new release to sync with Zotero for administrative reasons
