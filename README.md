@@ -8,6 +8,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/UK-SBCoA-EbbertLab/RNApysoforms)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/issues)
 [![GitHub pulls](https://img.shields.io/github/issues-pr/UK-SBCoA-EbbertLab/RNApysoforms)](https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/pulls)
 [![Documentation Status](https://readthedocs.org/projects/rna-pysoforms/badge/?version=latest)](https://rna-pysoforms.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://zenodo.org/badge/863499343.svg)](https://doi.org/10.5281/zenodo.14052788)
 
 <!-- badges: end -->
 
