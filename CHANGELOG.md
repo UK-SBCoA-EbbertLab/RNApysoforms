@@ -24,3 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.3] - 2024-11-07
 ### Added
 - Nothing... Just needed a new release to sync with Zotero for administrative reasons
+
+## [0.9.4] - 2024-11-12
+### Added
+- Changed intron coordinates to be consistent with GTF format (1-index based, inclusive on both sides)
+- Changed make traces function to make sure introns and exon/CDS "touch" in the plot eventhough their GTF coordinates do not touch.
