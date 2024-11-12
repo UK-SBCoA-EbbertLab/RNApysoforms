@@ -17,7 +17,7 @@
 
 ## Important
 
-### RNApysoforms expects start and end coordinates in GTF format, where coordinates are 1-indexed and inclusive on both ends
+### RNApysoforms expects start and end coordinates in GTF format, where coordinates are 1-indexed and inclusive on both ends.
 
 
 ## Installation
