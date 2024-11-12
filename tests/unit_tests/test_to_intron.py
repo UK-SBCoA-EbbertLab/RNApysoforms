@@ -27,8 +27,8 @@ def test_to_intron_simple_input():
     assert len(introns) == 2, "Expected 2 intron entries."
 
     # Check that intron positions are correct
-    expected_starts = [150, 250]
-    expected_ends = [200, 300]
+    expected_starts = [151, 251]
+    expected_ends = [199, 299]
     assert introns["start"].to_list() == expected_starts, f"Expected intron starts {expected_starts}, got {introns['start'].to_list()}."
     assert introns["end"].to_list() == expected_ends, f"Expected intron ends {expected_ends}, got {introns['end'].to_list()}."
 
@@ -76,14 +76,14 @@ def test_to_intron_multiple_transcripts():
     # Check intron positions for tx1
     tx1_introns = introns.filter(pl.col("transcript_id") == "tx1")
     assert len(tx1_introns) == 1, "Expected 1 intron for tx1."
-    assert tx1_introns["start"][0] == 150, "Incorrect intron start for tx1."
-    assert tx1_introns["end"][0] == 200, "Incorrect intron end for tx1."
+    assert tx1_introns["start"][0] == 151, "Incorrect intron start for tx1."
+    assert tx1_introns["end"][0] == 199, "Incorrect intron end for tx1."
 
     # Check intron positions for tx2
     tx2_introns = introns.filter(pl.col("transcript_id") == "tx2")
     assert len(tx2_introns) == 1, "Expected 1 intron for tx2."
-    assert tx2_introns["start"][0] == 200, "Incorrect intron start for tx2."
-    assert tx2_introns["end"][0] == 250, "Incorrect intron end for tx2."
+    assert tx2_introns["start"][0] == 201, "Incorrect intron start for tx2."
+    assert tx2_introns["end"][0] == 249, "Incorrect intron end for tx2."
 
 def test_to_intron_single_exon_transcript():
     """
@@ -189,8 +189,8 @@ def test_to_intron_exons_out_of_order():
 
     # Check that intron positions are calculated correctly after sorting
     introns = result_df.filter(pl.col("type") == "intron").sort("start")
-    expected_starts = [150, 250]
-    expected_ends = [200, 300]
+    expected_starts = [151, 251]
+    expected_ends = [199, 299]
     assert introns["start"].to_list() == expected_starts, f"Expected intron starts {expected_starts}, got {introns['start'].to_list()}."
     assert introns["end"].to_list() == expected_ends, f"Expected intron ends {expected_ends}, got {introns['end'].to_list()}."
 
@@ -403,8 +403,8 @@ def test_to_intron_intron_positions():
     })
 
     # Expected intron positions without any adjustment
-    expected_intron_start = 200
-    expected_intron_end = 300
+    expected_intron_start = 201
+    expected_intron_end = 299
 
     # Call to_intron function
     result_df = to_intron(df)

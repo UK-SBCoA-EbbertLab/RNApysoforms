@@ -134,8 +134,8 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
 
     # Calculate intron start and end positions by shifting exon coordinates within each transcript group
     exons_with_introns = exons_sorted.with_columns([
-        pl.col('end').shift(1).over(transcript_id_column).alias('intron_start'),  # Intron start = end of previous exon
-        pl.col('start').alias('intron_end'),                                      # Intron end = start of current exon
+        (pl.col('end').shift(1).over(transcript_id_column) + 1).alias('intron_start'),  # Intron start = end of previous exon + 1 (GTF coordinates)
+        (pl.col('start') - 1).alias('intron_end'),                                      # Intron end = start of current exon - 1 (GTF coordinates)
         pl.col("exon_number").shift(1).over(transcript_id_column).alias('intron_number'), ## Get intron number
         pl.lit('intron').alias('type')                                            # Set feature type as 'intron'
     ])

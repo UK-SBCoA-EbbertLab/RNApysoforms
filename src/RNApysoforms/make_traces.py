@@ -397,7 +397,7 @@ def make_traces(
                 display_legend = True
 
             # Define hover template with feature type, number, start, and end positions for each row
-            feature_size = abs(row[hover_end] - row[hover_start])
+            feature_size = abs((row[hover_end] - row[hover_start]) + 1)
             hovertemplate_text = (
                 f"<b>{y}:</b> {row[y]}<br>"
                 f"<b>Feature Type:</b> {row['type']}<br>"
@@ -486,7 +486,7 @@ def make_traces(
 
             elif row["type"] == intron:
                 # Define coordinates for the intron line
-                x_intron = [row[x_start], row[x_end]]
+                x_intron = [(row[x_start] - 1), (row[x_end] + 1)]
                 y_intron = [y_pos, y_pos]
 
                 # Add an arrow marker if the intron is sufficiently long

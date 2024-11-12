@@ -120,12 +120,6 @@ def shorten_gaps(
     exons = _get_type(exons, "exons")  # Mark the type as 'exon'
     introns = _get_type(introns, "introns")  # Mark the type as 'intron'
 
-    # Adjust intron positions to avoid overlap with exons
-    introns = introns.with_columns([
-        pl.col("start") + 1,
-        pl.col("end") - 1
-    ])
-
     # Identify gaps between exons within the same chromosome and strand
     gaps = _get_gaps(exons)
 
@@ -600,26 +594,6 @@ def _get_rescaled_txs(
     rescaled_tx = rescaled_tx.with_columns([
         (pl.col('rescaled_end') + pl.col('width_tx_start')).alias('rescaled_end'),
         (pl.col('rescaled_start') + pl.col('width_tx_start')).alias('rescaled_start')
-    ])
-
-    # Adjust intron start and end positions to avoid overlap with exons
-    rescaled_tx = rescaled_tx.with_columns([
-        pl.when(pl.col('type') == 'intron')
-        .then(pl.col('start') - 1)
-        .otherwise(pl.col('start'))
-        .alias('start'),
-        pl.when(pl.col('type') == 'intron')
-        .then(pl.col('end') + 1)
-        .otherwise(pl.col('end'))
-        .alias('end'),
-        pl.when(pl.col('type') == 'intron')
-        .then(pl.col('rescaled_start') - 1)
-        .otherwise(pl.col('rescaled_start'))
-        .alias('rescaled_start'),
-        pl.when(pl.col('type') == 'intron')
-        .then(pl.col('rescaled_end') + 1)
-        .otherwise(pl.col('rescaled_end'))
-        .alias('rescaled_end')
     ])
 
     # Drop 'width' column as it's no longer needed
