@@ -397,7 +397,7 @@ def make_traces(
                 display_legend = True
 
             # Define hover template with feature type, number, start, and end positions for each row
-            feature_size = abs(row[hover_end] - row[hover_start])
+            feature_size = abs((row[hover_end] - row[hover_start]) + 1)
             hovertemplate_text = (
                 f"<b>{y}:</b> {row[y]}<br>"
                 f"<b>Feature Type:</b> {row['type']}<br>"
