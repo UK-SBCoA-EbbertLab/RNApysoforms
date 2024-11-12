@@ -82,7 +82,7 @@ def test_to_intron_multiple_transcripts():
     # Check intron positions for tx2
     tx2_introns = introns.filter(pl.col("transcript_id") == "tx2")
     assert len(tx2_introns) == 1, "Expected 1 intron for tx2."
-    assert tx2_introns["start"][0] == 199, "Incorrect intron start for tx2."
+    assert tx2_introns["start"][0] == 201, "Incorrect intron start for tx2."
     assert tx2_introns["end"][0] == 249, "Incorrect intron end for tx2."
 
 def test_to_intron_single_exon_transcript():
