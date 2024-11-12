@@ -120,12 +120,6 @@ def shorten_gaps(
     exons = _get_type(exons, "exons")  # Mark the type as 'exon'
     introns = _get_type(introns, "introns")  # Mark the type as 'intron'
 
-    # Adjust intron positions to avoid overlap with exons
-    introns = introns.with_columns([
-        pl.col("start") + 1,
-        pl.col("end") - 1
-    ])
-
     # Identify gaps between exons within the same chromosome and strand
     gaps = _get_gaps(exons)
 
