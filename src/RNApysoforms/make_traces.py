@@ -486,7 +486,7 @@ def make_traces(
 
             elif row["type"] == intron:
                 # Define coordinates for the intron line
-                x_intron = [row[x_start], row[x_end]]
+                x_intron = [(row[x_start] - 1), (row[x_end] + 1)]
                 y_intron = [y_pos, y_pos]
 
                 # Add an arrow marker if the intron is sufficiently long
