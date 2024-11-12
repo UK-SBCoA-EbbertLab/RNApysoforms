@@ -596,26 +596,6 @@ def _get_rescaled_txs(
         (pl.col('rescaled_start') + pl.col('width_tx_start')).alias('rescaled_start')
     ])
 
-    # Adjust intron start and end positions to avoid overlap with exons
-    rescaled_tx = rescaled_tx.with_columns([
-        pl.when(pl.col('type') == 'intron')
-        .then(pl.col('start') - 1)
-        .otherwise(pl.col('start'))
-        .alias('start'),
-        pl.when(pl.col('type') == 'intron')
-        .then(pl.col('end') + 1)
-        .otherwise(pl.col('end'))
-        .alias('end'),
-        pl.when(pl.col('type') == 'intron')
-        .then(pl.col('rescaled_start') - 1)
-        .otherwise(pl.col('rescaled_start'))
-        .alias('rescaled_start'),
-        pl.when(pl.col('type') == 'intron')
-        .then(pl.col('rescaled_end') + 1)
-        .otherwise(pl.col('rescaled_end'))
-        .alias('rescaled_end')
-    ])
-
     # Drop 'width' column as it's no longer needed
     rescaled_tx = rescaled_tx.drop(['width'])
 
