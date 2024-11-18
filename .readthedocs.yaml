@@ -6,6 +6,12 @@ build:
   os: "ubuntu-22.04"  # Set the OS to a supported Ubuntu version
   tools:
     python: "3.9"  # Python version to use
+  commands:
+    # Install Google Chrome
+    - sudo apt-get update
+    - sudo apt-get install -y wget
+    - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    - sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
 
 sphinx:
   configuration: source/conf.py  # Path to your Sphinx config file
@@ -15,10 +21,3 @@ python:
     - method: pip
       path: .
     - requirements: source/requirements.txt  # Path to your requirements file
-
-commands:
-  # Add commands to install Google Chrome
-  - sudo apt-get update
-  - sudo apt-get install -y wget
-  - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-  - sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
