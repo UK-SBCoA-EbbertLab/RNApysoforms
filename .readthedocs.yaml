@@ -6,14 +6,27 @@ build:
   os: "ubuntu-22.04"  # Set the OS to a supported Ubuntu version
   tools:
     python: "3.9"  # Python version to use
+  environment:
+    PATH: "$PWD/chrome/opt/google/chrome:$PATH"
   commands:
-    # Download Chrome zip file
-    - wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm -O chrome.zip
-    # Extract the zip file to a local directory
-    - mkdir chrome && unzip chrome.zip -d chrome
+    # Download Google Chrome RPM package
+    - wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm -O google-chrome.rpm
+
+    # Install 'rpm2cpio' and 'cpio' if they are not already available
+    # Since we cannot use 'apt-get' or 'sudo', we'll use a workaround to extract the RPM
+
+    # Convert RPM to CPIO archive and extract it
+    - rpm2cpio google-chrome.rpm | cpio -idmv
+
+    # Move extracted files to a 'chrome' directory
+    - mkdir -p chrome && mv opt chrome/
+
     # Make the Chrome binary executable
-    - chmod +x ./chrome/google-chrome
-    
+    - chmod +x chrome/opt/google/chrome/google-chrome
+
+    # Verify Chrome installation
+    - chrome/opt/google/chrome/google-chrome --version
+
 sphinx:
   configuration: source/conf.py  # Path to your Sphinx config file
 
