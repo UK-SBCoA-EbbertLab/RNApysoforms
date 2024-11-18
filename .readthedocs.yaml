@@ -7,7 +7,7 @@ build:
   tools:
     python: "3.9"  # Python version to use
   environment:
-    PATH: "$PWD/chrome/opt/google/chrome:$PATH"
+    PATH: "/home/docs/checkouts/readthedocs.org/user_builds/$READTHEDOCS_PROJECT_NAME/envs/$READTHEDOCS_VERSION/bin:chrome/opt/google/chrome:$PATH"
   commands:
     # Download Google Chrome RPM package
     - wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm -O google-chrome.rpm
