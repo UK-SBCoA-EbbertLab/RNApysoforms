@@ -7,9 +7,9 @@ build:
   tools:
     python: "3.9"  # Python version to use
   commands:
-    # Install Chromium
-    - apt-get update
-    - apt-get install -y chromium-browser
+    # Download and extract portable Chromium
+    - wget https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/1150/chrome-linux.zip
+    - unzip chrome-linux.zip -d ./chromium
     
 sphinx:
   configuration: source/conf.py  # Path to your Sphinx config file
