@@ -29,3 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Changed intron coordinates to be consistent with GTF format (1-index based, inclusive on both sides)
 - Changed make traces function to make sure introns and exon/CDS "touch" in the plot even though their GTF coordinates do not touch.
+
+## [0.9.5] - 2024-11-19
+### Removed
+- Kaleido dependency. Kaleido now requires chrome/chromium to be installed which could complicate the installation.
