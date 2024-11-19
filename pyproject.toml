@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "RNApysoforms"
-version = "0.9.4"
+version = "0.9.5"
 description = "A Python package designed for visualizing RNA isoform structures and expression levels by leveraging Plotly for interactive plotting and Polars for efficient data manipulation, enabling the creation of fast-rendering, interactive plots."
 readme = "README.md"
 authors = [{name = "Your Name", email = "bernardo.aguzzoli@gmail.com"}]
