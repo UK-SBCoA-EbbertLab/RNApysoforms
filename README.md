@@ -15,7 +15,7 @@
 
 `RNApysoforms` is a Python package designed for visualizing RNA isoform structures and expression levels. Leveraging Plotly for interactive plotting and Polars for efficient data manipulation, it enables the creation of fast-rendering, interactive plots suitable for both local and web applications. Inspired by the R package [ggtranscript](https://github.com/dzhang32/ggtranscript), RNApysoforms brings similar RNA visualization capabilities to the Python ecosystem, facilitating effective exploration and presentation of RNA sequencing data.
 
-## Article and Citation
+## Pre-print for Citation
 
 https://www.biorxiv.org/content/10.1101/2024.11.06.622357v1
 
