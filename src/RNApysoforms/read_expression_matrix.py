@@ -72,14 +72,15 @@ def read_expression_matrix(
     Examples
     --------
     Load an expression matrix, perform CPM normalization, calculate relative transcript abundance, and merge with metadata:
+    
     >>> from RNApysoforms import read_expression_matrix
     >>> df = read_expression_matrix(
-    ...     expression_matrix_path="counts.csv",
-    ...     metadata_path="metadata.csv",
-    ...     expression_measure_name="counts",
-    ...     cpm_normalization=True,
-    ...     relative_abundance=True
-    ... )
+    >>>     expression_matrix_path="counts.csv",
+    >>>     metadata_path="metadata.csv",
+    >>>     expression_measure_name="counts",
+    >>>     cpm_normalization=True,
+    >>>     relative_abundance=True
+    >>> )
     >>> print(df.head())
 
     Notes
