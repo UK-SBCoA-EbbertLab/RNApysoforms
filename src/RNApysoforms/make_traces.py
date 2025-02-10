@@ -421,20 +421,19 @@ def make_traces(
                 # Create the scatter trace for the exon
                 trace = dict(
                     type='scatter',
-                    mode='lines+markers',
+                    mode='lines',
                     x=[x0, x1, x1, x0, x0],
                     y=[y0, y0, y1, y1, y0],
                     fill='toself',
                     fillcolor=exon_and_cds_color,
                     line=dict(color=line_color, width=exon_line_width),
-                    marker=dict(opacity=0),
                     opacity=transcript_plot_opacity,
                     name=hue_name,
                     legendgroup=hue_name,
                     showlegend=display_legend,
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
-                    hoveron='fills+points',
+                    hoveron='fills',
                     legendgrouptitle_text=transcript_plot_legend_title
                 )
                 exon_traces.append(trace)
@@ -460,20 +459,19 @@ def make_traces(
                 # Create the scatter trace for the CDS
                 trace = dict(
                     type='scatter',
-                    mode='lines+markers',
+                    mode='lines',
                     x=[x0, x1, x1, x0, x0],
                     y=[y0, y0, y1, y1, y0],
                     fill='toself',
                     fillcolor=exon_and_cds_color,
                     line=dict(color=line_color, width=exon_line_width),
-                    marker=dict(opacity=0),
                     opacity=transcript_plot_opacity,
                     name=hue_name,
                     legendgroup=hue_name,
                     showlegend=display_legend,
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
-                    hoveron='fills+points',
+                    hoveron='fills',
                     legendgrouptitle_text=cds_legend_title
                 )
                 cds_traces.append(trace)
