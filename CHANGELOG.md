@@ -33,3 +33,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.5] - 2024-11-19
 ### Removed
 - Kaleido dependency. Kaleido now requires chrome/chromium to be installed which could complicate the installation.
+
+
+## [1.0.0] - 2025-02-10
+### Added
+- Changed make_traces() function to avoid transparent dots on the legend.
+- Improved documentation for read_ensembl_gtf() function.
+- Improved documentation for read_expression_matrix() function.
+- Improved formatting on the vignettes.
+
+
