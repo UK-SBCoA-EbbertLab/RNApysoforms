@@ -20,9 +20,40 @@ def read_expression_matrix(
     It supports performing Counts Per Million (CPM) normalization and calculating relative transcript abundance based on gene counts.
     The resulting DataFrame is returned in long format, including the expression measures, optional CPM values, relative abundances, and metadata if provided.
 
+    **Expression Matrix Format Requirements:**
+    - Must be in wide format with samples as columns and transcripts as rows
+    - First column(s) must contain the feature identifiers (transcript_id and optionally gene_id)
+    - Sample columns must contain numeric expression values (e.g., read counts)
+    - Sample column names must exactly match the values in the metadata_sample_id_column for proper merging if providing a metadata file
+    
+    Example expression matrix format:
+    ```
+    transcript_id    gene_id    sample1    sample2    sample3
+    ENST0001        ENSG001    100        200        150
+    ENST0002        ENSG001    50         75         60
+    ENST0003        ENSG002    300        250        275
+    ```
+
     **Required Columns in Expression Matrix:**
-    - `transcript_id_column_name` (default `"transcript_id"`): Identifier for each transcript.
-    - If `gene_id_column_name` is provided and not None, it must be a column in the expression matrix.
+    - `transcript_id_column_name` (default `"transcript_id"`): Identifier for each transcript
+    - If `gene_id_column_name` is provided and not None, it must be a column in the expression matrix
+    - All other columns are assumed to be sample expression values and must:
+        - Contain numeric values
+        - Have names that match the values in the metadata_sample_id_column if metadata is provided
+
+    **Metadata Format Requirements (if provided):**
+    - Must contain the metadata_sample_id_column (default "sample_id")
+    - Values in this column must exactly match the sample column names in the expression matrix
+    - Can contain any number of additional metadata columns
+
+    Example metadata format:
+    ```
+    sample_id    condition    batch
+    sample1      control      1
+    sample2      treated      1
+    sample3      control      2
+    ```
+
 
     **Supported File Formats:**
     - `.csv`, `.tsv`, `.txt`, `.parquet`, `.xlsx` for both expression matrix and metadata files.
