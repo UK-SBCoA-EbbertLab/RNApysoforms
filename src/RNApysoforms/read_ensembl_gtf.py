@@ -71,7 +71,7 @@ def read_ensembl_gtf(path: str) -> pl.DataFrame:
     - Missing `gene_name` and `transcript_name` values are filled with `gene_id` and `transcript_id`, respectively.
     - The 'exon_number' field is cast to Int64, handling possible nulls without strict type enforcement.
     - The function returns a collected Polars DataFrame after all lazy operations are executed.
-
+    - An example ENSEMBL GTF file only containing data for human chromosomes 21 and Y can be found here: https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/blob/main/tests/test_data/Homo_sapiens_chr21_and_Y.GRCh38.110.gtf
     """
 
     # Validate the file path to ensure it exists and is a file
