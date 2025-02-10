@@ -433,7 +433,8 @@ def make_traces(
                     showlegend=display_legend,
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
-                    hoveron='fills',
+                    hoveron='fills+points',
+                    hoverinfo='text',
                     legendgrouptitle_text=transcript_plot_legend_title
                 )
                 exon_traces.append(trace)
@@ -471,7 +472,8 @@ def make_traces(
                     showlegend=display_legend,
                     hovertemplate=hovertemplate_text,
                     hoverlabel=dict(namelength=-1),
-                    hoveron='fills',
+                    hoveron='fills+points',
+                    hoverinfo='text',
                     legendgrouptitle_text=cds_legend_title
                 )
                 cds_traces.append(trace)
