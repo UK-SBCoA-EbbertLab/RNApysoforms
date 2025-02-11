@@ -30,8 +30,6 @@ def read_expression_matrix(
 
         transcript_id    gene_id    sample1    sample2    sample3
         ENST0001         ENSG001    100        200        150
-
-
         ENST0002         ENSG001    50         75         60
         ENST0003         ENSG002    300        250        275
 
