@@ -36,16 +36,16 @@ pip install RNApysoforms
 
 ## Quick Start
 
-[Basic usage (quick start)](https://rna-pysoforms.readthedocs.io/en/latest/examples/0.basic_usage.html)
+[Basic usage (quick start)](https://rna-pysoforms.readthedocs.io/en/latest/examples/basic_usage.html)
 
 
 ##  More vignettes (usage examples)
 
-[Rescaling introns for a prettier RNA isoform structure plot](https://rna-pysoforms.readthedocs.io/en/latest/examples/01.rescaled_introns.html)
+[Rescaling introns for a prettier RNA isoform structure plot](https://rna-pysoforms.readthedocs.io/en/latest/examples/rescaled_introns.html)
 
-[Plotting RNA isoform structure and expression](https://rna-pysoforms.readthedocs.io/en/latest/examples/02.expression_plot.html)
+[Plotting RNA isoform structure and expression](https://rna-pysoforms.readthedocs.io/en/latest/examples/expression_plot.html)
 
-[Plotting RNA isoform structure and normalized expression](https://rna-pysoforms.readthedocs.io/en/latest/examples/04.expression_plot_filtered_and_ordered.html)
+[Plotting RNA isoform structure and normalized expression](https://rna-pysoforms.readthedocs.io/en/latest/examples/expression_plot_filtered_and_ordered.html)
 
 
 
