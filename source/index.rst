@@ -42,7 +42,7 @@ Functions Overview
    examples/making_violin_expression_plots
    examples/using_transcript_name_instead_of_transcript_id
    examples/saving_plots
-   examples/RNA_modifications_annotations
+   examples/RNA_modification_annotations
 
 .. toctree::
    :maxdepth: 1
