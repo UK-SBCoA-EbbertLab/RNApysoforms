@@ -2,7 +2,7 @@
 project = 'RNApysoforms'
 copyright = '2024, Bernardo Aguzzoli Heberle'
 author = 'Bernardo Aguzzoli Heberle'
-release = '1.0.1'
+release = '1.0.2'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
