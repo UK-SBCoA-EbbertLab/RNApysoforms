@@ -335,7 +335,7 @@ def _get_open_file(file_path: str) -> pl.DataFrame:
             return pl.read_csv(file_path, infer_schema_length=100000)
         elif file_extension == ".parquet":
             # Read Parquet file
-            return pl.read_parquet(file_path, infer_schema_length=100000)
+            return pl.read_parquet(file_path)
         elif file_extension == ".xlsx":
             # Read Excel file
             return pl.read_excel(file_path, infer_schema_length=100000)
