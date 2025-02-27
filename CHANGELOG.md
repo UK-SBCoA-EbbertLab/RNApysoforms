@@ -44,3 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved README.md file.
 
 
+## [1.0.2] - 2025-02-27
+### Added
+- Increase infer_schema_length when reading counts matrix to avoid type errors.
+
