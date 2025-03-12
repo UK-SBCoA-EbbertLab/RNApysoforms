@@ -155,8 +155,7 @@ def test_shorten_gaps_missing_required_columns():
         "start": [100],
         "end": [200],
         "type": ["exon"],
-        "strand": ["+"],
-        "seqnames": ["chr1"]
+        "strand": ["+"]
     })
 
     with pytest.raises(ValueError):
