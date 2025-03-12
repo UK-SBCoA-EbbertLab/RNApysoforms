@@ -98,11 +98,9 @@ def shorten_gaps(
     # Validate the input DataFrame to ensure required columns are present
     check_df(annotation, ["start", "end", "type", "strand", "seqnames", transcript_id_column])
 
-    if "exon_number" not in annotation.columns:
-        annotation = calculate_exon_number(annotation, transcript_id_column)
-
     # Check if there are intron entries in the annotation data
     if "intron" in annotation["type"].unique().to_list():
+        check_df(annotation, ["start", "end", "type", "strand", "seqnames", transcript_id_column, "exon_number"])
         # Separate intron data if present
         introns = annotation.filter(pl.col("type") == "intron")
     else:
