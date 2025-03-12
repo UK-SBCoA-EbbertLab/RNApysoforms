@@ -82,6 +82,7 @@ def shorten_gaps(
     - The function ensures that exon and CDS regions maintain their original lengths, while intron gaps and transcript start
       gaps are shortened.
     - If intron entries are not present in the input DataFrame, the function generates them using the 'to_intron' function.
+    - If 'exon_number' is not present in the input DataFrame, it will be automatically calculated.
     - The input DataFrame must contain the required columns listed above.
     - The function processes gaps at the start of transcripts to align transcripts for consistent rescaling.
     - After shortening gaps, the coordinates are rescaled to maintain the relative positions of features within and across transcripts.

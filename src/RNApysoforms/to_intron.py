@@ -69,6 +69,7 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
     -----
     - The function filters out invalid introns where `start` or `end` is null, and introns with length ≤ 1 are discarded.
     - The input DataFrame must contain the required columns listed above.
+    - If 'exon_number' is not present in the input DataFrame, it will be automatically calculated.
     - The function can handle input DataFrames with or without existing intron entries. If intron entries are absent, the function generates them.
     - Additional genomic features (e.g., CDS) present in the input DataFrame are retained and merged with intron entries.
     - The function does not adjust intron positions by adding or subtracting 1; intron positions are directly taken from exon boundaries.
