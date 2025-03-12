@@ -109,6 +109,8 @@ def shorten_gaps(
         annotation = to_intron(annotation=annotation, transcript_id_column=transcript_id_column)
         introns = annotation.filter(pl.col("type") == "intron")  # Separate intron data
     
+    check_df(annotation, ["start", "end", "type", "strand", "seqnames", transcript_id_column, "exon_number"])
+    
 
     # Check if there are CDS entries in the annotation data
     if "CDS" in annotation["type"].unique().to_list():
@@ -656,7 +658,7 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
 
     # Identify common columns to join CDS and exons on (e.g., transcript_id)
     if [transcript_id_column, "exon_number"] not in cds_regions.columns or [transcript_id_column, "exon_number"] not in exons.columns:
-        raise ValueError("Missing necessary 'exon_number' and '" + transcript_id_column + "' columns needed to join CDS and exons.")
+        raise ValueError("Missing necessary 'exon_number' and/or '" + transcript_id_column + "' columns needed to join CDS and exons.")
 
     # Perform left join between CDS and exon data on the common columns
     cds_exon_diff = cds_regions.join(exons[[transcript_id_column, "exon_number", "exon_start", "exon_end"]], on=[transcript_id_column, "exon_number"], how='left')
