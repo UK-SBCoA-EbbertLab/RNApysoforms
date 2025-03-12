@@ -88,6 +88,9 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
 
     if "exon_number" not in annotation.columns:
         annotation = calculate_exon_number(annotation, transcript_id_column)
+        
+    ## Define output columns
+    output_columns = annotation.columns
 
     ## Make sure annotation has no introns
     if not annotation.filter(pl.col("type") == "intron").is_empty():
@@ -184,7 +187,7 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
     ])
 
     # Reorder intron columns to match the order of exons for consistency
-    introns = introns[exons.columns]
+    introns = introns[output_columns]
 
     # Concatenate exons, other features, and introns into a single DataFrame
     combined_annotation = pl.concat([exons, other_features, introns])
