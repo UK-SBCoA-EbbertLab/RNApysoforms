@@ -48,3 +48,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Increase infer_schema_length when reading counts matrix to avoid type errors.
 
+
+
+## [1.1.0] - 2025-03-12
+### Added
+- to_intron now automatically calculates exon number if it is not already present.
+- shorten_gaps now automatically calculates exon_number if it is not already present.
+- Adressed issue reported on https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/issues/6#issuecomment-2719061461, improving generalizability of the shorten gaps function
+- Improved documentation for read_ensembl_gtf()
+
