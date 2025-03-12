@@ -162,6 +162,26 @@ def test_shorten_gaps_missing_required_columns():
     with pytest.raises(ValueError):
         shorten_gaps(df)
 
+def test_shorten_gaps_auto_calculate_exon_number():
+    """
+    Test that shorten_gaps automatically calculates exon_number when it's missing.
+    """
+    # DataFrame without 'exon_number' column
+    df = pl.DataFrame({
+        "seqnames": ["chr1", "chr1", "chr1"],
+        "start": [1000, 2000, 3000],
+        "end": [1500, 2500, 3500],
+        "type": ["exon", "exon", "exon"],
+        "transcript_id": ["tx1", "tx1", "tx1"],
+        "strand": ["+", "+", "+"]
+    })
+
+    # Call shorten_gaps function
+    result_df = shorten_gaps(df)
+
+    # Check that exon_number column exists in the result
+    assert "exon_number" in result_df.columns, "exon_number column should be automatically calculated"
+
 def test_shorten_gaps_no_gaps():
     """
     Test shorten_gaps with exons that are adjacent (no gaps) to ensure no shortening occurs.
