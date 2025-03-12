@@ -1,6 +1,6 @@
 import polars as pl
 from RNApysoforms.utils import check_df
-
+from RNApysoforms.calculate_exon_number import calculate_exon_number
 
 def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_id") -> pl.DataFrame:
     """
@@ -83,8 +83,10 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
         )
 
     # Validate the input DataFrame to ensure required columns are present
-    check_df(annotation, ["seqnames", "start", "end", "type", "exon_number", transcript_id_column])
+    check_df(annotation, ["seqnames", "start", "strand", "end", "type", transcript_id_column])
 
+    if "exon_number" not in annotation.columns:
+        annotation = calculate_exon_number(annotation, transcript_id_column)
 
     ## Make sure annotation has no introns
     if not annotation.filter(pl.col("type") == "intron").is_empty():
