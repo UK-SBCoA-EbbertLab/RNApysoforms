@@ -1,6 +1,6 @@
 import polars as pl
 from RNApysoforms.utils import check_df
-
+from RNApysoforms.calculate_exon_number import calculate_exon_number
 
 def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_id") -> pl.DataFrame:
     """
@@ -69,6 +69,7 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
     -----
     - The function filters out invalid introns where `start` or `end` is null, and introns with length ≤ 1 are discarded.
     - The input DataFrame must contain the required columns listed above.
+    - If 'exon_number' is not present in the input DataFrame, it will be automatically calculated.
     - The function can handle input DataFrames with or without existing intron entries. If intron entries are absent, the function generates them.
     - Additional genomic features (e.g., CDS) present in the input DataFrame are retained and merged with intron entries.
     - The function does not adjust intron positions by adding or subtracting 1; intron positions are directly taken from exon boundaries.
@@ -83,8 +84,13 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
         )
 
     # Validate the input DataFrame to ensure required columns are present
-    check_df(annotation, ["seqnames", "start", "end", "type", "exon_number", transcript_id_column])
+    check_df(annotation, ["seqnames", "start", "strand", "end", "type", transcript_id_column])
 
+    if "exon_number" not in annotation.columns:
+        annotation = calculate_exon_number(annotation, transcript_id_column)
+        
+    ## Define output columns
+    output_columns = annotation.columns
 
     ## Make sure annotation has no introns
     if not annotation.filter(pl.col("type") == "intron").is_empty():
@@ -181,7 +187,7 @@ def to_intron(annotation: pl.DataFrame, transcript_id_column: str = "transcript_
     ])
 
     # Reorder intron columns to match the order of exons for consistency
-    introns = introns[exons.columns]
+    introns = introns[output_columns]
 
     # Concatenate exons, other features, and introns into a single DataFrame
     combined_annotation = pl.concat([exons, other_features, introns])

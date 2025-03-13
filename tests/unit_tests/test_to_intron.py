@@ -143,12 +143,37 @@ def test_to_intron_missing_required_columns():
         "start": [100],
         "end": [200],
         "type": ["exon"],
-        "transcript_id": ["tx1"],
-        "strand": ["+"]
+        "transcript_id": ["tx1"]
     })
 
     with pytest.raises(ValueError):
         to_intron(df)
+
+
+def test_to_intron_auto_calculate_exon_number():
+    """
+    Test that to_intron automatically calculates exon_number when it's missing.
+    """
+    # DataFrame without 'exon_number' column
+    df = pl.DataFrame({
+        "seqnames": ["chr1", "chr1", "chr1"],
+        "start": [100, 200, 300],
+        "end": [150, 250, 350],
+        "type": ["exon", "exon", "exon"],
+        "transcript_id": ["tx1", "tx1", "tx1"],
+        "strand": ["+", "+", "+"]
+    })
+
+    # Call to_intron function
+    result_df = to_intron(df)
+
+    # Check that exon_number column exists in the result
+    assert "exon_number" in result_df.columns, "exon_number column should be automatically calculated"
+    
+    # Check that exon_number values are correctly assigned
+    exons = result_df.filter(pl.col("type") == "exon").sort("start")
+    expected_exon_numbers = [1, 2, 3]
+    assert exons["exon_number"].to_list() == expected_exon_numbers, f"Expected exon numbers {expected_exon_numbers}, got {exons['exon_number'].to_list()}."
 
 def test_to_intron_invalid_input_type():
     """

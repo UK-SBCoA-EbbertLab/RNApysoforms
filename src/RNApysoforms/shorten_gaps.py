@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 from typing import List, Union
 from RNApysoforms.to_intron import to_intron
 from RNApysoforms.utils import check_df
+from RNApysoforms.calculate_exon_number import calculate_exon_number
 
 
 def shorten_gaps(
@@ -81,6 +82,7 @@ def shorten_gaps(
     - The function ensures that exon and CDS regions maintain their original lengths, while intron gaps and transcript start
       gaps are shortened.
     - If intron entries are not present in the input DataFrame, the function generates them using the 'to_intron' function.
+    - If 'exon_number' is not present in the input DataFrame, it will be automatically calculated.
     - The input DataFrame must contain the required columns listed above.
     - The function processes gaps at the start of transcripts to align transcripts for consistent rescaling.
     - After shortening gaps, the coordinates are rescaled to maintain the relative positions of features within and across transcripts.
@@ -99,12 +101,16 @@ def shorten_gaps(
 
     # Check if there are intron entries in the annotation data
     if "intron" in annotation["type"].unique().to_list():
+        check_df(annotation, ["start", "end", "type", "strand", "seqnames", transcript_id_column, "exon_number"])
         # Separate intron data if present
         introns = annotation.filter(pl.col("type") == "intron")
     else:
         # Generate intron entries if they are not present
         annotation = to_intron(annotation=annotation, transcript_id_column=transcript_id_column)
         introns = annotation.filter(pl.col("type") == "intron")  # Separate intron data
+
+    check_df(annotation, ["start", "end", "type", "strand", "seqnames", transcript_id_column, "exon_number"])
+    
 
     # Check if there are CDS entries in the annotation data
     if "CDS" in annotation["type"].unique().to_list():
@@ -147,10 +153,13 @@ def shorten_gaps(
     # Process CDS regions if available
     if isinstance(cds, pl.DataFrame):
         # Calculate differences between exons and CDS regions
-        cds_diff = _get_cds_exon_difference(exons, cds)
+        cds_diff = _get_cds_exon_difference(exons, cds, transcript_id_column)
         # Rescale CDS regions based on the rescaled exons
-        rescaled_cds = _get_rescale_cds(cds_diff, rescaled_tx.filter(pl.col("type") == "exon"))
-        rescaled_cds = rescaled_cds[rescaled_tx.columns]
+        rescaled_cds = _get_rescale_cds(cds_diff, rescaled_tx.filter(pl.col("type") == "exon"), transcript_id_column)
+        ## Prepare data for concatenation
+        final_columns = annotation.columns + ["rescaled_start", "rescaled_end"]
+        rescaled_cds = rescaled_cds[final_columns]
+        rescaled_tx = rescaled_tx[final_columns]
         # Combine the rescaled CDS data into the final DataFrame
         rescaled_tx = pl.concat([rescaled_tx, rescaled_cds])
 
@@ -609,7 +618,7 @@ def _get_rescaled_txs(
     return rescaled_tx  # Return the rescaled transcript coordinates
 
 
-def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.DataFrame) -> pl.DataFrame:
+def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.DataFrame, transcript_id_column: str) -> pl.DataFrame:
     """
     Calculates the absolute differences between the start and end positions of exons and CDS regions.
 
@@ -619,6 +628,8 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
         DataFrame containing exon regions.
     gene_cds_regions : pl.DataFrame
         DataFrame containing CDS (Coding DNA Sequence) regions.
+    transcript_id_column : str
+        The column name that identifies transcript groups within the DataFrame.
 
     Returns
     -------
@@ -628,11 +639,11 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
     Raises
     ------
     ValueError
-        If there are no common columns to join on between CDS and exons.
+        If the required columns 'exon_number' and transcript_id_column are missing from either DataFrame.
 
     Notes
     -----
-    - The function joins CDS and exon DataFrames on common columns (e.g., 'transcript_id') to align corresponding regions.
+    - The function joins CDS and exon DataFrames on transcript_id_column and 'exon_number' to align corresponding regions.
     - It calculates the absolute differences between exon and CDS start and end positions to identify discrepancies.
     """
 
@@ -650,13 +661,15 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
     if 'type' in exons.columns:
         exons = exons.drop('type')
 
+    ## Define required columns
+    required_columns = [transcript_id_column, "exon_number"]
+
     # Identify common columns to join CDS and exons on (e.g., transcript_id)
-    common_columns = list(set(cds_regions.columns) & set(exons.columns))
-    if not common_columns:
-        raise ValueError("No common columns to join on. Ensure both DataFrames have common keys.")
+    if not all(col in cds_regions.columns for col in required_columns) or not all(col in exons.columns for col in required_columns):
+        raise ValueError("Missing necessary 'exon_number' and/or '" + transcript_id_column + "' columns needed to join CDS and exons.")
 
     # Perform left join between CDS and exon data on the common columns
-    cds_exon_diff = cds_regions.join(exons, on=common_columns, how='left')
+    cds_exon_diff = cds_regions.join(exons[[transcript_id_column, "exon_number", "exon_start", "exon_end"]], on=required_columns, how='left')
 
     # Calculate absolute differences between exon and CDS start positions
     cds_exon_diff = cds_exon_diff.with_columns(
@@ -671,7 +684,7 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
     return cds_exon_diff  # Return the DataFrame with differences
 
 
-def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFrame) -> pl.DataFrame:
+def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFrame, transcript_id_column: str) -> pl.DataFrame:
     """
     Rescales CDS regions based on exon positions and the calculated differences between them.
 
@@ -681,6 +694,8 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
         DataFrame with differences between exon and CDS start/end positions.
     gene_rescaled_exons : pl.DataFrame
         DataFrame containing rescaled exon positions.
+    transcript_id_column : str
+        The column name that identifies transcript groups within the DataFrame.
 
     Returns
     -------
@@ -690,11 +705,12 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
     Raises
     ------
     ValueError
-        If there are no common columns to join on between CDS differences and rescaled exons.
+        If the required columns 'exon_number' and transcript_id_column are missing from either DataFrame.
 
     Notes
     -----
-    - The function adjusts CDS start and end positions based on the rescaled exon positions and the previously calculated differences.
+    - The function joins CDS differences and rescaled exons on transcript_id_column and 'exon_number'.
+    - It adjusts CDS start and end positions based on the rescaled exon positions and the previously calculated differences.
     - It ensures that CDS regions are accurately positioned relative to exons after rescaling.
     """
 
@@ -714,13 +730,15 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
     if 'type' in exons_prepared.columns:
         exons_prepared = exons_prepared.drop('type')
 
-    # Identify common columns to join CDS and rescaled exons
-    common_columns = [col for col in cds_prepared.columns if col in exons_prepared.columns]
-    if not common_columns:
-        raise ValueError("No common columns to join on. Ensure both DataFrames have common keys.")
+    ## Define required columns
+    required_columns = [transcript_id_column, "exon_number"]
 
+    # Identify common columns to join CDS and exons on (e.g., transcript_id)
+    if not all(col in cds_prepared.columns for col in required_columns) or not all(col in exons_prepared.columns for col in required_columns):
+        raise ValueError("Missing necessary 'exon_number' and '" + transcript_id_column + "' columns needed to join CDS and exons.")
+    
     # Perform left join on common columns
-    gene_rescaled_cds = cds_prepared.join(exons_prepared, on=common_columns, how='left')
+    gene_rescaled_cds = cds_prepared.join(exons_prepared[[transcript_id_column, "exon_number", "exon_start", "exon_end"]], on=required_columns, how='left')
 
     # Adjust start and end positions of CDS based on exon positions
     gene_rescaled_cds = gene_rescaled_cds.with_columns([
