@@ -72,13 +72,7 @@ def test_wonky_gtf_visualization():
         pl.col("attributes").str.extract(r'CDS_id "([^"]+)"', 1).alias("CDS_id"),
         pl.col("attributes").str.extract(r'CDS_status "([^"]+)"', 1).alias("CDS_status")
     ])
-
-    # Calculate exon numbers for each transcript
-    gtf = RNApy.calculate_exon_number(gtf)
-
-    # Cast 'exon_number' to Int64, handling possible nulls
-    gtf = gtf.with_columns([pl.col("exon_number").cast(pl.Int64, strict=False)])
-
+    
     # Filter to specific transcripts of interest
     transcripts_to_keep = [
         "MYB:::ENST00000420123.6__NA__remap-9569__NA", 
