@@ -156,7 +156,10 @@ def shorten_gaps(
         cds_diff = _get_cds_exon_difference(exons, cds, transcript_id_column)
         # Rescale CDS regions based on the rescaled exons
         rescaled_cds = _get_rescale_cds(cds_diff, rescaled_tx.filter(pl.col("type") == "exon"), transcript_id_column)
-        rescaled_cds = rescaled_cds[rescaled_tx.columns]
+        ## Prepare data for concatenation
+        final_columns = annotation.columns + ["rescaled_start", "rescaled_end"]
+        rescaled_cds = rescaled_cds[final_columns]
+        rescaled_tx = rescaled_tx[final_columns]
         # Combine the rescaled CDS data into the final DataFrame
         rescaled_tx = pl.concat([rescaled_tx, rescaled_cds])
 
@@ -662,7 +665,7 @@ def _get_cds_exon_difference(gene_exons: pl.DataFrame, gene_cds_regions: pl.Data
     required_columns = [transcript_id_column, "exon_number"]
 
     # Identify common columns to join CDS and exons on (e.g., transcript_id)
-    if not required_columns.issubset(set(cds_regions.columns)) or not required_columns.issubset(set(exons.columns)):
+    if not all(col in cds_regions.columns for col in required_columns) or not all(col in exons.columns for col in required_columns):
         raise ValueError("Missing necessary 'exon_number' and/or '" + transcript_id_column + "' columns needed to join CDS and exons.")
 
     # Perform left join between CDS and exon data on the common columns
@@ -731,7 +734,7 @@ def _get_rescale_cds(cds_exon_diff: pl.DataFrame, gene_rescaled_exons: pl.DataFr
     required_columns = [transcript_id_column, "exon_number"]
 
     # Identify common columns to join CDS and exons on (e.g., transcript_id)
-    if not required_columns.issubset(set(cds_regions.columns)) or not required_columns.issubset(set(exons.columns)):
+    if not all(col in cds_prepared.columns for col in required_columns) or not all(col in exons_prepared.columns for col in required_columns):
         raise ValueError("Missing necessary 'exon_number' and '" + transcript_id_column + "' columns needed to join CDS and exons.")
     
     # Perform left join on common columns
