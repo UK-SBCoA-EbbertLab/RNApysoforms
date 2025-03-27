@@ -57,6 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adressed issue reported on https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/issues/6#issuecomment-2719061461, improving generalizability of the shorten gaps function
 - Improved documentation for read_ensembl_gtf()
 
-## [1.2.0] - 2025-03-27
+## [1.2.7] - 2025-03-27
 ### Added
 - Correction to make the legend for expression match the order of the expression boxes.
