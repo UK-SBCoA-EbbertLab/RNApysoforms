@@ -572,9 +572,6 @@ def make_traces(
                         else:
                             real_expression_plot_title = ""
                     
-                    print()
-                    print(hue_val)
-                    print(str(number_to_subtract_from - rank))
                             
                     # Create the appropriate plot based on 'expression_plot_style'
                     if expression_plot_style == "boxplot":

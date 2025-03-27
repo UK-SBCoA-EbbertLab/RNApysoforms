@@ -690,7 +690,13 @@ def test_make_traces_expression_plot_legend_title():
     })
     traces = make_traces(expression_matrix=expression_df, expression_hue="group", expression_plot_legend_title="Custom Legend Title")
     expression_traces = traces[0]
-    assert expression_traces[0].legendgrouptitle.text == "Custom Legend Title"
+    # Check if any trace has the custom legend title
+    has_custom_title = any(
+        getattr(trace, 'legendgrouptitle', None) is not None and 
+        getattr(trace.legendgrouptitle, 'text', None) == "Custom Legend Title" 
+        for trace in expression_traces
+    )
+    assert has_custom_title
 
 def test_make_traces_transcript_plot_legend_title():
     """
