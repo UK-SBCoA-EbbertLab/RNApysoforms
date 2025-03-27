@@ -376,6 +376,9 @@ def make_traces(
 
         # Create a list to keep track of hue values already displayed in the legend
         displayed_hue_names = []
+        
+        ## Create legend rank for annotation
+        rank_annot = 0
 
         # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
         for row in annotation.iter_rows(named=True):
@@ -395,6 +398,7 @@ def make_traces(
                 display_legend = False
             else:
                 display_legend = True
+                rank_annot += 1
 
             # Define hover template with feature type, number, start, and end positions for each row
             feature_size = abs((row[hover_end] - row[hover_start]) + 1)
@@ -435,7 +439,8 @@ def make_traces(
                     hoverlabel=dict(namelength=-1),
                     hoveron='fills+points',
                     hoverinfo='text',
-                    legendgrouptitle_text=transcript_plot_legend_title
+                    legendgrouptitle_text=transcript_plot_legend_title,
+                    legendrank=rank_annot
                 )
                 exon_traces.append(trace)
                 # Prevent duplicate legend entries
@@ -474,7 +479,8 @@ def make_traces(
                     hoverlabel=dict(namelength=-1),
                     hoveron='fills+points',
                     hoverinfo='text',
-                    legendgrouptitle_text=cds_legend_title
+                    legendgrouptitle_text=cds_legend_title,
+                    legendrank=rank_annot
                 )
                 cds_traces.append(trace)
                 # Prevent duplicate legend entries
@@ -544,18 +550,32 @@ def make_traces(
         if expression_hue is not None:
             # List all unique hue values
             unique_hues = expression_matrix[expression_hue].unique(maintain_order=True).to_list()
-            # Create offset mapping for grouped plots
-            offset_dict = {
-                            val: i
-                            for i, val in enumerate(reversed(unique_hues))
-                            }
 
             # Iterate over expression columns
             for x in expression_columns:
                 x_traces_list = []
                 # Iterate over each unique hue to create traces
-                for hue_val in unique_hues:
+                for rank, hue_val in enumerate(unique_hues):
+
                     hue_filtered_df = expression_matrix.filter(pl.col(expression_hue) == hue_val)
+
+                    if annotation_hue is not None:
+                        number_to_subtract_from = len(unique_hues) + len(annotation[annotation_hue].unique().to_list())
+                        if (number_to_subtract_from - len(annotation[annotation_hue].unique().to_list()) - rank - 1) == 0:
+                            real_expression_plot_title = expression_plot_legend_title
+                        else:
+                            real_expression_plot_title = ""
+                    else:
+                        number_to_subtract_from = len(unique_hues)
+                        if (number_to_subtract_from - rank - 1) == 0:
+                            real_expression_plot_title = expression_plot_legend_title
+                        else:
+                            real_expression_plot_title = ""
+                    
+                    print()
+                    print(hue_val)
+                    print(str(number_to_subtract_from - rank))
+                            
                     # Create the appropriate plot based on 'expression_plot_style'
                     if expression_plot_style == "boxplot":
                         box_trace = go.Box(
@@ -572,11 +592,13 @@ def make_traces(
                             orientation='h',
                             legendgroup=str(hue_val),
                             showlegend=show_legend,
-                            offsetgroup=offset_dict[hue_val],
+                            offsetgroup=number_to_subtract_from - rank,
                             opacity=expression_plot_opacity,
                             marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
-                            legendgrouptitle_text=expression_plot_legend_title,
+                            legendgrouptitle_text=real_expression_plot_title,
+                            legendrank=number_to_subtract_from - rank
                         )
+
                     elif expression_plot_style == "violin":
                         box_trace = go.Violin(
                             y=hue_filtered_df["y_pos"].to_list(),
@@ -592,16 +614,16 @@ def make_traces(
                             orientation='h',
                             legendgroup=str(hue_val),
                             showlegend=show_legend,
-                            offsetgroup=offset_dict[hue_val],
+                            offsetgroup=number_to_subtract_from - rank - 1,
                             opacity=expression_plot_opacity,
                             marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
-                            legendgrouptitle_text=expression_plot_legend_title,
-                            spanmode=spanmode
+                            legendgrouptitle_text=real_expression_plot_title,
+                            spanmode=spanmode,
+                            legendrank=number_to_subtract_from - rank - 1
                         )
                     else:
                         raise ValueError(f"Invalid expression_plot_style: {expression_plot_style}")
                     x_traces_list.append(box_trace)
-                    expression_plot_legend_title = ""  # Reset legend title after first use
                 show_legend = False  # Only show legend once
                 expression_traces.append(x_traces_list)
 
