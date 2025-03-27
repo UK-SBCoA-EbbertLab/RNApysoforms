@@ -545,7 +545,10 @@ def make_traces(
             # List all unique hue values
             unique_hues = expression_matrix[expression_hue].unique(maintain_order=True).to_list()
             # Create offset mapping for grouped plots
-            offset_dict = {val: i for i, val in enumerate(unique_hues)}
+            offset_dict = {
+                            val: i
+                            for i, val in enumerate(reversed(unique_hues))
+                            }
 
             # Iterate over expression columns
             for x in expression_columns:
