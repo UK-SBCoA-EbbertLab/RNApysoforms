@@ -85,7 +85,7 @@ def make_plot(
         Font size for hover text labels. Default is 12.
     hovermode : str, optional
         Hover mode for the figure. Options include "closest", "x", "y", "x unified", "y unified", etc. Default is "closest".
-    columns_widths: list, optional
+    column_widths: list, optional
         A list of floats containing the same number of items as the number of subplots you are trying to generate.
         For a figure with three subplots you could pass [0.4, 0.3, 0.3] to make the first subplot take up
         40% of the horizontal space and the second and third subplot each take 30% of the horizontal space.
