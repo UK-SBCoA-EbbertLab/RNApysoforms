@@ -348,6 +348,10 @@ def make_traces(
         expression_color_map = expression_fill_color
 
     transcript_traces = []
+    print("\nSTARTING TRANSCRIPT TRACES\n")
+
+    ## Create legend rank for annotation
+    rank_annot = 0
 
     # Process 'annotation' to create transcript structure traces
     if annotation is not None:
@@ -377,11 +381,8 @@ def make_traces(
         # Create a list to keep track of hue values already displayed in the legend
         displayed_hue_names = []
         
-        ## Create legend rank for annotation
-        rank_annot = 0
-
         # Iterate over each row in the DataFrame to create traces for exons, CDS, and introns
-        for row in annotation.iter_rows(named=True):
+        for row in annotation.reverse().iter_rows(named=True):
 
             y_pos = y_dict[row[y]]  # Get the corresponding y-position for the current transcript
 
@@ -393,12 +394,7 @@ def make_traces(
                 exon_and_cds_color = annotation_color_map.get(row[annotation_hue], annotation_fill_color)
                 hue_name = row[annotation_hue]
 
-            # Determine whether to display the legend entry for this hue value
-            if hue_name in displayed_hue_names:
-                display_legend = False
-            else:
-                display_legend = True
-                rank_annot += 1
+                
 
             # Define hover template with feature type, number, start, and end positions for each row
             feature_size = abs((row[hover_end] - row[hover_start]) + 1)
@@ -413,8 +409,27 @@ def make_traces(
                 "<extra></extra>"
             )
 
+
+
             # Create trace based on the feature type
             if row["type"] == exon:
+
+
+                # Determine whether to display the legend entry for this hue value
+                if hue_name in displayed_hue_names:
+                    display_legend = False
+                else:
+                    display_legend = True
+                    rank_annot += 1
+                    print(rank_annot)
+                    displayed_hue_names.append(hue_name)
+                    print(displayed_hue_names)
+
+                if rank_annot == 1:
+                    real_transcript_plot_legend_title = transcript_plot_legend_title
+                else:
+                    real_transcript_plot_legend_title = ""
+                
 
                 # Define coordinates for the exon rectangle
                 x0 = row[x_start]
@@ -439,22 +454,35 @@ def make_traces(
                     hoverlabel=dict(namelength=-1),
                     hoveron='fills+points',
                     hoverinfo='text',
-                    legendgrouptitle_text=transcript_plot_legend_title,
+                    legendgrouptitle_text=real_transcript_plot_legend_title,
                     legendrank=rank_annot
                 )
                 exon_traces.append(trace)
-                # Prevent duplicate legend entries
-                if hue_name not in displayed_hue_names:
-                    displayed_hue_names.append(hue_name)
-                if display_legend:
-                    transcript_plot_legend_title = ""  # Reset legend title after first use
+
+
 
             elif row["type"] == cds:
+
+                
+                # Determine whether to display the legend entry for this hue value
+                if hue_name in displayed_hue_names:
+                    display_legend = False
+                else:
+                    display_legend = True
+                    rank_annot += 1
+                    print(rank_annot)
+                    displayed_hue_names.append(hue_name)
+                    print(displayed_hue_names)
+
+                if rank_annot == 1:
+                    real_transcript_plot_legend_title = transcript_plot_legend_title
+                else:
+                    real_transcript_plot_legend_title = ""
 
                 if exons_exist:
                     cds_legend_title = ""
                 else: 
-                    cds_legend_title = transcript_plot_legend_title
+                    cds_legend_title = real_transcript_plot_legend_title
 
                 # Define coordinates for the CDS rectangle
                 x0 = row[x_start]
@@ -483,12 +511,9 @@ def make_traces(
                     legendrank=rank_annot
                 )
                 cds_traces.append(trace)
-                # Prevent duplicate legend entries
-                if hue_name not in displayed_hue_names:
-                    displayed_hue_names.append(hue_name)
                 
                 if not exons_exist:
-                    transcript_plot_legend_title = ""  # Reset legend title after first use
+                    real_transcript_plot_legend_title = ""  # Reset legend title after first use
 
             elif row["type"] == intron:
                 # Define coordinates for the intron line
@@ -549,7 +574,7 @@ def make_traces(
 
         if expression_hue is not None:
             # List all unique hue values
-            unique_hues = expression_matrix[expression_hue].unique(maintain_order=True).to_list()
+            unique_hues = expression_matrix[expression_hue].unique().sort(descending=True).to_list()
 
             # Iterate over expression columns
             for x in expression_columns:
@@ -559,18 +584,15 @@ def make_traces(
 
                     hue_filtered_df = expression_matrix.filter(pl.col(expression_hue) == hue_val)
 
-                    if annotation_hue is not None:
-                        number_to_subtract_from = len(unique_hues) + len(annotation[annotation_hue].unique().to_list())
-                        if (number_to_subtract_from - len(annotation[annotation_hue].unique().to_list()) - rank - 1) == 0:
-                            real_expression_plot_title = expression_plot_legend_title
-                        else:
-                            real_expression_plot_title = ""
+
+                    legend_rank = rank_annot + len(unique_hues) - rank
+                    offset_rank = str(legend_rank)
+
+                    if legend_rank == (rank_annot + 1):
+                        real_expression_plot_legend_title = expression_plot_legend_title
                     else:
-                        number_to_subtract_from = len(unique_hues)
-                        if (number_to_subtract_from - rank - 1) == 0:
-                            real_expression_plot_title = expression_plot_legend_title
-                        else:
-                            real_expression_plot_title = ""
+                        real_expression_plot_legend_title = ""
+
                     
                             
                     # Create the appropriate plot based on 'expression_plot_style'
@@ -589,11 +611,11 @@ def make_traces(
                             orientation='h',
                             legendgroup=str(hue_val),
                             showlegend=show_legend,
-                            offsetgroup=number_to_subtract_from - rank,
+                            offsetgroup=offset_rank,
                             opacity=expression_plot_opacity,
                             marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
-                            legendgrouptitle_text=real_expression_plot_title,
-                            legendrank=number_to_subtract_from - rank
+                            legendgrouptitle_text=real_expression_plot_legend_title,
+                            legendrank=legend_rank
                         )
 
                     elif expression_plot_style == "violin":
@@ -611,12 +633,12 @@ def make_traces(
                             orientation='h',
                             legendgroup=str(hue_val),
                             showlegend=show_legend,
-                            offsetgroup=number_to_subtract_from - rank - 1,
+                            offsetgroup=offset_rank,
                             opacity=expression_plot_opacity,
                             marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
-                            legendgrouptitle_text=real_expression_plot_title,
+                            legendgrouptitle_text=real_expression_plot_legend_title,
                             spanmode=spanmode,
-                            legendrank=number_to_subtract_from - rank - 1
+                            legendrank=legend_rank
                         )
                     else:
                         raise ValueError(f"Invalid expression_plot_style: {expression_plot_style}")
@@ -641,6 +663,8 @@ def make_traces(
                     sample_id = transcript_df[sample_id_column].to_list()
                     y_pos = y_dict[transcript]
 
+                    legend_rank = rank_annot + 1
+
                     # Create the appropriate plot based on 'expression_plot_style'
                     if expression_plot_style == "boxplot":
                         box_trace = go.Box(
@@ -660,7 +684,8 @@ def make_traces(
                             opacity=expression_plot_opacity,
                             marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
                             legendgrouptitle_text=expression_plot_legend_title,
-                            legendgroup="expression"
+                            legendgroup="expression",
+                            legendrank=legend_rank
                         )
                     elif expression_plot_style == "violin":
                         box_trace = go.Violin(
@@ -681,7 +706,8 @@ def make_traces(
                             marker=dict(opacity=marker_opacity, size=marker_size, color=marker_color),
                             legendgrouptitle_text=expression_plot_legend_title,
                             legendgroup="expression",
-                            spanmode=spanmode
+                            spanmode=spanmode,
+                            legendrank=legend_rank
                         )
                     else:
                         raise ValueError(f"Invalid expression_plot_style: {expression_plot_style}")
