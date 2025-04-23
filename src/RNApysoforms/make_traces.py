@@ -348,7 +348,6 @@ def make_traces(
         expression_color_map = expression_fill_color
 
     transcript_traces = []
-    print("\nSTARTING TRANSCRIPT TRACES\n")
 
     ## Create legend rank for annotation
     rank_annot = 0
@@ -470,9 +469,7 @@ def make_traces(
                 else:
                     display_legend = True
                     rank_annot += 1
-                    print(rank_annot)
                     displayed_hue_names.append(hue_name)
-                    print(displayed_hue_names)
 
                 if rank_annot == 1:
                     real_transcript_plot_legend_title = transcript_plot_legend_title
