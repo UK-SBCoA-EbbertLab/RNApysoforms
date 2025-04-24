@@ -420,9 +420,7 @@ def make_traces(
                 else:
                     display_legend = True
                     rank_annot += 1
-                    print(rank_annot)
                     displayed_hue_names.append(hue_name)
-                    print(displayed_hue_names)
 
                 if rank_annot == 1:
                     real_transcript_plot_legend_title = transcript_plot_legend_title

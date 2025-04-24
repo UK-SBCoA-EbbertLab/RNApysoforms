@@ -70,3 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.9] - 2025-04-23
 ### Added
 - Removed debugging print statements
+
+## [1.2.10] - 2025-04-24
+### Added
+- Further removed debugging print statements
