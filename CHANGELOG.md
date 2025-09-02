@@ -74,3 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.10] - 2025-04-24
 ### Added
 - Further removed debugging print statements
+
+## [1.2.20] - 2025-09-02
+### Added
+- Updated dependencies

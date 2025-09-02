@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name="RNApysoforms",
-    version="1.2.10",
+    version="1.2.20",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=[
 
-    "plotly>=5.0,<6.0",
+    "plotly>=5.0",
     "polars[excel]>=1.0,<2.0",
     "pyarrow>=17.0,<18.0",
     "pandas>=1.3,<3.0"
