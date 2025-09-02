@@ -143,7 +143,7 @@ def gene_filtering(
 
         # Filter the expression matrix to include only transcripts present in the filtered annotation
         filtered_expression_matrix = expression_matrix.filter(
-            pl.col(transcript_id_column).is_in(filtered_annotation[transcript_id_column].implode())
+            pl.col(transcript_id_column).is_in(filtered_annotation[transcript_id_column].to_list())
         )
 
         # If the filtered expression matrix is empty after filtering, raise a ValueError

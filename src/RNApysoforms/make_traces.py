@@ -264,11 +264,11 @@ def make_traces(
     if annotation is not None and expression_matrix is not None:
         # Filter 'expression_matrix' to include only transcripts present in 'annotation'
         filtered_expression_matrix = expression_matrix.filter(
-            pl.col(y).is_in(annotation[y].implode())
+            pl.col(y).is_in(annotation[y].to_list())
         )
         # Filter 'annotation' to include only transcripts present in 'expression_matrix'
         filtered_annotation = annotation.filter(
-            pl.col(y).is_in(expression_matrix[y].implode())
+            pl.col(y).is_in(expression_matrix[y].to_list())
         )
         # Check if filtered data is empty and raise an error if true
         if filtered_expression_matrix.is_empty() or filtered_annotation.is_empty():
