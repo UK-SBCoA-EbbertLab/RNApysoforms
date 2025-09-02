@@ -143,7 +143,7 @@ def gene_filtering(
 
         # Filter the expression matrix to include only transcripts present in the filtered annotation
         filtered_expression_matrix = expression_matrix.filter(
-            pl.col(transcript_id_column).is_in(filtered_annotation[transcript_id_column])
+            pl.col(transcript_id_column).is_in(filtered_annotation[transcript_id_column].implode())
         )
 
         # If the filtered expression matrix is empty after filtering, raise a ValueError
@@ -174,10 +174,10 @@ def gene_filtering(
         # Ensure both filtered_annotation and filtered_expression_matrix contain only common transcripts
         common_transcripts = annotation_transcripts & expression_transcripts
         filtered_annotation = filtered_annotation.filter(
-            pl.col(transcript_id_column).is_in(common_transcripts)
+            pl.col(transcript_id_column).is_in(list(common_transcripts))
         )
         filtered_expression_matrix = filtered_expression_matrix.filter(
-            pl.col(transcript_id_column).is_in(common_transcripts)
+            pl.col(transcript_id_column).is_in(list(common_transcripts))
         )
 
         # Aggregate expression data to compute total expression per transcript
@@ -227,10 +227,10 @@ def gene_filtering(
 
         # Filter annotation and expression matrix to include only the selected transcripts
         filtered_annotation = filtered_annotation.filter(
-            pl.col(transcript_id_column).is_in(transcripts_to_keep)
+            pl.col(transcript_id_column).is_in(transcripts_to_keep.to_list())
         )
         filtered_expression_matrix = filtered_expression_matrix.filter(
-            pl.col(transcript_id_column).is_in(transcripts_to_keep)
+            pl.col(transcript_id_column).is_in(transcripts_to_keep.to_list())
         )
 
         # Return the filtered annotation and expression matrix

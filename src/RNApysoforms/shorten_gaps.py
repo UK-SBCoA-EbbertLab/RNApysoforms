@@ -454,7 +454,7 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
     # Update 'shorten_type' for gaps that exactly match exons/introns
     if 'equal' in gap_map and 'df_index' in gap_map['equal'].columns:
         df = df.with_columns(
-            pl.when(pl.col("df_index").is_in(gap_map["equal"]["df_index"]))
+            pl.when(pl.col("df_index").is_in(gap_map["equal"]["df_index"].to_list()))
             .then(pl.lit("equal"))
             .otherwise(pl.col("shorten_type"))
             .alias("shorten_type")
@@ -463,7 +463,7 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
     # Update 'shorten_type' for gaps fully within exons/introns
     if 'pure_within' in gap_map and 'df_index' in gap_map['pure_within'].columns:
         df = df.with_columns(
-            pl.when(pl.col("df_index").is_in(gap_map['pure_within']['df_index']))
+            pl.when(pl.col("df_index").is_in(gap_map['pure_within']['df_index'].to_list()))
             .then(pl.lit("pure_within"))
             .otherwise(pl.col("shorten_type"))
             .alias("shorten_type")
@@ -484,7 +484,7 @@ def _get_shortened_gaps(df: pl.DataFrame, gaps: pl.DataFrame, gap_map: dict,
 
         if len(overlapping_gap_indexes) > 0:
             # Calculate the width of overlapping gaps
-            overlapping_gaps = gaps.filter(pl.col("gap_index").is_in(overlapping_gap_indexes))
+            overlapping_gaps = gaps.filter(pl.col("gap_index").is_in(overlapping_gap_indexes.to_list()))
             overlapping_gaps = overlapping_gaps.with_columns(
                 (pl.col('end') - pl.col('start') + 1).alias('gap_width')
             )

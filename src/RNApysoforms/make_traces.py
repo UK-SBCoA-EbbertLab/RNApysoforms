@@ -264,11 +264,11 @@ def make_traces(
     if annotation is not None and expression_matrix is not None:
         # Filter 'expression_matrix' to include only transcripts present in 'annotation'
         filtered_expression_matrix = expression_matrix.filter(
-            pl.col(y).is_in(annotation[y])
+            pl.col(y).is_in(annotation[y].implode())
         )
         # Filter 'annotation' to include only transcripts present in 'expression_matrix'
         filtered_annotation = annotation.filter(
-            pl.col(y).is_in(expression_matrix[y])
+            pl.col(y).is_in(expression_matrix[y].implode())
         )
         # Check if filtered data is empty and raise an error if true
         if filtered_expression_matrix.is_empty() or filtered_annotation.is_empty():
@@ -298,10 +298,10 @@ def make_traces(
         # Keep only common transcripts in both DataFrames
         common_transcripts = annotation_transcripts & expression_transcripts
         annotation = annotation.filter(
-            pl.col(y).is_in(common_transcripts)
+            pl.col(y).is_in(list(common_transcripts))
         )
         expression_matrix = expression_matrix.filter(
-            pl.col(y).is_in(common_transcripts)
+            pl.col(y).is_in(list(common_transcripts))
         )
 
     # Determine the ordering of transcripts
