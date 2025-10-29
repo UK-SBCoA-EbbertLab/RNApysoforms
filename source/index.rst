@@ -16,6 +16,8 @@ Functions Overview
    RNApysoforms.gene_filtering
    RNApysoforms.make_plot
    RNApysoforms.make_traces
+   RNApysoforms.process_ensembl_gtf
+   RNApysoforms.process_expression_matrix
    RNApysoforms.read_expression_matrix
    RNApysoforms.read_ensembl_gtf
    RNApysoforms.shorten_gaps
