@@ -14,5 +14,5 @@ from .make_traces import make_traces
 __all__ = ['shorten_gaps', 'to_intron', "read_ensembl_gtf", "process_ensembl_gtf", "make_traces",
            "read_expression_matrix", "process_expression_matrix", "gene_filtering", "calculate_exon_number", "make_plot"]
 
-__version__ = "1.2.11"
+__version__ = "1.3.0"
 

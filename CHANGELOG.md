@@ -86,5 +86,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0] - 2025-10-29
 ### Added
-- Added process_expression_matrix function to perform wrangling when df is already loaded.
-- Added process_ensembl_gtf function to perform wrangling when df is already loaded.
+- Added `process_expression_matrix()` function to perform wrangling when df is already loaded.
+- Added `process_ensembl_gtf()` function to perform wrangling when df is already loaded.
