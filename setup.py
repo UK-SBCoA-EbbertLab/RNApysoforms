@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="RNApysoforms",
-    version="1.2.12",
+    version="1.3.0",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=[
