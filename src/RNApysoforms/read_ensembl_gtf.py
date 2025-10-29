@@ -1,6 +1,143 @@
 import polars as pl
 import os
 
+def process_ensembl_gtf(gtf_df: pl.DataFrame) -> pl.DataFrame:
+    """
+    Processes an already-loaded GTF DataFrame to extract and format genomic features.
+
+    This function takes a Polars DataFrame containing GTF data and processes it by:
+    - Filtering for 'exon' and 'CDS' feature types
+    - Extracting key attributes (gene_id, gene_name, transcript_id, etc.) from the attributes column
+    - Filling missing gene_name and transcript_name with gene_id and transcript_id
+    - Validating that required attributes are present (consistent with 2024 ENSEMBL GTF format)
+    - Casting exon_number to Int64
+
+    This function is useful when you have already loaded your GTF data into a Polars DataFrame and want to process it
+    without reading from a file. If you need to read from a file, use :func:`read_ensembl_gtf` instead.
+
+    **Expected DataFrame Format:**
+    The input DataFrame should have the following columns (standard GTF format):
+        - `seqnames` (chromosome or sequence name)
+        - `source` (annotation source)
+        - `type` (feature type, e.g., 'exon', 'CDS')
+        - `start` (start position of the feature)
+        - `end` (end position of the feature)
+        - `score` (score value, often '.')
+        - `strand` (strand information, '+' or '-')
+        - `phase` (reading frame phase)
+        - `attributes` (semicolon-separated key-value pairs)
+
+    **Required Attributes in the attributes column:**
+    The function expects ENSEMBL-formatted attributes with the following keys:
+        - `gene_id` (required)
+        - `transcript_id` (required)
+        - `gene_name` (optional, will be filled with gene_id if missing)
+        - `transcript_name` (optional, will be filled with transcript_id if missing)
+        - `transcript_biotype` (required)
+        - `exon_number` (optional for exon/CDS features)
+
+    Parameters
+    ----------
+    gtf_df : pl.DataFrame
+        A Polars DataFrame containing GTF data in standard format with the expected columns.
+
+    Returns
+    -------
+    pl.DataFrame
+        A processed Polars DataFrame containing extracted gene and transcript features. The DataFrame includes
+        the following columns:
+        - `gene_id`: Identifier for the gene.
+        - `gene_name`: Name of the gene. If missing, filled with `gene_id`.
+        - `transcript_id`: Identifier for the transcript.
+        - `transcript_name`: Name of the transcript. If missing, filled with `transcript_id`.
+        - `transcript_biotype`: Biotype classification of the transcript.
+        - `seqnames`: Chromosome or sequence name.
+        - `strand`: Strand information ('+' or '-').
+        - `type`: Feature type ('exon' or 'CDS').
+        - `start`: Start position of the feature.
+        - `end`: End position of the feature.
+        - `exon_number`: Exon number within the transcript, cast to Int64.
+
+    Raises
+    ------
+    ValueError
+        If the GTF DataFrame is not consistent with the 2024 ENSEMBL GTF format (missing required attributes).
+
+    Examples
+    --------
+    Process an already-loaded GTF DataFrame:
+
+    >>> import polars as pl
+    >>> from RNApysoforms import process_ensembl_gtf
+    >>> 
+    >>> # Assume gtf_df is already loaded with standard GTF columns
+    >>> # gtf_df = pl.read_csv("file.gtf", separator="\t", has_header=False, ...)
+    >>> 
+    >>> processed_df = process_ensembl_gtf(gtf_df)
+    >>> print(processed_df.head())
+
+    Notes
+    -----
+    - The function filters out feature types other than 'exon' and 'CDS'.
+    - Regular expressions are used to extract specific attributes from the 'attributes' column.
+    - Missing `gene_name` and `transcript_name` values are filled with `gene_id` and `transcript_id`, respectively.
+    - The 'exon_number' field is cast to Int64, handling possible nulls without strict type enforcement.
+    - If required attributes (gene_id, transcript_id, transcript_biotype) are missing, a ValueError is raised.
+
+    See Also
+    --------
+    read_ensembl_gtf : Read and process GTF data from a file.
+    """
+
+    # Filter for features of interest: 'exon' and 'CDS'
+    filtered_df = gtf_df.filter(pl.col("type").is_in(["exon", "CDS"]))
+
+    # Extract attributes from the 'attributes' column using regular expressions
+    extracted_df = filtered_df.with_columns([
+        pl.col("attributes").str.extract(r'gene_id "([^"]+)"', 1).alias("gene_id"),
+        pl.col("attributes").str.extract(r'gene_name "([^"]+)"', 1).alias("gene_name"),
+        pl.col("attributes").str.extract(r'transcript_id "([^"]+)"', 1).alias("transcript_id"),
+        pl.col("attributes").str.extract(r'transcript_name "([^"]+)"', 1).alias("transcript_name"),
+        pl.col("attributes").str.extract(r'transcript_biotype "([^"]+)"', 1).alias("transcript_biotype"),
+        pl.col("attributes").str.extract(r'exon_number "([^"]+)"', 1).alias("exon_number")
+    ])
+
+    # Fill missing 'gene_name' and 'transcript_name' with 'gene_id' and 'transcript_id' respectively
+    filled_df = extracted_df.with_columns([
+        pl.col("gene_name").fill_null(pl.col("gene_id")),
+        pl.col("transcript_name").fill_null(pl.col("transcript_id"))
+    ])
+
+    # Select and reorder the relevant columns for the final DataFrame
+    result_df = filled_df.select([
+        "gene_id",
+        "gene_name",
+        "transcript_id",
+        "transcript_name",
+        "transcript_biotype",
+        "seqnames",
+        "strand",
+        "type",
+        "start",
+        "end",
+        "exon_number"
+    ])
+
+    # Check for any null values in the DataFrame
+    if result_df.null_count().select(pl.all().sum()).row(0)[0] > 0:
+        raise ValueError(
+            "This GTF file is not consistent with the 2024 ENSEMBL GTF format. \n"
+            "See this vignette with an example on how to handle other GTF formats: \n"
+            "https://rna-pysoforms.readthedocs.io/en/latest/examples/10.dealing_with_different_gtf_files.html"
+        )
+
+    # Cast 'exon_number' to Int64, handling possible nulls without strict type enforcement
+    result_df = result_df.with_columns([
+        pl.col("exon_number").cast(pl.Int64, strict=False)
+    ])
+
+    return result_df
+
 def read_ensembl_gtf(path: str) -> pl.DataFrame:
     """
     Reads a GTF (Gene Transfer Format) file and returns the data as a Polars DataFrame.
@@ -72,6 +209,10 @@ def read_ensembl_gtf(path: str) -> pl.DataFrame:
     - The 'exon_number' field is cast to Int64, handling possible nulls without strict type enforcement.
     - The function returns a collected Polars DataFrame after all lazy operations are executed.
     - An example ENSEMBL GTF file only containing data for human chromosomes 21 and Y can be found here: https://github.com/UK-SBCoA-EbbertLab/RNApysoforms/blob/main/tests/test_data/Homo_sapiens_chr21_and_Y.GRCh38.110.gtf
+
+    See Also
+    --------
+    process_ensembl_gtf : Process an already-loaded GTF DataFrame without reading from a file.
     """
 
     # Validate the file path to ensure it exists and is a file
@@ -119,53 +260,8 @@ def read_ensembl_gtf(path: str) -> pl.DataFrame:
         schema_overrides=dtypes             # Specify data types for each column
     )
 
-    # Filter for features of interest: 'exon' and 'CDS'
-    lazy_filtered = lazy_df.filter(pl.col("type").is_in(["exon", "CDS"]))
+    # Collect the lazy DataFrame
+    gtf_df = lazy_df.collect()
 
-    # Extract attributes from the 'attributes' column using regular expressions
-    lazy_extracted = lazy_filtered.with_columns([
-        pl.col("attributes").str.extract(r'gene_id "([^"]+)"', 1).alias("gene_id"),
-        pl.col("attributes").str.extract(r'gene_name "([^"]+)"', 1).alias("gene_name"),
-        pl.col("attributes").str.extract(r'transcript_id "([^"]+)"', 1).alias("transcript_id"),
-        pl.col("attributes").str.extract(r'transcript_name "([^"]+)"', 1).alias("transcript_name"),
-        pl.col("attributes").str.extract(r'transcript_biotype "([^"]+)"', 1).alias("transcript_biotype"),
-        pl.col("attributes").str.extract(r'exon_number "([^"]+)"', 1).alias("exon_number")
-    ])
-
-    # Fill missing 'gene_name' and 'transcript_name' with 'gene_id' and 'transcript_id' respectively
-    lazy_filled = lazy_extracted.with_columns([
-        pl.col("gene_name").fill_null(pl.col("gene_id")),
-        pl.col("transcript_name").fill_null(pl.col("transcript_id"))
-    ])
-
-    # Select and reorder the relevant columns for the final DataFrame
-    result_lazy = lazy_filled.select([
-        "gene_id",
-        "gene_name",
-        "transcript_id",
-        "transcript_name",
-        "transcript_biotype",
-        "seqnames",
-        "strand",
-        "type",
-        "start",
-        "end",
-        "exon_number"
-    ])
-
-    results_df = result_lazy.collect()
-
-    # Check for any null values in the DataFrame
-    if results_df.null_count().select(pl.all().sum()).row(0)[0] > 0:
-        raise ValueError(
-            "This GTF file is not consistent with the 2024 ENSEMBL GTF format. \n"
-            "See this vignette with an example on how to handle other GTF formats: \n"
-            "https://rna-pysoforms.readthedocs.io/en/latest/examples/10.dealing_with_different_gtf_files.html"
-        )
-
-    # Cast 'exon_number' to Int64, handling possible nulls without strict type enforcement
-    results_df = results_df.with_columns([
-        pl.col("exon_number").cast(pl.Int64, strict=False)
-    ])
-
-    return results_df  # Return the processed Polars DataFrame
+    # Process the GTF DataFrame using the process_ensembl_gtf function
+    return process_ensembl_gtf(gtf_df)
