@@ -80,7 +80,11 @@ The function implementations are under the `src/RNApysoforms` directory.
 
 - [read_expression_matrix()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.read_expression_matrix.html): Loads and processes an expression matrix, optionally merging with metadata, performing CPM normalization, and calculating relative transcript abundance.
 
+- [process_expression_matrix()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.process_ensembl_gtf.html): Same as `read_expression_matrix()`, but takes a polars dataframe as input instead of a file path.
+  
 - [read_ensembl_gtf()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.read_ensembl_gtf.html): Reads an ENSEMBL GTF (Gene Transfer Format) file and returns the data as a Polars DataFrame.
+
+- [process_ensembl_gtf()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.process_ensembl_gtf.html): Same as `read_ensembl_gtf()`, but takes a polars dataframe as input instead of a file path.
 
 - [shorten_gaps()](https://rna-pysoforms.readthedocs.io/en/latest/_autosummary/RNApysoforms.shorten_gaps.html): Shortens intron and transcript start gaps between exons in genomic annotations to enhance visualization.
 
